@@ -103,7 +103,28 @@
     </div>
   </div>
   <canvas id="gameCanvas" width="800" height="400"></canvas>
-  <script src="game.js"></script>
+  <!-- Mobile Gallery Overlay -->
+  <div id="mobile-gallery-overlay" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:#222;align-items:center;justify-content:center;flex-direction:column;">
+    <div id="mobile-splash" style="width:100vw;max-width:480px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <img src="assets/images/mobile-loading.png" alt="Mobile Splash" style="width:100%;max-width:480px;max-height:60vh;object-fit:contain;display:block;border-radius:18px;box-shadow:0 4px 24px #000a;">
+      <div style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;">
+        <div style="color:#fff;font-size:1.3rem;text-align:center;background:rgba(34,34,34,0.7);padding:18px 12px 12px 12px;border-radius:16px 16px 0 0;max-width:90vw;">
+          This game is meant for desktop,<br>but you can still view the Unruggabull gallery!
+        </div>
+      </div>
+    </div>
+    <div id="gallery-ui" style="display:none;flex-direction:column;align-items:center;justify-content:center;width:100vw;height:100vh;position:relative;">
+      <img id="gallery-image" src="" alt="Unruggabull Gallery" style="position:absolute;top:0;left:0;width:100vw;height:100vh;object-fit:contain;z-index:1;transition:opacity 0.3s;background:#111;">
+      <button id="gallery-music" style="position:absolute;top:18px;right:18px;font-size:2.1rem;padding:7px 14px;border-radius:50%;background:rgba(34,34,34,0.5);color:#fff;border:none;z-index:3;opacity:0.85;">&#9835;</button>
+      <div style="position:absolute;top:50%;left:0;width:100vw;display:flex;justify-content:space-between;align-items:center;transform:translateY(-50%);z-index:2;pointer-events:none;">
+        <button id="gallery-prev" style="font-size:2.5rem;background:rgba(34,34,34,0.6);border:none;color:#fff;border-radius:50%;width:56px;height:56px;pointer-events:auto;">&#8592;</button>
+        <span style="width:56px;"></span>
+        <button id="gallery-next" style="font-size:2.5rem;background:rgba(34,34,34,0.6);border:none;color:#fff;border-radius:50%;width:56px;height:56px;pointer-events:auto;">&#8594;</button>
+      </div>
+    </div>
+  </div>
+  <script src="scripts/game.js"></script>
+  <script src="scripts/mobile-gallery.js"></script>
   <script>
     // Title screen music
     const titleMusic = new Audio('assets/audio/bgm/energetic-action-rock-music-336531.mp3');
@@ -125,11 +146,17 @@
       document.removeEventListener('touchstart', enableTitleMusic);
     }
 
+    function isMobile() {
+      return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop|webOS|BlackBerry/i.test(navigator.userAgent);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       // Add listeners for first interaction
-      document.addEventListener('click', enableTitleMusic);
-      document.addEventListener('keydown', enableTitleMusic);
-      document.addEventListener('touchstart', enableTitleMusic);
+      if (!isMobile()) {
+        document.addEventListener('click', enableTitleMusic);
+        document.addEventListener('keydown', enableTitleMusic);
+        document.addEventListener('touchstart', enableTitleMusic);
+      }
 
       const titleContainer = document.getElementById('title-container');
       const startBtn = document.getElementById('start-btn');
