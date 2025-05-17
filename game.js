@@ -71,14 +71,14 @@ function generatePlatforms() {
 function setupControls() {
   document.addEventListener('keydown', e => {
     keys[e.key] = true;
-    if (e.key === 'f' && !player.firing) {
+    if ((e.key === 'f' || e.key === 'F' || e.key === 'j' || e.key === 'J' || e.key === 'Enter' || e.key === 'enter') && !player.firing) {
       player.firing = true;
       fireBullet();
     }
   });
   document.addEventListener('keyup', e => {
     keys[e.key] = false;
-    if (e.key === 'f') player.firing = false;
+    if (e.key === 'f' || e.key === 'F' || e.key === 'j' || e.key === 'J' || e.key === 'Enter' || e.key === 'enter') player.firing = false;
   });
 }
 
@@ -104,11 +104,11 @@ function update() {
   }
   if (gameState !== 'playing') return;
   let isWalking = false;
-  if (keys['ArrowRight']) {
+  if (keys['d'] || keys['D']) {
     player.vx = player.speed;
     isWalking = true;
     player.facing = 1;
-  } else if (keys['ArrowLeft']) {
+  } else if (keys['a'] || keys['A']) {
     player.vx = -player.speed;
     isWalking = true;
     player.facing = -1;
@@ -123,7 +123,7 @@ function update() {
   // }
   wasWalking = isWalking;
 
-  if (keys[' '] && player.grounded) {
+  if ((keys[' ']) && player.grounded) {
     player.vy = -12;
     player.jumping = true;
     player.grounded = false;
@@ -426,10 +426,27 @@ function updateCarpets() {
     if (carpet.falling) {
       carpet.vy += 0.7; // gravity
       carpet.y += carpet.vy;
-      if (carpet.y >= 300) {
+      if (carpet.y >= canvas.height - 48) {
         carpet.y = canvas.height - 48;
         carpet.falling = false;
         carpet.onFloor = true;
+        carpet.respawnTimer = performance.now();
+      }
+      return;
+    }
+    if (!carpet.alive && carpet.onFloor) {
+      // Respawn after 2-4 seconds
+      if (performance.now() - carpet.respawnTimer > 2000 + Math.random() * 2000) {
+        carpet.x = canvas.width + 48 + Math.random() * 200;
+        carpet.y = 80 + Math.random() * 180; // random y between 80 and 260
+        carpet.vx = -1.5 - Math.random(); // random speed
+        carpet.alive = true;
+        carpet.frame = 0;
+        carpet.frameTimer = 0;
+        carpet.falling = false;
+        carpet.vy = 0;
+        carpet.onFloor = false;
+        carpet.respawnTimer = 0;
       }
       return;
     }
@@ -493,10 +510,27 @@ function updateLowerCarpets() {
     if (carpet.falling) {
       carpet.vy += 0.7; // gravity
       carpet.y += carpet.vy;
-      if (carpet.y >= 300) {
+      if (carpet.y >= canvas.height - 48) {
         carpet.y = canvas.height - 48;
         carpet.falling = false;
         carpet.onFloor = true;
+        carpet.respawnTimer = performance.now();
+      }
+      return;
+    }
+    if (!carpet.alive && carpet.onFloor) {
+      // Respawn after 2-4 seconds
+      if (performance.now() - carpet.respawnTimer > 2000 + Math.random() * 2000) {
+        carpet.x = canvas.width + 48 + Math.random() * 200;
+        carpet.y = 300 + Math.random() * 40; // random y for lower carpets
+        carpet.vx = -1.5 - Math.random(); // random speed
+        carpet.alive = true;
+        carpet.frame = 0;
+        carpet.frameTimer = 0;
+        carpet.falling = false;
+        carpet.vy = 0;
+        carpet.onFloor = false;
+        carpet.respawnTimer = 0;
       }
       return;
     }
@@ -623,9 +657,9 @@ function showControlsScreen() {
   ctx.textAlign = 'center';
   ctx.fillText('Controls', canvas.width / 2, 80);
   ctx.font = '28px Arial';
-  ctx.fillText('Move: Arrow Keys', canvas.width / 2, 140);
+  ctx.fillText('Move: A/D', canvas.width / 2, 140);
   ctx.fillText('Jump: Space', canvas.width / 2, 180);
-  ctx.fillText('Fire: F', canvas.width / 2, 220);
+  ctx.fillText('Fire: F, J, or Enter', canvas.width / 2, 220);
   ctx.fillText('Press any key to start!', canvas.width / 2, 300);
   ctx.restore();
 }
@@ -677,4 +711,7 @@ function startGame() {
     sprite.onload = tryStart;
     carpetSprite.onload = tryStart;
   }
+  // Add respawn timer property to carpets and lowerCarpets
+  carpets.forEach(c => c.respawnTimer = 0);
+  lowerCarpets.forEach(c => c.respawnTimer = 0);
 } 

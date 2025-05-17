@@ -17,9 +17,9 @@ A browser-based 2D platformer game featuring a jumpy, gun-toting bull! Built wit
 - **Truly Unruggabull:** The game and its assets are saved on Arweave for permanent, censorship-resistant hosting
 
 ## Controls
-- **Left/Right Arrow**: Move
+- **A/D**: Move
 - **Space**: Jump
-- **F**: Fire
+- **F, J, or Enter**: Fire
 - **Start Game**: Click the button on the title screen
 - **Restart**: Click the restart button after game over
 
