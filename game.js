@@ -6,6 +6,8 @@ const sprite = new Image();
 sprite.src = 'assets/sprites/unruggabull-walking.png';
 const carpetSprite = new Image();
 carpetSprite.src = 'assets/sprites/enemy-flying-carpet.png';
+const deadSprite = new Image();
+deadSprite.src = 'assets/sprites/unruggabull-dead.png';
 
 const player = {
   x: 50,
@@ -18,7 +20,9 @@ const player = {
   vy: 0,
   jumping: false,
   grounded: true,
-  firing: false
+  firing: false,
+  facing: 1, // 1 for right, -1 for left
+  health: 3
 };
 
 const keys = {};
@@ -29,10 +33,14 @@ const jumpSound = new Audio('assets/audio/sfx/jump_c_02-102843.mp3');
 const fireSound = new Audio('assets/audio/sfx/pulse-laser-blast-135820.mp3');
 const bgMusic = new Audio('assets/audio/bgm/platform-shoes-8-bit-chiptune-instrumental-336417.mp3');
 const carpetDeathSound = new Audio('assets/audio/sfx/man-death-scream-186763.mp3');
+const gameOverSound = new Audio('assets/audio/sfx/game-over.mp3');
 bgMusic.loop = true;
-bgMusic.volume = 0.4;
+bgMusic.volume = 0.3;
 window.bgMusic = bgMusic;
+gameOverSound.volume = 1.0;
 let wasWalking = false;
+let gameState = 'start'; // 'start', 'controls', 'playing', 'gameover'
+let dyingStartTime = null;
 
 // Flying carpet enemies
 const carpets = [
@@ -51,7 +59,7 @@ const lowerCarpets = [
 const PLATFORM_WIDTH = 120;
 const PLATFORM_HEIGHT = 16;
 const platforms = [
-  { x: 100, y: 260, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
+  { x: 200, y: 260, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
   { x: 320, y: 210, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
   { x: 550, y: 170, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
   { x: 400, y: 300, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT }
@@ -75,13 +83,35 @@ function setupControls() {
 }
 
 function update() {
+  if (gameState === 'dying') {
+    // Animate body falling to the floor
+    if (player.y < canvas.height - player.height) {
+      player.vy += 1.2; // gravity
+      player.y += player.vy;
+      if (player.y > canvas.height - player.height) {
+        player.y = canvas.height - player.height;
+        player.vy = 0;
+        if (!dyingStartTime) dyingStartTime = performance.now();
+      }
+    } else {
+      if (!dyingStartTime) dyingStartTime = performance.now();
+      // Wait 1s after landing, then show game over
+      if (performance.now() - dyingStartTime > 1000) {
+        gameState = 'gameover';
+      }
+    }
+    return;
+  }
+  if (gameState !== 'playing') return;
   let isWalking = false;
   if (keys['ArrowRight']) {
     player.vx = player.speed;
     isWalking = true;
+    player.facing = 1;
   } else if (keys['ArrowLeft']) {
     player.vx = -player.speed;
     isWalking = true;
+    player.facing = -1;
   } else {
     player.vx = 0;
   }
@@ -155,32 +185,207 @@ function update() {
   checkBulletCarpetCollisions();
   updateLowerCarpets();
   checkBulletLowerCarpetCollisions();
+  checkPlayerCarpetCollisions();
 }
+
+let restartButton = {
+  x: 0,
+  y: 0,
+  width: 200,
+  height: 60
+};
+
+function resetGame() {
+  player.x = 50;
+  player.y = 300;
+  player.vx = 0;
+  player.vy = 0;
+  player.jumping = false;
+  player.grounded = true;
+  player.firing = false;
+  player.facing = 1;
+  player.health = 3;
+  killCount = 0;
+  // Reset carpets
+  carpets.forEach((carpet, i) => {
+    const original = [
+      { x: 700, y: 220, vx: -2 },
+      { x: 400, y: 150, vx: -1.5 },
+      { x: 900, y: 100, vx: -2.5 }
+    ][i];
+    carpet.x = original.x;
+    carpet.y = original.y;
+    carpet.vx = original.vx;
+    carpet.alive = true;
+    carpet.frame = 0;
+    carpet.frameTimer = 0;
+    carpet.falling = false;
+    carpet.vy = 0;
+    carpet.onFloor = false;
+  });
+  lowerCarpets.forEach((carpet, i) => {
+    const original = [
+      { x: 600, y: 340, vx: -1.5 },
+      { x: 300, y: 320, vx: -2 }
+    ][i];
+    carpet.x = original.x;
+    carpet.y = original.y;
+    carpet.vx = original.vx;
+    carpet.alive = true;
+    carpet.frame = 0;
+    carpet.frameTimer = 0;
+    carpet.falling = false;
+    carpet.vy = 0;
+    carpet.onFloor = false;
+  });
+  bullets.length = 0;
+  gameState = 'gameover';
+}
+
+canvas.addEventListener('click', function(e) {
+  if (!gameState.includes('over')) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  if (
+    mx >= restartButton.x && mx <= restartButton.x + restartButton.width &&
+    my >= restartButton.y && my <= restartButton.y + restartButton.height
+  ) {
+    resetGame();
+    bgMusic.currentTime = 0;
+    bgMusic.play();
+    gameState = 'playing';
+    gameLoop();
+  }
+});
+
+let isRestartHover = false;
+
+canvas.addEventListener('mousemove', function(e) {
+  if (!gameState.includes('over')) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  isRestartHover = (
+    mx >= restartButton.x && mx <= restartButton.x + restartButton.width &&
+    my >= restartButton.y && my <= restartButton.y + restartButton.height
+  );
+  if (gameState.includes('over')) draw();
+});
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // draw player
-  let frameIndex;
-  if (player.firing) {
-    frameIndex = 3; // Use the last frame (index 3) for firing
-  } else {
-    frameIndex = Math.floor(player.frame / 10) % 4;
+  if (gameState === 'controls') {
+    showControlsScreen();
+    return;
   }
+
+  // draw health
   ctx.save();
-  if (player.vx < 0) {
-    ctx.translate(player.x + 48, player.y);
-    ctx.scale(-1, 1);
-    ctx.drawImage(sprite, frameIndex * 48, 0, 48, 80, 0, 0, 48, 80);
-  } else {
-    ctx.drawImage(sprite, frameIndex * 48, 0, 48, 80, player.x, player.y, 48, 80);
-  }
+  ctx.font = '24px Arial';
+  ctx.fillStyle = '#f44';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Health: ${player.health}`, 20, 40);
   ctx.restore();
+
+  // draw kill counter
+  ctx.save();
+  ctx.font = '28px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Unrugged: ${killCount}`, canvas.width / 2, 40);
+  ctx.restore();
+
+  // draw platforms first so sprites are in front
+  drawPlatforms();
+
+  // draw player
+  if (gameState.includes('over') || gameState === 'dying') {
+    ctx.save();
+    if (player.facing < 0) {
+      // Mirror horizontally, align bottom and center
+      ctx.translate(player.x + player.width / 2, player.y + player.height - 80);
+      ctx.scale(-1, 1);
+      ctx.drawImage(deadSprite, 0, 0, 96, 96, -48, 0, 96, 96);
+    } else {
+      // Align bottom and center
+      ctx.drawImage(deadSprite, 0, 0, 96, 96, player.x + player.width / 2 - 48, player.y + player.height - 80, 96, 96);
+    }
+    ctx.restore();
+  } else {
+    let frameIndex;
+    if (player.firing) {
+      frameIndex = 3; // Use the last frame (index 3) for firing
+    } else {
+      frameIndex = Math.floor(player.frame / 10) % 4;
+    }
+    ctx.save();
+    if (player.facing < 0) {
+      ctx.translate(player.x + 48, player.y);
+      ctx.scale(-1, 1);
+      ctx.drawImage(sprite, frameIndex * 48, 0, 48, 80, 0, 0, 48, 80);
+    } else {
+      ctx.drawImage(sprite, frameIndex * 48, 0, 48, 80, player.x, player.y, 48, 80);
+    }
+    ctx.restore();
+  }
 
   drawBullets();
   drawCarpets();
   drawLowerCarpets();
-  drawPlatforms();
+
+  // draw game over message
+  if (gameState.includes('over')) {
+    ctx.save();
+    // Game over text with shadow and bold font
+    ctx.font = 'bold 45px Arial';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#000';
+    ctx.shadowBlur = 12;
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = '#fff';
+    ctx.strokeText('Game over! You got rugged!', canvas.width / 2, canvas.height / 2);
+    ctx.fillStyle = '#f44';
+    ctx.shadowBlur = 0;
+    ctx.fillText('Game over! You got rugged!', canvas.width / 2, canvas.height / 2);
+    ctx.restore();
+
+    // Draw restart button with hover effect
+    ctx.save();
+    ctx.font = '32px Arial';
+    restartButton.width = 200;
+    restartButton.height = 60;
+    restartButton.x = canvas.width / 2 - restartButton.width / 2;
+    restartButton.y = canvas.height / 2 + 40;
+    ctx.textAlign = 'center';
+    if (isRestartHover) {
+      ctx.save();
+      ctx.translate(restartButton.x + restartButton.width / 2, restartButton.y + restartButton.height / 2);
+      ctx.scale(1.08, 1.15); // Slightly scale up on hover
+      ctx.fillStyle = '#666';
+      ctx.strokeStyle = '#ff0';
+      ctx.lineWidth = 5;
+      ctx.fillRect(-restartButton.width / 2, -restartButton.height / 2, restartButton.width, restartButton.height);
+      ctx.strokeRect(-restartButton.width / 2, -restartButton.height / 2, restartButton.width, restartButton.height);
+      ctx.fillStyle = '#ff0';
+      ctx.font = '32px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Restart', 0, 12);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = '#222';
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 3;
+      ctx.fillRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height);
+      ctx.strokeRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height);
+      ctx.fillStyle = '#fff';
+      ctx.font = '32px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Restart', canvas.width / 2, restartButton.y + 40);
+    }
+    ctx.restore();
+  }
 }
 
 function fireBullet() {
@@ -188,7 +393,7 @@ function fireBullet() {
   const direction = player.vx < 0 ? -1 : 1;
   bullets.push({
     x: player.x + player.width / 2 + 20,
-    y: player.y + player.height / 2 + 20,
+    y: player.y + player.height / 2 + 5,
     vx: 10 * direction,
     vy: 0
   });
@@ -222,7 +427,7 @@ function updateCarpets() {
       carpet.vy += 0.7; // gravity
       carpet.y += carpet.vy;
       if (carpet.y >= 300) {
-        carpet.y = 300;
+        carpet.y = canvas.height - 48;
         carpet.falling = false;
         carpet.onFloor = true;
       }
@@ -253,9 +458,11 @@ function drawCarpets() {
     if (!carpet.alive && carpet.onFloor) {
       yDraw += 12;
     }
-    ctx.drawImage(carpetSprite, frameToDraw * 48, 0, 48, 80, carpet.x, yDraw, 48, 80);
+    ctx.drawImage(carpetSprite, frameToDraw * 48, 0, 48, 48, carpet.x, yDraw, 48, 48);
   });
 }
+
+let killCount = 0;
 
 function checkBulletCarpetCollisions() {
   carpets.forEach(carpet => {
@@ -265,7 +472,7 @@ function checkBulletCarpetCollisions() {
       // Simple AABB collision
       if (
         bullet.x > carpet.x && bullet.x < carpet.x + 48 &&
-        bullet.y > carpet.y && bullet.y < carpet.y + 80
+        bullet.y > carpet.y && bullet.y < carpet.y + 48
       ) {
         carpet.alive = false;
         carpet.frame = 3;
@@ -274,6 +481,7 @@ function checkBulletCarpetCollisions() {
         carpetDeathSound.currentTime = 0;
         carpetDeathSound.play();
         bullets.splice(i, 1);
+        killCount++;
         break;
       }
     }
@@ -286,7 +494,7 @@ function updateLowerCarpets() {
       carpet.vy += 0.7; // gravity
       carpet.y += carpet.vy;
       if (carpet.y >= 300) {
-        carpet.y = 300;
+        carpet.y = canvas.height - 48;
         carpet.falling = false;
         carpet.onFloor = true;
       }
@@ -317,7 +525,7 @@ function drawLowerCarpets() {
     if (!carpet.alive && carpet.onFloor) {
       yDraw += 12;
     }
-    ctx.drawImage(carpetSprite, frameToDraw * 48, 0, 48, 80, carpet.x, yDraw, 48, 80);
+    ctx.drawImage(carpetSprite, frameToDraw * 48, 0, 48, 48, carpet.x, yDraw, 48, 48);
   });
 }
 
@@ -329,7 +537,7 @@ function checkBulletLowerCarpetCollisions() {
       // Simple AABB collision
       if (
         bullet.x > carpet.x && bullet.x < carpet.x + 48 &&
-        bullet.y > carpet.y && bullet.y < carpet.y + 80
+        bullet.y > carpet.y && bullet.y < carpet.y + 48
       ) {
         carpet.alive = false;
         carpet.frame = 3;
@@ -338,6 +546,7 @@ function checkBulletLowerCarpetCollisions() {
         carpetDeathSound.currentTime = 0;
         carpetDeathSound.play();
         bullets.splice(i, 1);
+        killCount++;
         break;
       }
     }
@@ -353,10 +562,99 @@ function drawPlatforms() {
   });
 }
 
+function checkPlayerCarpetCollisions() {
+  if (gameState !== 'playing') return;
+  // Check upper carpets
+  carpets.forEach(carpet => {
+    if (!carpet.alive) return;
+    if (
+      player.x + player.width > carpet.x && player.x < carpet.x + 48 &&
+      player.y + player.height > carpet.y && player.y < carpet.y + 48
+    ) {
+      player.health--;
+      carpet.alive = false;
+      carpet.frame = 3;
+      carpet.falling = true;
+      carpet.vy = 0;
+      carpetDeathSound.currentTime = 0;
+      carpetDeathSound.play();
+      if (player.health <= 0) {
+        if (!gameState.includes('over') && gameState !== 'dying') {
+          gameOverSound.currentTime = 0;
+          gameOverSound.play();
+          gameState = 'dying';
+          dyingStartTime = null;
+        }
+      }
+    }
+  });
+  // Check lower carpets
+  lowerCarpets.forEach(carpet => {
+    if (!carpet.alive) return;
+    if (
+      player.x + player.width > carpet.x && player.x < carpet.x + 48 &&
+      player.y + player.height > carpet.y && player.y < carpet.y + 48
+    ) {
+      player.health--;
+      carpet.alive = false;
+      carpet.frame = 3;
+      carpet.falling = true;
+      carpet.vy = 0;
+      carpetDeathSound.currentTime = 0;
+      carpetDeathSound.play();
+      if (player.health <= 0) {
+        if (!gameState.includes('over') && gameState !== 'dying') {
+          gameOverSound.currentTime = 0;
+          gameOverSound.play();
+          gameState = 'dying';
+          dyingStartTime = null;
+        }
+      }
+    }
+  });
+}
+
+function showControlsScreen() {
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.85)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = 'bold 40px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.fillText('Controls', canvas.width / 2, 80);
+  ctx.font = '28px Arial';
+  ctx.fillText('Move: Arrow Keys', canvas.width / 2, 140);
+  ctx.fillText('Jump: Space', canvas.width / 2, 180);
+  ctx.fillText('Fire: F', canvas.width / 2, 220);
+  ctx.fillText('Press any key to start!', canvas.width / 2, 300);
+  ctx.restore();
+}
+
+document.addEventListener('keydown', function controlsScreenHandler(e) {
+  if (gameState === 'controls') {
+    gameState = 'playing';
+    gameLoop();
+    // Remove this handler after first use
+    document.removeEventListener('keydown', controlsScreenHandler);
+  }
+});
+
+canvas.addEventListener('click', function controlsScreenClickHandler(e) {
+  if (gameState === 'controls') {
+    gameState = 'playing';
+    gameLoop();
+    // Remove this handler after first use
+    canvas.removeEventListener('click', controlsScreenClickHandler);
+  }
+});
+
 function gameLoop() {
+  if (gameState !== 'playing' && gameState !== 'dying') return;
   update();
   draw();
-  requestAnimationFrame(gameLoop);
+  if ((gameState === 'playing' || gameState === 'dying')) {
+    requestAnimationFrame(gameLoop);
+  }
 }
 
 function startGame() {
@@ -365,12 +663,16 @@ function startGame() {
   bgMusic.currentTime = 0;
   bgMusic.play();
   if (sprite.complete && carpetSprite.complete) {
-    gameLoop();
+    gameState = 'controls';
+    draw();
   } else {
     let loaded = 0;
     function tryStart() {
       loaded++;
-      if (loaded >= 2) gameLoop();
+      if (loaded >= 2) {
+        gameState = 'controls';
+        draw();
+      }
     }
     sprite.onload = tryStart;
     carpetSprite.onload = tryStart;
