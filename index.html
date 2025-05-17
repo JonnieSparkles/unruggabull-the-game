@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Unruggabull: RugCo Alley</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #222;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .title-container {
+      position: relative;
+      display: inline-block;
+      max-width: 90vw;
+      max-height: 70vh;
+      opacity: 1;
+      transition: opacity 0.7s;
+      z-index: 2;
+    }
+    #title-img {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 32px #0008;
+    }
+    #start-btn {
+      position: absolute;
+      left: 40px;
+      bottom: 78px;
+      font-size: 2rem;
+      padding: 0.9em 1.25em;
+      border: none;
+      border-radius: 8px;
+      background: #ff8300;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 2px 8px #0004;
+      transition: background 0.2s;
+    }
+    #start-btn:hover {
+      background: #ffb017;
+    }
+    #gameCanvas {
+      opacity: 0;
+      transition: opacity 0.7s;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      background: url("assets/images/level-rugco-alley.png") no-repeat center center / cover;
+      display: block;
+      margin: 0;
+      border: 3px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="title-container" id="title-container">
+    <img id="title-img" src="assets/images/title-screen.png" alt="Unruggabull Title Screen" />
+    <button id="start-btn">Start Game</button>
+    <div id="sound-overlay" style="position:absolute;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.7);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;z-index:10;cursor:pointer;">
+      Press any key
+    </div>
+  </div>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <script src="game.js"></script>
+  <script>
+    // Title screen music
+    const titleMusic = new Audio('assets/audio/bgm/energetic-action-rock-music-336531.mp3');
+    titleMusic.loop = true;
+    titleMusic.volume = 0.5;
+
+    const letsGoSound = new Audio('assets/audio/sfx/lets-go.mp3');
+    letsGoSound.volume = 1.0;
+
+    function enableTitleMusic() {
+      titleMusic.currentTime = 0;
+      titleMusic.play();
+      // Remove overlay
+      const overlay = document.getElementById('sound-overlay');
+      if (overlay) overlay.style.display = 'none';
+      // Remove listeners so it only happens once
+      document.removeEventListener('click', enableTitleMusic);
+      document.removeEventListener('keydown', enableTitleMusic);
+      document.removeEventListener('touchstart', enableTitleMusic);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add listeners for first interaction
+      document.addEventListener('click', enableTitleMusic);
+      document.addEventListener('keydown', enableTitleMusic);
+      document.addEventListener('touchstart', enableTitleMusic);
+
+      const titleContainer = document.getElementById('title-container');
+      const startBtn = document.getElementById('start-btn');
+      const canvas = document.getElementById('gameCanvas');
+      // Hide game canvas initially
+      canvas.style.pointerEvents = 'none';
+      startBtn.onclick = function() {
+        // Stop title music
+        titleMusic.pause();
+        titleMusic.currentTime = 0;
+        // Play lets-go sound, then fade out and start game
+        letsGoSound.currentTime = 0;
+        letsGoSound.play();
+        setTimeout(() => {
+          titleContainer.style.opacity = 0;
+          canvas.style.opacity = 1;
+          setTimeout(() => {
+            titleContainer.style.display = 'none';
+            canvas.style.pointerEvents = '';
+            startGame();
+          }, 700); // match transition duration
+        }, 1000); // Wait 1s for lets-go sound (adjust if needed)
+      };
+    });
+  </script>
+</body>
+</html>
