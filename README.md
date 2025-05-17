@@ -14,6 +14,7 @@ A browser-based 2D platformer game featuring a jumpy, gun-toting bull! Built wit
 - Credits modal: click the version number on the title screen to view full attributions (loads `credits.txt` in a modal)
 - Background music and sound effects for all actions
 - Organized asset structure for easy expansion
+- **Mobile-friendly:** On mobile devices, users see a fullscreen Unruggabull gallery with music and swipe/tap navigation
 - **Truly Unruggabull:** The game and its assets are saved on Arweave for permanent, censorship-resistant hosting
 
 ## Controls
@@ -57,6 +58,8 @@ assets/
 4. On the title screen, press any key to enable music, then click "Start Game" to play!
 5. Click the version number at the bottom of the title screen to view credits.
 
+> **Note:** Gameplay is only available on desktop browsers. On mobile, you can view the Unruggabull gallery and listen to the theme song.
+
 ## Credits
 
 See [credits.txt](credits.txt) for full attributions and asset sources. The credits are also viewable in-game via the version link.
@@ -66,5 +69,11 @@ If you use or distribute this project, please respect the licenses of all includ
 ---
 
 **Unruggabull is permanently hosted on [Arweave](https://www.arweave.org/), making it truly unruggable!**
+
+## Mobile Gallery
+
+If you open Unruggabull on a mobile device, you'll see a fullscreen gallery of Unruggabull images with swipe/tap navigation and a music button. 
+
+You can customize the gallery images by editing the `galleryImages` array in `scripts/mobile-gallery.js`.
 
 Enjoy Unruggabull!
