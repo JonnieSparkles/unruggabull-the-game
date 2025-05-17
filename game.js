@@ -71,7 +71,11 @@ function generatePlatforms() {
 function setupControls() {
   document.addEventListener('keydown', e => {
     keys[e.key] = true;
-    if ((e.key === 'f' || e.key === 'F' || e.key === 'j' || e.key === 'J' || e.key === 'Enter' || e.key === 'enter') && !player.firing) {
+    if (
+      gameState === 'playing' &&
+      (e.key === 'f' || e.key === 'F' || e.key === 'j' || e.key === 'J' || e.key === 'Enter' || e.key === 'enter') &&
+      !player.firing
+    ) {
       player.firing = true;
       fireBullet();
     }
@@ -390,7 +394,7 @@ function draw() {
 
 function fireBullet() {
   // Determine direction: 1 for right, -1 for left
-  const direction = player.vx < 0 ? -1 : 1;
+  const direction = player.facing;
   bullets.push({
     x: player.x + player.width / 2 + 20,
     y: player.y + player.height / 2 + 5,
