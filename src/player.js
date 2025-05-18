@@ -17,7 +17,8 @@ export const player = {
   firing: false,
   facing: 1, // 1 for right, -1 for left
   health: 3,
-  crouching: false
+  crouching: false,
+  muzzleFlashTimer: 0
 };
 
 /**
@@ -85,4 +86,5 @@ export function updatePlayerInput() {
   handleMovement();
   handleJumping();
   handleCrouch();
+  if (player.muzzleFlashTimer > 0) player.muzzleFlashTimer--;
 } 

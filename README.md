@@ -8,9 +8,13 @@ A browser-based 2D platformer game featuring a jumpy, gun-toting bull! Built wit
 - Animated character with directional movement and firing pose
 - Dramatic death animation: Unruggabull falls and displays a unique dead sprite
 - Game over sequence with sound, message, and a restart button (with hover effect)
-- Bullets with sound effects
+- Bullets with sound effects and new muzzle flash effect
 - Flying carpet enemies with falling death animation
 - Kill counter and health display
+- **Modular codebase:** All game logic is split into clear modules for input, player, physics, enemy, UI, sound, bullets, collision, devtools, assets, state, update, render, controller, and UI controller
+- **DevTools overlay:** Toggle hitboxes, adjust difficulty, and set kill count per phase live in-game
+- Animated crouch with correct hitbox logic and smooth alignment
+- Restart/game over UI with fade/dim effect and improved button styling
 - Credits modal: click the version number on the title screen to view full attributions (loads `credits.txt` in a modal)
 - Background music and sound effects for all actions
 - Organized asset structure for easy expansion

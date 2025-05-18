@@ -70,6 +70,7 @@ export function fireBullet(player, bullets) {
     vx: 10 * direction,
     vy: 0
   });
+  player.muzzleFlashTimer = 3;
   fireSound.currentTime = 0;
   fireSound.play();
 } 

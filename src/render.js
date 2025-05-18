@@ -86,6 +86,23 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     }
   }
 
+  // Muzzle flash
+  if (player.muzzleFlashTimer > 0) {
+    ctx.save();
+    ctx.fillStyle = 'yellow';
+    ctx.globalAlpha = 0.85;
+    const direction = player.facing;
+    const muzzleOffsetX = direction === 1 ? player.width - 6 : -6;
+    const muzzleOffsetY = player.crouching ? player.height / 2 : player.height / 2 + 5;
+    const muzzleX = player.x + muzzleOffsetX;
+    const muzzleY = player.y + muzzleOffsetY;
+    ctx.beginPath();
+    ctx.ellipse(muzzleX, muzzleY, 14, 7, 0, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
+    ctx.restore();
+  }
+
   // Debug hitboxes
   if (DEBUG_HITBOXES) {
     ctx.save();
@@ -139,4 +156,6 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   if (showDevSettings) {
     drawDevSettings(ctx, canvas, state.difficultyLevel);
   }
+
+  console.log('height:', player.height, 'crouching:', player.crouching);
 } 
