@@ -63,7 +63,7 @@ export function handleJumping() {
 export function handleCrouch() {
   if ((keys['c'] || keys['C']) && player.grounded && !player.crouching) {
     player.crouching = true;
-    player.height = 48;
+    player.height = 60;
     player.y = player.feetY - player.height;
   }
   if (!(keys['c'] || keys['C']) && player.crouching) {

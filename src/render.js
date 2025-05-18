@@ -2,7 +2,7 @@
 import * as state from './state.js';
 import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGameOver, drawRestartButton } from './ui.js';
 import { drawPlatforms, platforms } from './physics.js';
-import { sprite, crouchSprite, deadSprite } from './assets.js';
+import { sprite, crouchSprite, deadSprite, crouchAnimSprite } from './assets.js';
 import { drawBullets } from './bullets.js';
 import { drawCarpets as drawEnemyCarpets, drawLowerCarpets as drawEnemyLowerCarpets, carpets, lowerCarpets } from './enemy.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
@@ -58,14 +58,18 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   } else {
     if (player.crouching) {
       ctx.save();
-      const sy = crouchSprite.height / 2;
-      const sh = crouchSprite.height / 2;
+      // Animate crouch: 4 frames, 48x80 each, only bottom 48px has content
+      let frameIndex = player.firing ? 3 : Math.floor(player.frame / 10) % 4;
+      const frameW = player.width;
+      const frameH = 70; // Only bottom 70px has content
+      const srcY = 80 - frameH;
+      const destY = player.feetY - frameH;
       if (player.facing < 0) {
-        ctx.translate(player.x + player.width, player.feetY - player.height);
+        ctx.translate(player.x + frameW, destY);
         ctx.scale(-1, 1);
-        ctx.drawImage(crouchSprite, 0, sy, player.width, sh, 0, player.height - sh, player.width, sh);
+        ctx.drawImage(crouchAnimSprite, frameIndex * frameW, srcY, frameW, frameH, 0, 0, frameW, frameH);
       } else {
-        ctx.drawImage(crouchSprite, 0, sy, player.width, sh, player.x, player.feetY - sh, player.width, sh);
+        ctx.drawImage(crouchAnimSprite, frameIndex * frameW, srcY, frameW, frameH, player.x, destY, frameW, frameH);
       }
       ctx.restore();
     } else {
@@ -115,6 +119,14 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
 
   // Game over
   if (state.gameState.includes('over')) {
+    // Fade overlay
+    ctx.save();
+    ctx.globalAlpha = 0.6; // Adjust for desired darkness
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1.0;
+    ctx.restore();
+
     drawGameOver(ctx, canvas);
     // Center the restart button
     restartButton.x = Math.round(canvas.width / 2 - restartButton.width / 2);

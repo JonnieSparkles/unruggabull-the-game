@@ -10,4 +10,7 @@ export const deadSprite = new Image();
 deadSprite.src = 'assets/sprites/unruggabull-dead.png';
 
 export const crouchSprite = new Image();
-crouchSprite.src = 'assets/sprites/unruggabull-crouch.png'; 
+crouchSprite.src = 'assets/sprites/unruggabull-crouch.png';
+
+export const crouchAnimSprite = new Image();
+crouchAnimSprite.src = 'assets/sprites/unruggabull-crouching.png'; 
