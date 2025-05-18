@@ -60,7 +60,7 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   // Draw player
   if (state.gameState === 'dying' || state.gameState === 'gameover') {
     ctx.save();
-    const deadW = 96;
+    const deadW = 128;
     const deadH = 96;
     const drawX = player.x + player.width / 2 - deadW / 2;
     const drawY = player.feetY - deadH;
@@ -75,11 +75,12 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   } else {
     if (player.crouching) {
       ctx.save();
-      // Animate crouch: 4 frames, 48x80 each, only bottom 48px has content
+      // Animate crouch: crop bottom frameH pixels
       let frameIndex = player.firing ? 3 : Math.floor(player.frame / 10) % 4;
       const frameW = player.width;
-      const frameH = 70; // Only bottom 70px has content
-      const srcY = 80 - frameH;
+      const frameH = player.height; // crouch hitbox height (e.g., 60px)
+      // Crop the bottom frameH pixels of the sprite
+      const srcY = crouchAnimSprite.height - frameH;
       const destY = player.feetY - frameH;
       if (player.facing < 0) {
         ctx.translate(player.x + frameW, destY);

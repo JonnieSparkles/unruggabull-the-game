@@ -6,8 +6,8 @@ import { keys } from './input.js';
 export const player = {
   x: 50,
   feetY: 380, // 300 (ground) + 80 (height)
-  width: 48,
-  height: 80,
+  width: 64,
+  height: 96,
   frame: 0,
   speed: 4,
   vx: 0,
@@ -68,17 +68,17 @@ export function handleJumping() {
 export function handleCrouch() {
   if ((keys['c'] || keys['C']) && player.grounded && !player.crouching) {
     player.crouching = true;
-    player.height = 60;
+    player.height = 80;
     player.y = player.feetY - player.height;
   }
   if (!(keys['c'] || keys['C']) && player.crouching) {
     player.crouching = false;
-    player.height = 80;
+    player.height = 96;
     player.y = player.feetY - player.height;
   }
   if (!player.grounded && player.crouching) {
     player.crouching = false;
-    player.height = 80;
+    player.height = 96;
     player.y = player.feetY - player.height;
   }
 }
