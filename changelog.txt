@@ -1,3 +1,8 @@
+v0.0.3
+-Changed screen size to 960x540
+-Animated level background
+
+
 v0.0.2
 -Added crouching
 -Added difficulty levels and scaling enemy difficulty
