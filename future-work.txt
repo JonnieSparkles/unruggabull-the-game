@@ -4,3 +4,5 @@ add changelog to version number
 move credits to end of game?
 
 bearded theme vivid black
+
+combine all player sprites into a single image

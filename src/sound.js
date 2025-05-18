@@ -16,7 +16,7 @@ export const fireSound = new Audio('assets/audio/sfx/pulse-laser-blast-135820.mp
 /**
  * Enemy death sound.
  */
-export const carpetDeathSound = new Audio('assets/audio/sfx/man-death-scream-186763.mp3');
+export const carpshitDeathSound = new Audio('assets/audio/sfx/man-death-scream-186763.mp3');
 
 /**
  * Game over sound.

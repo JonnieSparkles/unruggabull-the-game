@@ -3,8 +3,8 @@
 export const sprite = new Image();
 sprite.src = 'assets/sprites/unruggabull-walking.png';
 
-export const carpetSprite = new Image();
-carpetSprite.src = 'assets/sprites/enemy-flying-carpet.png';
+export const carpshitSprite = new Image();
+carpshitSprite.src = 'assets/sprites/enemy-carpshit.png';
 
 export const deadSprite = new Image();
 deadSprite.src = 'assets/sprites/unruggabull-dead.png';

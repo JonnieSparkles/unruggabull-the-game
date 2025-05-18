@@ -4,10 +4,10 @@ import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGa
 import { drawPlatforms, platforms } from './physics.js';
 import { sprite, crouchSprite, deadSprite, bgSprite, jumpingSprite } from './assets.js';
 import { drawBullets } from './bullets.js';
-import { drawCarpets as drawEnemyCarpets, drawLowerCarpets as drawEnemyLowerCarpets, carpets, lowerCarpets } from './enemy.js';
+import { drawCarpshits as drawEnemyCarpshits, drawLowerCarpshits as drawEnemyLowerCarpshits, carpshits, lowerCarpshits } from './enemy.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 import { getHitbox } from './player.js';
-import { getCarpetHitbox } from './enemy.js';
+import { getCarpshitHitbox } from './enemy.js';
 
 /**
  * Render the current game frame.
@@ -144,20 +144,20 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     ctx.lineWidth = 2;
     ctx.strokeRect(hx, hy, hw, hh);
     ctx.restore();
-    // Draw red hitboxes for all visible carpets
+    // Draw red hitboxes for all visible carpshits
     ctx.save();
     ctx.strokeStyle = 'red';
     ctx.lineWidth = 2;
-    // Upper carpets
-    carpets.forEach(carpet => {
-      if (!carpet.alive && !carpet.falling && !carpet.onFloor) return;
-      const { x: cx, y: cy, width: cw, height: ch } = getCarpetHitbox(carpet);
+    // Upper carpshits
+    carpshits.forEach(carpshit => {
+      if (!carpshit.alive && !carpshit.falling && !carpshit.onFloor) return;
+      const { x: cx, y: cy, width: cw, height: ch } = getCarpshitHitbox(carpshit);
       ctx.strokeRect(cx, cy, cw, ch);
     });
-    // Lower carpets
-    lowerCarpets.forEach(carpet => {
-      if (!carpet.alive && !carpet.falling && !carpet.onFloor) return;
-      const { x: cx, y: cy, width: cw, height: ch } = getCarpetHitbox(carpet);
+    // Lower carpshits
+    lowerCarpshits.forEach(carpshit => {
+      if (!carpshit.alive && !carpshit.falling && !carpshit.onFloor) return;
+      const { x: cx, y: cy, width: cw, height: ch } = getCarpshitHitbox(carpshit);
       ctx.strokeRect(cx, cy, cw, ch);
     });
     ctx.restore();
@@ -165,8 +165,8 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
 
   // Bullets & enemies
   drawBullets(ctx, bullets, DEBUG_HITBOXES);
-  drawEnemyCarpets(ctx);
-  drawEnemyLowerCarpets(ctx);
+  drawEnemyCarpshits(ctx);
+  drawEnemyLowerCarpshits(ctx);
 
   // Game over
   if (state.gameState.includes('over')) {

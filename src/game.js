@@ -1,12 +1,12 @@
 // Minimal orchestration stub: wires up restart UI, DevTools, and exposes startGame
 import { player } from './player.js';
 import {
-  spawnCarpet as enemySpawnCarpet,
-  spawnLowerCarpet as enemySpawnLowerCarpet,
-  carpets as enemyCarpets,
-  lowerCarpets as enemyLowerCarpets,
-  NUM_CARPETS,
-  NUM_LOWER_CARPETS
+  spawnCarpshit as enemySpawnCarpshit,
+  spawnLowerCarpshit as enemySpawnLowerCarpshit,
+  carpshits as enemyCarpshits,
+  lowerCarpshits as enemyLowerCarpshits,
+  NUM_CARPSHITS,
+  NUM_LOWER_CARPSHITS
 } from './enemy.js';
 import * as state from './state.js';
 import { setupRestartUI, restartButton, isRestartHover } from './uiController.js';
@@ -23,16 +23,16 @@ const bullets = [];
  */
 function devIncreaseDifficulty() {
   state.increaseDifficulty();
-  enemySpawnCarpet();
-  enemySpawnLowerCarpet();
+  enemySpawnCarpshit();
+  enemySpawnLowerCarpshit();
   state.setNextPhaseKillCount(state.getKillCount() + state.PHASE_CHANGE_KILL_COUNT);
 }
 
 function devDecreaseDifficulty() {
   state.decreaseDifficulty();
   if (state.difficultyLevel > 1) {
-    if (enemyCarpets.length > NUM_CARPETS) enemyCarpets.pop();
-    if (enemyLowerCarpets.length > NUM_LOWER_CARPETS) enemyLowerCarpets.pop();
+    if (enemyCarpshits.length > NUM_CARPSHITS) enemyCarpshits.pop();
+    if (enemyLowerCarpshits.length > NUM_LOWER_CARPSHITS) enemyLowerCarpshits.pop();
   }
   state.setNextPhaseKillCount(state.getKillCount() + state.PHASE_CHANGE_KILL_COUNT);
 }

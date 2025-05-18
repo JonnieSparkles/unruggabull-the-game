@@ -1,16 +1,16 @@
-// Enemy module: flying carpets logic
+// Enemy module: flying carpshits logic
 
 // Access canvas and context
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Sprite for carpets
-const carpetSprite = new Image();
-carpetSprite.src = 'assets/sprites/enemy-flying-carpet.png';
+// Sprite for carpshits
+const carpshitSprite = new Image();
+carpshitSprite.src = 'assets/sprites/enemy-carpshit.png';
 
-// Carpet sprite dimensions
-export const CARPET_SPRITE_WIDTH = 64;
-export const CARPET_SPRITE_HEIGHT = 50;
+// Carpshit sprite dimensions
+export const CARPSHIT_SPRITE_WIDTH = 64;
+export const CARPSHIT_SPRITE_HEIGHT = 50;
 
 // Define dynamic floor and spawn ranges
 const floorY = canvas.height - 20;
@@ -20,10 +20,10 @@ const lowerSpawnMinY = canvas.height * 0.6;
 const lowerSpawnMaxY = floorY - 48;
 
 /**
- * Primary enemy: flying carpets
+ * Primary enemy: flying carpshits
  */
-export const NUM_CARPETS = 3;
-export const carpets = Array.from({ length: NUM_CARPETS }, () => ({
+export const NUM_CARPSHITS = 3;
+export const carpshits = Array.from({ length: NUM_CARPSHITS }, () => ({
   x: canvas.width + 48 + Math.random() * 200,
   y: upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY),
   vx: -(1.5 + Math.random()),
@@ -37,10 +37,10 @@ export const carpets = Array.from({ length: NUM_CARPETS }, () => ({
 }));
 
 /**
- * Lower flying carpets (animated)
+ * Lower flying carpshits (animated)
  */
-export const NUM_LOWER_CARPETS = 2;
-export const lowerCarpets = Array.from({ length: NUM_LOWER_CARPETS }, () => ({
+export const NUM_LOWER_CARPSHITS = 2;
+export const lowerCarpshits = Array.from({ length: NUM_LOWER_CARPSHITS }, () => ({
   x: canvas.width + 48 + Math.random() * 200,
   y: lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY),
   vx: -(1 + Math.random()),
@@ -54,27 +54,27 @@ export const lowerCarpets = Array.from({ length: NUM_LOWER_CARPETS }, () => ({
 }));
 
 /**
- * Get the carpet's collision hitbox rectangle.
- * Handles floor offset when carpet is dead and on floor.
+ * Get the carpshit's collision hitbox rectangle.
+ * Handles floor offset when carpshit is dead and on floor.
  */
-export function getCarpetHitbox(carpet) {
+export function getCarpshitHitbox(carpshit) {
   // Determine the draw Y used by render and collision (floor offset when onFloor)
-  const y = (!carpet.alive && carpet.onFloor)
-    ? carpet.y + 12
-    : carpet.y;
+  const y = (!carpshit.alive && carpshit.onFloor)
+    ? carpshit.y + 12
+    : carpshit.y;
   return {
-    x: carpet.x,
+    x: carpshit.x,
     y,
-    width: CARPET_SPRITE_WIDTH,
-    height: CARPET_SPRITE_HEIGHT
+    width: CARPSHIT_SPRITE_WIDTH,
+    height: CARPSHIT_SPRITE_HEIGHT
   };
 }
 
 /**
- * Spawn a new upper carpet off-screen
+ * Spawn a new upper carpshit off-screen
  */
-export function spawnCarpet() {
-  carpets.push({
+export function spawnCarpshit() {
+  carpshits.push({
     x: canvas.width + 48 + Math.random() * 200,
     y: upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY),
     vx: -(1.5 + Math.random()),
@@ -89,10 +89,10 @@ export function spawnCarpet() {
 }
 
 /**
- * Spawn a new lower carpet off-screen
+ * Spawn a new lower carpshit off-screen
  */
-export function spawnLowerCarpet() {
-  lowerCarpets.push({
+export function spawnLowerCarpshit() {
+  lowerCarpshits.push({
     x: canvas.width + 48 + Math.random() * 200,
     y: lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY),
     vx: -(1 + Math.random()),
@@ -107,137 +107,137 @@ export function spawnLowerCarpet() {
 }
 
 /**
- * Update upper carpets movement and animations
+ * Update upper carpshits movement and animations
  */
-export function updateCarpets() {
-  carpets.forEach(carpet => {
-    if (carpet.falling) {
-      carpet.vy += 0.7;
-      carpet.y += carpet.vy;
+export function updateCarpshits() {
+  carpshits.forEach(carpshit => {
+    if (carpshit.falling) {
+      carpshit.vy += 0.7;
+      carpshit.y += carpshit.vy;
       const floorY = canvas.height - 20;
       const thresholdY = floorY - 48;
-      if (carpet.y >= thresholdY) {
-        carpet.y = thresholdY;
-        carpet.falling = false;
-        carpet.onFloor = true;
-        carpet.respawnTimer = performance.now();
+      if (carpshit.y >= thresholdY) {
+        carpshit.y = thresholdY;
+        carpshit.falling = false;
+        carpshit.onFloor = true;
+        carpshit.respawnTimer = performance.now();
       }
       return;
     }
-    if (!carpet.alive && carpet.onFloor) {
-      if (performance.now() - carpet.respawnTimer > 2000 + Math.random() * 2000) {
+    if (!carpshit.alive && carpshit.onFloor) {
+      if (performance.now() - carpshit.respawnTimer > 2000 + Math.random() * 2000) {
         const fromLeft = false;
         if (fromLeft) {
-          carpet.x = -48 - Math.random() * 200;
-          carpet.vx = 1.5 + Math.random();
+          carpshit.x = -48 - Math.random() * 200;
+          carpshit.vx = 1.5 + Math.random();
         } else {
-          carpet.x = canvas.width + 48 + Math.random() * 200;
-          carpet.vx = -(1.5 + Math.random());
+          carpshit.x = canvas.width + 48 + Math.random() * 200;
+          carpshit.vx = -(1.5 + Math.random());
         }
-        carpet.y = upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY);
-        carpet.alive = true;
-        carpet.frame = 0;
-        carpet.frameTimer = 0;
-        carpet.falling = false;
-        carpet.vy = 0;
-        carpet.onFloor = false;
-        carpet.respawnTimer = 0;
+        carpshit.y = upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY);
+        carpshit.alive = true;
+        carpshit.frame = 0;
+        carpshit.frameTimer = 0;
+        carpshit.falling = false;
+        carpshit.vy = 0;
+        carpshit.onFloor = false;
+        carpshit.respawnTimer = 0;
       }
       return;
     }
-    if (!carpet.alive && !carpet.onFloor) return;
-    if (carpet.alive) {
-      carpet.x += carpet.vx;
-      carpet.frameTimer++;
-      if (carpet.frameTimer > 8) {
-        carpet.frame = (carpet.frame + 1) % 3;
-        carpet.frameTimer = 0;
+    if (!carpshit.alive && !carpshit.onFloor) return;
+    if (carpshit.alive) {
+      carpshit.x += carpshit.vx;
+      carpshit.frameTimer++;
+      if (carpshit.frameTimer > 8) {
+        carpshit.frame = (carpshit.frame + 1) % 3;
+        carpshit.frameTimer = 0;
       }
-      if (carpet.vx < 0 && carpet.x < -48) {
-        carpet.x = canvas.width + 48;
-      } else if (carpet.vx > 0 && carpet.x > canvas.width + 48) {
-        carpet.x = -48;
+      if (carpshit.vx < 0 && carpshit.x < -48) {
+        carpshit.x = canvas.width + 48;
+      } else if (carpshit.vx > 0 && carpshit.x > canvas.width + 48) {
+        carpshit.x = -48;
       }
     }
   });
 }
 
 /**
- * Draw upper carpets
+ * Draw upper carpshits
  */
-export function drawCarpets() {
-  carpets.forEach(carpet => {
-    if (!carpet.alive && !carpet.falling && !carpet.onFloor) return;
-    const frameToDraw = carpet.alive ? carpet.frame : 3;
-    const yDraw = (!carpet.alive && carpet.onFloor) ? carpet.y + 12 : carpet.y;
-    ctx.drawImage(carpetSprite, frameToDraw * 64, 0, 64, 64, carpet.x, yDraw, 64, 64);
+export function drawCarpshits() {
+  carpshits.forEach(carpshit => {
+    if (!carpshit.alive && !carpshit.falling && !carpshit.onFloor) return;
+    const frameToDraw = carpshit.alive ? carpshit.frame : 3;
+    const yDraw = (!carpshit.alive && carpshit.onFloor) ? carpshit.y + 12 : carpshit.y;
+    ctx.drawImage(carpshitSprite, frameToDraw * 64, 0, 64, 64, carpshit.x, yDraw, 64, 64);
   });
 }
 
 /**
- * Update lower carpets movement and animations
+ * Update lower carpshits movement and animations
  */
-export function updateLowerCarpets() {
-  lowerCarpets.forEach(carpet => {
-    if (carpet.falling) {
-      carpet.vy += 0.7;
-      carpet.y += carpet.vy;
+export function updateLowerCarpshits() {
+  lowerCarpshits.forEach(carpshit => {
+    if (carpshit.falling) {
+      carpshit.vy += 0.7;
+      carpshit.y += carpshit.vy;
       const floorY = canvas.height - 20;
       const thresholdY = floorY - 48;
-      if (carpet.y >= thresholdY) {
-        carpet.y = thresholdY;
-        carpet.falling = false;
-        carpet.onFloor = true;
-        carpet.respawnTimer = performance.now();
+      if (carpshit.y >= thresholdY) {
+        carpshit.y = thresholdY;
+        carpshit.falling = false;
+        carpshit.onFloor = true;
+        carpshit.respawnTimer = performance.now();
       }
       return;
     }
-    if (!carpet.alive && carpet.onFloor) {
-      if (performance.now() - carpet.respawnTimer > 2000 + Math.random() * 2000) {
+    if (!carpshit.alive && carpshit.onFloor) {
+      if (performance.now() - carpshit.respawnTimer > 2000 + Math.random() * 2000) {
         const fromLeft = false;
         if (fromLeft) {
-          carpet.x = -48 - Math.random() * 200;
-          carpet.vx = 1 + Math.random();
+          carpshit.x = -48 - Math.random() * 200;
+          carpshit.vx = 1 + Math.random();
         } else {
-          carpet.x = canvas.width + 48 + Math.random() * 200;
-          carpet.vx = -(1 + Math.random());
+          carpshit.x = canvas.width + 48 + Math.random() * 200;
+          carpshit.vx = -(1 + Math.random());
         }
-        carpet.y = lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY);
-        carpet.alive = true;
-        carpet.frame = 0;
-        carpet.frameTimer = 0;
-        carpet.falling = false;
-        carpet.vy = 0;
-        carpet.onFloor = false;
-        carpet.respawnTimer = 0;
+        carpshit.y = lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY);
+        carpshit.alive = true;
+        carpshit.frame = 0;
+        carpshit.frameTimer = 0;
+        carpshit.falling = false;
+        carpshit.vy = 0;
+        carpshit.onFloor = false;
+        carpshit.respawnTimer = 0;
       }
       return;
     }
-    if (!carpet.alive && !carpet.onFloor) return;
-    if (carpet.alive) {
-      carpet.x += carpet.vx;
-      carpet.frameTimer++;
-      if (carpet.frameTimer > 8) {
-        carpet.frame = (carpet.frame + 1) % 3;
-        carpet.frameTimer = 0;
+    if (!carpshit.alive && !carpshit.onFloor) return;
+    if (carpshit.alive) {
+      carpshit.x += carpshit.vx;
+      carpshit.frameTimer++;
+      if (carpshit.frameTimer > 8) {
+        carpshit.frame = (carpshit.frame + 1) % 3;
+        carpshit.frameTimer = 0;
       }
-      if (carpet.vx < 0 && carpet.x < -48) {
-        carpet.x = canvas.width + 48;
-      } else if (carpet.vx > 0 && carpet.x > canvas.width + 48) {
-        carpet.x = -48;
+      if (carpshit.vx < 0 && carpshit.x < -48) {
+        carpshit.x = canvas.width + 48;
+      } else if (carpshit.vx > 0 && carpshit.x > canvas.width + 48) {
+        carpshit.x = -48;
       }
     }
   });
 }
 
 /**
- * Draw lower carpets
+ * Draw lower carpshits
  */
-export function drawLowerCarpets() {
-  lowerCarpets.forEach(carpet => {
-    if (!carpet.alive && !carpet.falling && !carpet.onFloor) return;
-    const frameToDraw = carpet.alive ? carpet.frame : 3;
-    const yDraw = (!carpet.alive && carpet.onFloor) ? carpet.y + 12 : carpet.y;
-    ctx.drawImage(carpetSprite, frameToDraw * 64, 0, 64, 64, carpet.x, yDraw, 64, 64);
+export function drawLowerCarpshits() {
+  lowerCarpshits.forEach(carpshit => {
+    if (!carpshit.alive && !carpshit.falling && !carpshit.onFloor) return;
+    const frameToDraw = carpshit.alive ? carpshit.frame : 3;
+    const yDraw = (!carpshit.alive && carpshit.onFloor) ? carpshit.y + 12 : carpshit.y;
+    ctx.drawImage(carpshitSprite, frameToDraw * 64, 0, 64, 64, carpshit.x, yDraw, 64, 64);
   });
 } 
