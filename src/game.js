@@ -1,5 +1,5 @@
 // Minimal orchestration stub: wires up restart UI, DevTools, and exposes startGame
-import { player } from './src/player.js';
+import { player } from './player.js';
 import {
   spawnCarpet as enemySpawnCarpet,
   spawnLowerCarpet as enemySpawnLowerCarpet,
@@ -7,12 +7,12 @@ import {
   lowerCarpets as enemyLowerCarpets,
   NUM_CARPETS,
   NUM_LOWER_CARPETS
-} from './src/enemy.js';
-import * as state from './src/state.js';
-import { setupRestartUI, restartButton, isRestartHover } from './src/uiController.js';
-import { setupDevTools } from './src/devtools.js';
-import { renderGame } from './src/render.js';
-import { startGame, gameLoop } from './src/controller.js';
+} from './enemy.js';
+import * as state from './state.js';
+import { setupRestartUI, restartButton, isRestartHover } from './uiController.js';
+import { setupDevTools } from './devtools.js';
+import { renderGame } from './render.js';
+import { startGame, gameLoop } from './controller.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
