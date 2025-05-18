@@ -6,10 +6,10 @@
 export const PLATFORM_WIDTH = 120;
 export const PLATFORM_HEIGHT = 16;
 export const platforms = [
-  { x: 200, y: 360, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
-  { x: 320, y: 310, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
-  { x: 100, y: 450, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
-  { x: 400, y: 300, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT }
+  { x: 150, y: 450, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
+  { x: 250, y: 400, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
+  { x: 320, y: 350, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
+  { x: 400, y: 275, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT }
 ];
 
 /**

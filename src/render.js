@@ -2,7 +2,7 @@
 import * as state from './state.js';
 import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGameOver, drawRestartButton } from './ui.js';
 import { drawPlatforms, platforms } from './physics.js';
-import { sprite, crouchSprite, deadSprite, crouchAnimSprite, bgSprite } from './assets.js';
+import { sprite, crouchSprite, deadSprite, crouchAnimSprite, bgSprite, jumpingSprite } from './assets.js';
 import { drawBullets } from './bullets.js';
 import { drawCarpets as drawEnemyCarpets, drawLowerCarpets as drawEnemyLowerCarpets, carpets, lowerCarpets } from './enemy.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
@@ -16,8 +16,8 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   // Animated background flicker between frames 1 and 2 (columns 0 and 1, row 0)
   if (state.gameState === 'playing') {
     const now = performance.now();
-    // Flicker at 2Hz (change every ~250ms)
-    const frame = Math.floor(now / 250) % 2;
+    // Flicker at 1Hz (change every ~1000ms)
+    const frame = Math.floor(now / 1000) % 2;
     ctx.drawImage(
       bgSprite,
       frame * 960, 0, // sx, sy (column 0 or 1, row 0)
@@ -92,7 +92,16 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     } else {
       const frameIndex = player.firing ? 3 : Math.floor(player.frame / 10) % 4;
       ctx.save();
-      if (player.facing < 0) {
+      if (!player.grounded && !player.crouching) {
+        // Draw jumping sprite
+        if (player.facing < 0) {
+          ctx.translate(player.x + player.width, player.feetY - player.height);
+          ctx.scale(-1, 1);
+          ctx.drawImage(jumpingSprite, 0, 0, player.width, player.height, 0, 0, player.width, player.height);
+        } else {
+          ctx.drawImage(jumpingSprite, 0, 0, player.width, player.height, player.x, player.feetY - player.height, player.width, player.height);
+        }
+      } else if (player.facing < 0) {
         ctx.translate(player.x + player.width, player.feetY - player.height);
         ctx.scale(-1, 1);
         ctx.drawImage(sprite, frameIndex * player.width, 0, player.width, player.height, 0, 0, player.width, player.height);

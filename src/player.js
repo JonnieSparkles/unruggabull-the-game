@@ -31,6 +31,10 @@ export const jumpSound = new Audio('assets/audio/sfx/jump_c_02-102843.mp3');
  */
 export function handleMovement() {
   let isWalking = false;
+  // Slow down if crouching
+  const normalSpeed = 4;
+  const crouchSpeed = 2.5;
+  player.speed = player.crouching ? crouchSpeed : normalSpeed;
   if (keys['d'] || keys['D']) {
     player.vx = player.speed;
     isWalking = true;

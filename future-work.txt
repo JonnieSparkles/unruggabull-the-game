@@ -1,10 +1,6 @@
-animate crouching
-
 Level 1 boss
-
-gameover fade improvement
-
-muzzle flash
 
 add changelog to version number 
 move credits to end of game?
+
+bearded theme vivid black

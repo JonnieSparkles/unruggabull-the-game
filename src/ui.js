@@ -7,15 +7,23 @@ export function showControlsScreen(ctx, canvas) {
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.85)';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.font = 'bold 40px Arial';
+  // Responsive font sizes
+  const titleFont = canvas.width > 900 ? 'bold 56px Arial' : 'bold 40px Arial';
+  const textFont = canvas.width > 900 ? '32px Arial' : '24px Arial';
+  ctx.font = titleFont;
   ctx.fillStyle = '#fff';
   ctx.textAlign = 'center';
-  ctx.fillText('Controls', canvas.width / 2, 80);
-  ctx.font = '28px Arial';
-  ctx.fillText('Move: A/D', canvas.width / 2, 140);
-  ctx.fillText('Jump: Space', canvas.width / 2, 180);
-  ctx.fillText('Fire: F, J, or Enter', canvas.width / 2, 220);
-  ctx.fillText('Press any key to start!', canvas.width / 2, 300);
+  ctx.fillText('Controls', canvas.width / 2, 120);
+  ctx.font = textFont;
+  let y = 210;
+  const lineHeight = 48;
+  ctx.fillText('Move: A / D', canvas.width / 2, y);
+  y += lineHeight;
+  ctx.fillText('Jump: Space', canvas.width / 2, y);
+  y += lineHeight;
+  ctx.fillText('Fire: F, J, or Enter', canvas.width / 2, y);
+  y += lineHeight;
+  ctx.fillText('Press any key to start!', canvas.width / 2, y + 20);
   ctx.restore();
 }
 
