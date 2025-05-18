@@ -34,14 +34,18 @@ export function checkBulletLowerCarpetCollisions(bullets, carpets, onKill) {
  * Check collisions between player and carpets.
  * Calls onHit(carpet) when the player collides with a carpet.
  */
+import { getHitbox } from './player.js';
 export function checkPlayerCarpetCollisions(player, carpets, onHit) {
   if (!player || typeof onHit !== 'function') return;
   for (let j = carpets.length - 1; j >= 0; j--) {
     const carpet = carpets[j];
     if (!carpet.alive) continue;
+    // Get unified hitbox rectangle
+    const { x: hx, y: hy, width: hw, height: hh } = getHitbox(player);
+    // Simple AABB collision
     if (
-      player.x + player.width > carpet.x && player.x < carpet.x + 48 &&
-      player.y + player.height > carpet.y && player.y < carpet.y + 48
+      hx + hw > carpet.x && hx < carpet.x + 48 &&
+      hy + hh > carpet.y && hy < carpet.y + 48
     ) {
       onHit(carpet);
     }

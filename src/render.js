@@ -2,10 +2,11 @@
 import * as state from './state.js';
 import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGameOver, drawRestartButton } from './ui.js';
 import { drawPlatforms, platforms } from './physics.js';
-import { sprite, crouchSprite, deadSprite, crouchAnimSprite, bgSprite, jumpingSprite } from './assets.js';
+import { sprite, crouchSprite, deadSprite, bgSprite, jumpingSprite } from './assets.js';
 import { drawBullets } from './bullets.js';
 import { drawCarpets as drawEnemyCarpets, drawLowerCarpets as drawEnemyLowerCarpets, carpets, lowerCarpets } from './enemy.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
+import { getHitbox } from './player.js';
 
 /**
  * Render the current game frame.
@@ -78,29 +79,32 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       // Animate crouch: crop bottom frameH pixels
       let frameIndex = player.firing ? 3 : Math.floor(player.frame / 10) % 4;
       const frameW = player.width;
-      const frameH = player.height; // crouch hitbox height (e.g., 60px)
-      // Crop the bottom frameH pixels of the sprite
-      const srcY = crouchAnimSprite.height - frameH;
+      const frameH = player.height;
+      const srcY = crouchSprite.height - frameH;
       const destY = player.feetY - frameH;
       if (player.facing < 0) {
         ctx.translate(player.x + frameW, destY);
         ctx.scale(-1, 1);
-        ctx.drawImage(crouchAnimSprite, frameIndex * frameW, srcY, frameW, frameH, 0, 0, frameW, frameH);
+        ctx.drawImage(crouchSprite, frameIndex * frameW, srcY, frameW, frameH, 0, 0, frameW, frameH);
       } else {
-        ctx.drawImage(crouchAnimSprite, frameIndex * frameW, srcY, frameW, frameH, player.x, destY, frameW, frameH);
+        ctx.drawImage(crouchSprite, frameIndex * frameW, srcY, frameW, frameH, player.x, destY, frameW, frameH);
       }
       ctx.restore();
     } else {
       const frameIndex = player.firing ? 3 : Math.floor(player.frame / 10) % 4;
       ctx.save();
       if (!player.grounded && !player.crouching) {
-        // Draw jumping sprite
+        // Draw jumping sprite, crop bottom to align feet
+        const frameW = player.width;
+        const frameH = player.height;
+        const srcY = jumpingSprite.height - frameH;
+        const destY = player.feetY - frameH;
         if (player.facing < 0) {
-          ctx.translate(player.x + player.width, player.feetY - player.height);
+          ctx.translate(player.x + frameW, destY);
           ctx.scale(-1, 1);
-          ctx.drawImage(jumpingSprite, 0, 0, player.width, player.height, 0, 0, player.width, player.height);
+          ctx.drawImage(jumpingSprite, 0, srcY, frameW, frameH, 0, 0, frameW, frameH);
         } else {
-          ctx.drawImage(jumpingSprite, 0, 0, player.width, player.height, player.x, player.feetY - player.height, player.width, player.height);
+          ctx.drawImage(jumpingSprite, 0, srcY, frameW, frameH, player.x, destY, frameW, frameH);
         }
       } else if (player.facing < 0) {
         ctx.translate(player.x + player.width, player.feetY - player.height);
@@ -132,10 +136,12 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
 
   // Debug hitboxes
   if (DEBUG_HITBOXES) {
+    // Draw actual hitbox
     ctx.save();
+    const { x: hx, y: hy, width: hw, height: hh } = getHitbox(player);
     ctx.strokeStyle = 'lime';
     ctx.lineWidth = 2;
-    ctx.strokeRect(player.x, player.y, player.width, player.height);
+    ctx.strokeRect(hx, hy, hw, hh);
     ctx.restore();
     // Draw red hitboxes for all visible carpets
     ctx.save();

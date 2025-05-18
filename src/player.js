@@ -91,4 +91,18 @@ export function updatePlayerInput() {
   handleJumping();
   handleCrouch();
   if (player.muzzleFlashTimer > 0) player.muzzleFlashTimer--;
+}
+
+/**
+ * Get the player's collision hitbox rectangle.
+ * When jumping, use a reduced height of 84px aligned to the feet.
+ */
+export function getHitbox(player) {
+  if (!player.grounded && !player.crouching) {
+    const height = 84;
+    const topY = player.feetY - height;
+    return { x: player.x, y: topY, width: player.width, height };
+  } else {
+    return { x: player.x, y: player.y, width: player.width, height: player.height };
+  }
 } 
