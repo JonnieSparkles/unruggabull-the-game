@@ -8,13 +8,20 @@ const ctx = canvas.getContext('2d');
 const carpetSprite = new Image();
 carpetSprite.src = 'assets/sprites/enemy-flying-carpet.png';
 
+// Define dynamic floor and spawn ranges
+const floorY = canvas.height - 20;
+const upperSpawnMinY = canvas.height * 0.1;
+const upperSpawnMaxY = canvas.height * 0.6;
+const lowerSpawnMinY = canvas.height * 0.6;
+const lowerSpawnMaxY = floorY - 48;
+
 /**
  * Primary enemy: flying carpets
  */
 export const NUM_CARPETS = 3;
 export const carpets = Array.from({ length: NUM_CARPETS }, () => ({
   x: canvas.width + 48 + Math.random() * 200,
-  y: 80 + Math.random() * 180,
+  y: upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY),
   vx: -(1.5 + Math.random()),
   alive: true,
   frame: 0,
@@ -31,7 +38,7 @@ export const carpets = Array.from({ length: NUM_CARPETS }, () => ({
 export const NUM_LOWER_CARPETS = 2;
 export const lowerCarpets = Array.from({ length: NUM_LOWER_CARPETS }, () => ({
   x: canvas.width + 48 + Math.random() * 200,
-  y: 300 + Math.random() * 40,
+  y: lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY),
   vx: -(1 + Math.random()),
   alive: true,
   frame: 0,
@@ -48,7 +55,7 @@ export const lowerCarpets = Array.from({ length: NUM_LOWER_CARPETS }, () => ({
 export function spawnCarpet() {
   carpets.push({
     x: canvas.width + 48 + Math.random() * 200,
-    y: 80 + Math.random() * 180,
+    y: upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY),
     vx: -(1.5 + Math.random()),
     alive: true,
     frame: 0,
@@ -66,7 +73,7 @@ export function spawnCarpet() {
 export function spawnLowerCarpet() {
   lowerCarpets.push({
     x: canvas.width + 48 + Math.random() * 200,
-    y: 300 + Math.random() * 40,
+    y: lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY),
     vx: -(1 + Math.random()),
     alive: true,
     frame: 0,
@@ -86,8 +93,10 @@ export function updateCarpets() {
     if (carpet.falling) {
       carpet.vy += 0.7;
       carpet.y += carpet.vy;
-      if (carpet.y >= canvas.height - 48) {
-        carpet.y = canvas.height - 48;
+      const floorY = canvas.height - 20;
+      const thresholdY = floorY - 48;
+      if (carpet.y >= thresholdY) {
+        carpet.y = thresholdY;
         carpet.falling = false;
         carpet.onFloor = true;
         carpet.respawnTimer = performance.now();
@@ -104,7 +113,7 @@ export function updateCarpets() {
           carpet.x = canvas.width + 48 + Math.random() * 200;
           carpet.vx = -(1.5 + Math.random());
         }
-        carpet.y = 80 + Math.random() * 180;
+        carpet.y = upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY);
         carpet.alive = true;
         carpet.frame = 0;
         carpet.frameTimer = 0;
@@ -152,8 +161,10 @@ export function updateLowerCarpets() {
     if (carpet.falling) {
       carpet.vy += 0.7;
       carpet.y += carpet.vy;
-      if (carpet.y >= canvas.height - 48) {
-        carpet.y = canvas.height - 48;
+      const floorY = canvas.height - 20;
+      const thresholdY = floorY - 48;
+      if (carpet.y >= thresholdY) {
+        carpet.y = thresholdY;
         carpet.falling = false;
         carpet.onFloor = true;
         carpet.respawnTimer = performance.now();
@@ -170,7 +181,7 @@ export function updateLowerCarpets() {
           carpet.x = canvas.width + 48 + Math.random() * 200;
           carpet.vx = -(1 + Math.random());
         }
-        carpet.y = 300 + Math.random() * 40;
+        carpet.y = lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY);
         carpet.alive = true;
         carpet.frame = 0;
         carpet.frameTimer = 0;

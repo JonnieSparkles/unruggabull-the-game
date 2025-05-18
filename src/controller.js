@@ -14,7 +14,7 @@ import { carpets as enemyCarpets, lowerCarpets as enemyLowerCarpets } from './en
  */
 export function resetGame(canvas, bullets) {
   player.x = 50;
-  player.feetY = 380;
+  player.feetY = canvas.height - 20;
   player.vx = 0;
   player.vy = 0;
   player.jumping = false;
@@ -68,6 +68,8 @@ export function gameLoop(canvas, ctx, bullets, restartButton, isRestartHover) {
  * Start a new game: show controls screen, initialize, then enter main loop.
  */
 export function startGame(canvas, ctx, bullets, restartButton, isRestartHover) {
+  // Reset player, enemies, and bullets to the updated canvas-based starting positions
+  resetGame(canvas, bullets);
   setupControls();
   generatePlatforms();
   bgMusic.currentTime = 0;

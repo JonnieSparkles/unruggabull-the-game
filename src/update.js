@@ -14,11 +14,12 @@ import * as state from './state.js';
 export function updateGame(bullets, canvas) {
   if (state.gameState === 'dying') {
     // Animate body falling to the floor
-    if (player.feetY < canvas.height - player.height) {
+    const floorY = canvas.height - 20;
+    if (player.feetY < floorY) {
       player.vy += 1.2; // gravity
       player.feetY += player.vy;
-      if (player.feetY > canvas.height - player.height) {
-        player.feetY = canvas.height - player.height;
+      if (player.feetY > floorY) {
+        player.feetY = floorY;
         player.vy = 0;
         if (!state.getDyingStartTime()) state.setDyingStartTime(performance.now());
       }

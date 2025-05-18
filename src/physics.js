@@ -6,9 +6,9 @@
 export const PLATFORM_WIDTH = 120;
 export const PLATFORM_HEIGHT = 16;
 export const platforms = [
-  { x: 200, y: 260, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
-  { x: 320, y: 210, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
-  { x: 100, y: 160, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
+  { x: 200, y: 360, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
+  { x: 320, y: 310, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
+  { x: 100, y: 450, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
   { x: 400, y: 300, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT }
 ];
 
@@ -51,8 +51,9 @@ export function handlePhysics(player, platforms, canvas) {
   }
   // ground collision
   if (!onPlatform) {
-    if (player.feetY >= 380) {
-      player.feetY = 380;
+    const floorY = canvas.height - 20;
+    if (player.feetY >= floorY) {
+      player.feetY = floorY;
       player.vy = 0;
       player.jumping = false;
       player.grounded = true;

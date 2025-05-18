@@ -156,6 +156,4 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   if (showDevSettings) {
     drawDevSettings(ctx, canvas, state.difficultyLevel);
   }
-
-  console.log('height:', player.height, 'crouching:', player.crouching);
 } 
