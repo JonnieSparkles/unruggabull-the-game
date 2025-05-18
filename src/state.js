@@ -1,5 +1,7 @@
 // State module: centralize game state and settings
 
+import { difficultyIncreaseSound } from './sound.js';
+
 export let gameState = 'start';
 export function setGameState(s) { gameState = s; }
 export function getGameState() { return gameState; }
@@ -35,6 +37,9 @@ export let PHASE_CHANGE_KILL_COUNT = 15;
 export let difficultyLevel = 1;
 export let nextPhaseKillCount = PHASE_CHANGE_KILL_COUNT;
 export function increaseDifficulty() {
+  // Play difficulty increase sound
+  difficultyIncreaseSound.currentTime = 0;
+  difficultyIncreaseSound.play();
   difficultyLevel++;
   nextPhaseKillCount += PHASE_CHANGE_KILL_COUNT;
 }
@@ -49,4 +54,13 @@ export function setPhaseChangeKillCount(val) {
   // Recalculate nextPhaseKillCount so the next phase is always reachable
   setNextPhaseKillCount(killCount + PHASE_CHANGE_KILL_COUNT);
 }
-export function setNextPhaseKillCount(val) { nextPhaseKillCount = val; } 
+export function setNextPhaseKillCount(val) { nextPhaseKillCount = val; }
+
+// Level selection
+export let currentLevelKey = 'rugcoAlley';
+export function setCurrentLevelKey(key) { currentLevelKey = key; }
+export function getCurrentLevelKey() { return currentLevelKey; }
+
+// Level boss control
+export let bossActive = false;
+export let currentBoss = null; 

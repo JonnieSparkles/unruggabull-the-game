@@ -3,20 +3,24 @@
 /**
  * Background music (looped).
  */
-export const bgMusic = new Audio('assets/audio/bgm/platform-shoes-8-bit-chiptune-instrumental-336417.mp3');
+export const bgMusic = new Audio();
 bgMusic.loop = true;
 bgMusic.volume = 0.3;
-window.bgMusic = bgMusic;
 
 /**
  * Player firing sound.
  */
-export const fireSound = new Audio('assets/audio/sfx/pulse-laser-blast-135820.mp3');
+export const fireSound = new Audio('assets/audio/sfx/blaster-fire.mp3');
 
 /**
- * Enemy death sound.
+ * Difficulty increase sound.
  */
-export const carpshitDeathSound = new Audio('assets/audio/sfx/man-death-scream-186763.mp3');
+export const difficultyIncreaseSound = new Audio('assets/audio/sfx/oh-yeaaaa.mp3');
+
+/**
+ * Carpshit death sound.
+ */
+export const carpshitDeathSound = new Audio('assets/audio/sfx/carpshit-death.mp3');
 
 /**
  * Game over sound.

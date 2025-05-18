@@ -12,8 +12,5 @@ deadSprite.src = 'assets/sprites/unruggabull-dead.png';
 export const crouchSprite = new Image();
 crouchSprite.src = 'assets/sprites/unruggabull-crouching.png';
 
-export const bgSprite = new Image();
-bgSprite.src = 'assets/sprites/level-rugco-alley.png';
-
 export const jumpingSprite = new Image();
 jumpingSprite.src = 'assets/sprites/unruggabull-jumping.png'; 

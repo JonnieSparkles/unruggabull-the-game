@@ -8,6 +8,8 @@ import { renderGame } from './render.js';
 import { sprite, carpshitSprite } from './assets.js';
 import { player } from './player.js';
 import { carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits } from './enemy.js';
+import levels from './levels/index.js';
+import { getCurrentLevelKey } from './state.js';
 
 /**
  * Reset player, enemies, and bullets for a new game.
@@ -72,6 +74,9 @@ export function startGame(canvas, ctx, bullets, restartButton, isRestartHover) {
   resetGame(canvas, bullets);
   setupControls();
   generatePlatforms();
+  // Load level-specific music
+  const levelConfig = levels[getCurrentLevelKey()];
+  bgMusic.src = levelConfig.music;
   bgMusic.currentTime = 0;
   bgMusic.play();
   // Controls screen dismissal

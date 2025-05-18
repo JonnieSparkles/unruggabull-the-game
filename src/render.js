@@ -1,8 +1,10 @@
 // Render module: draw everything to the canvas
 import * as state from './state.js';
+import levels from './levels/index.js';
+import { getCurrentLevelKey } from './state.js';
 import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGameOver, drawRestartButton } from './ui.js';
 import { drawPlatforms, platforms } from './physics.js';
-import { sprite, crouchSprite, deadSprite, bgSprite, jumpingSprite } from './assets.js';
+import { sprite, crouchSprite, deadSprite, jumpingSprite } from './assets.js';
 import { drawBullets } from './bullets.js';
 import { drawCarpshits as drawEnemyCarpshits, drawLowerCarpshits as drawEnemyLowerCarpshits, carpshits, lowerCarpshits } from './enemy.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
@@ -13,24 +15,10 @@ import { getCarpshitHitbox } from './enemy.js';
  * Render the current game frame.
  */
 export function renderGame(ctx, canvas, bullets, player, restartButton, isRestartHover) {
+  // Clear and draw level background
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Animated background flicker between frames 1 and 2 (columns 0 and 1, row 0)
-  if (state.gameState === 'playing') {
-    const now = performance.now();
-    // Flicker at 1Hz (change every ~1000ms)
-    const frame = Math.floor(now / 1000) % 2;
-    ctx.drawImage(
-      bgSprite,
-      frame * 960, 0, // sx, sy (column 0 or 1, row 0)
-      960, 540,       // sw, sh
-      0, 0,           // dx, dy
-      960, 540        // dw, dh
-    );
-  } else {
-    // Default to frame 1 (column 0, row 0) for non-playing states
-    ctx.drawImage(bgSprite, 0, 0, 960, 540, 0, 0, 960, 540);
-  }
+  const levelConfig = levels[getCurrentLevelKey()];
+  levelConfig.background(ctx, canvas);
 
   // Flash overlay
   if (state.flashActive) {

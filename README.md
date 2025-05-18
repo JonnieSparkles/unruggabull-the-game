@@ -36,10 +36,10 @@ assets/
       platform-shoes-8-bit-chiptune-instrumental-336417.mp3
       energetic-action-rock-music-336531.mp3
     sfx/
-      jump_c_02-102843.mp3
-      pulse-laser-blast-135820.mp3
+      unruggabull-jump.mp3
+      blaster-fire.mp3
       lets-go.mp3
-      man-death-scream-186763.mp3
+      carpshit-death.mp3
       game-over.mp3
   images/
     title-screen.png
