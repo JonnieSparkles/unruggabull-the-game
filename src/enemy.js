@@ -8,6 +8,10 @@ const ctx = canvas.getContext('2d');
 const carpetSprite = new Image();
 carpetSprite.src = 'assets/sprites/enemy-flying-carpet.png';
 
+// Carpet sprite dimensions
+export const CARPET_SPRITE_WIDTH = 64;
+export const CARPET_SPRITE_HEIGHT = 50;
+
 // Define dynamic floor and spawn ranges
 const floorY = canvas.height - 20;
 const upperSpawnMinY = canvas.height * 0.1;
@@ -48,6 +52,23 @@ export const lowerCarpets = Array.from({ length: NUM_LOWER_CARPETS }, () => ({
   onFloor: false,
   respawnTimer: 0
 }));
+
+/**
+ * Get the carpet's collision hitbox rectangle.
+ * Handles floor offset when carpet is dead and on floor.
+ */
+export function getCarpetHitbox(carpet) {
+  // Determine the draw Y used by render and collision (floor offset when onFloor)
+  const y = (!carpet.alive && carpet.onFloor)
+    ? carpet.y + 12
+    : carpet.y;
+  return {
+    x: carpet.x,
+    y,
+    width: CARPET_SPRITE_WIDTH,
+    height: CARPET_SPRITE_HEIGHT
+  };
+}
 
 /**
  * Spawn a new upper carpet off-screen
@@ -149,7 +170,7 @@ export function drawCarpets() {
     if (!carpet.alive && !carpet.falling && !carpet.onFloor) return;
     const frameToDraw = carpet.alive ? carpet.frame : 3;
     const yDraw = (!carpet.alive && carpet.onFloor) ? carpet.y + 12 : carpet.y;
-    ctx.drawImage(carpetSprite, frameToDraw * 48, 0, 48, 48, carpet.x, yDraw, 48, 48);
+    ctx.drawImage(carpetSprite, frameToDraw * 64, 0, 64, 64, carpet.x, yDraw, 64, 64);
   });
 }
 
@@ -217,6 +238,6 @@ export function drawLowerCarpets() {
     if (!carpet.alive && !carpet.falling && !carpet.onFloor) return;
     const frameToDraw = carpet.alive ? carpet.frame : 3;
     const yDraw = (!carpet.alive && carpet.onFloor) ? carpet.y + 12 : carpet.y;
-    ctx.drawImage(carpetSprite, frameToDraw * 48, 0, 48, 48, carpet.x, yDraw, 48, 48);
+    ctx.drawImage(carpetSprite, frameToDraw * 64, 0, 64, 64, carpet.x, yDraw, 64, 64);
   });
 } 

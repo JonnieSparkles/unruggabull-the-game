@@ -10,10 +10,12 @@ export function checkBulletCarpetCollisions(bullets, carpets, onKill) {
     for (let j = carpets.length - 1; j >= 0; j--) {
       const carpet = carpets[j];
       if (!carpet.alive) continue;
+      // Get carpet hitbox
+      const { x: cx, y: cy, width: cw, height: ch } = getCarpetHitbox(carpet);
       // Simple AABB collision
       if (
-        bullet.x > carpet.x && bullet.x < carpet.x + 48 &&
-        bullet.y > carpet.y && bullet.y < carpet.y + 48
+        bullet.x > cx && bullet.x < cx + cw &&
+        bullet.y > cy && bullet.y < cy + ch
       ) {
         onKill(bullets, i, carpet);
         break;
@@ -35,17 +37,19 @@ export function checkBulletLowerCarpetCollisions(bullets, carpets, onKill) {
  * Calls onHit(carpet) when the player collides with a carpet.
  */
 import { getHitbox } from './player.js';
+import { getCarpetHitbox } from './enemy.js';
 export function checkPlayerCarpetCollisions(player, carpets, onHit) {
   if (!player || typeof onHit !== 'function') return;
   for (let j = carpets.length - 1; j >= 0; j--) {
     const carpet = carpets[j];
     if (!carpet.alive) continue;
-    // Get unified hitbox rectangle
+    // Get player and carpet hitboxes
     const { x: hx, y: hy, width: hw, height: hh } = getHitbox(player);
+    const { x: cx, y: cy, width: cw, height: ch } = getCarpetHitbox(carpet);
     // Simple AABB collision
     if (
-      hx + hw > carpet.x && hx < carpet.x + 48 &&
-      hy + hh > carpet.y && hy < carpet.y + 48
+      hx + hw > cx && hx < cx + cw &&
+      hy + hh > cy && hy < cy + ch
     ) {
       onHit(carpet);
     }

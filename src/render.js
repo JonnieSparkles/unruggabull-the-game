@@ -7,6 +7,7 @@ import { drawBullets } from './bullets.js';
 import { drawCarpets as drawEnemyCarpets, drawLowerCarpets as drawEnemyLowerCarpets, carpets, lowerCarpets } from './enemy.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 import { getHitbox } from './player.js';
+import { getCarpetHitbox } from './enemy.js';
 
 /**
  * Render the current game frame.
@@ -150,14 +151,14 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     // Upper carpets
     carpets.forEach(carpet => {
       if (!carpet.alive && !carpet.falling && !carpet.onFloor) return;
-      const yDraw = (!carpet.alive && carpet.onFloor) ? carpet.y + 12 : carpet.y;
-      ctx.strokeRect(carpet.x, yDraw, 48, 48);
+      const { x: cx, y: cy, width: cw, height: ch } = getCarpetHitbox(carpet);
+      ctx.strokeRect(cx, cy, cw, ch);
     });
     // Lower carpets
     lowerCarpets.forEach(carpet => {
       if (!carpet.alive && !carpet.falling && !carpet.onFloor) return;
-      const yDraw = (!carpet.alive && carpet.onFloor) ? carpet.y + 12 : carpet.y;
-      ctx.strokeRect(carpet.x, yDraw, 48, 48);
+      const { x: cx, y: cy, width: cw, height: ch } = getCarpetHitbox(carpet);
+      ctx.strokeRect(cx, cy, cw, ch);
     });
     ctx.restore();
   }
