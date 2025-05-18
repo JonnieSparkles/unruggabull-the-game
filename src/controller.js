@@ -48,7 +48,8 @@ export function resetGame(canvas, bullets) {
     carpet.respawnTimer = 0;
   });
   bullets.length = 0;
-  state.setGameState('gameover');
+  state.setDyingStartTime(null);
+  state.setGameState('playing');
 }
 
 /**

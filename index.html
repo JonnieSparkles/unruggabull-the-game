@@ -61,18 +61,25 @@
       bottom: 10vh;
       font-size: clamp(1.2rem, 2.5vw, 2rem);
       padding: clamp(0.5em, 1.2vw, 1em) clamp(1em, 2vw, 2em);
-      min-width: 100px;
-      min-height: 40px;
+      min-width: 120px;
+      min-height: 48px;
       border: none;
-      border-radius: 1vw;
-      background: #ff8300;
-      color: #fff;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #ffe066 0%, #ffd700 60%, #ffb300 100%);
+      color: #222;
+      font-weight: bold;
+      letter-spacing: 1px;
       cursor: pointer;
-      box-shadow: 0 2px 8px #0004;
-      transition: background 0.2s;
+      box-shadow: 0 4px 18px #0006, 0 0px 0px #fff0;
+      transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+      outline: none;
+      text-shadow: 0 2px 8px #fff8;
     }
-    #start-btn:hover {
-      background: #ffb017;
+    #start-btn:hover, #start-btn:focus {
+      background: linear-gradient(180deg, #fffbe6 0%, #ffe066 60%, #ffd700 100%);
+      color: #b36b00;
+      box-shadow: 0 6px 24px #ffd70099, 0 0 12px #fffbe6cc;
+      text-shadow: 0 2px 16px #fffbe6cc;
     }
     #gameCanvas {
       opacity: 0;

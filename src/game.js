@@ -25,6 +25,7 @@ function devIncreaseDifficulty() {
   state.increaseDifficulty();
   enemySpawnCarpet();
   enemySpawnLowerCarpet();
+  state.setNextPhaseKillCount(state.getKillCount() + state.PHASE_CHANGE_KILL_COUNT);
 }
 
 function devDecreaseDifficulty() {
@@ -33,6 +34,7 @@ function devDecreaseDifficulty() {
     if (enemyCarpets.length > NUM_CARPETS) enemyCarpets.pop();
     if (enemyLowerCarpets.length > NUM_LOWER_CARPETS) enemyLowerCarpets.pop();
   }
+  state.setNextPhaseKillCount(state.getKillCount() + state.PHASE_CHANGE_KILL_COUNT);
 }
 
 /**

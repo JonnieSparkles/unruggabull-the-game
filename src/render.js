@@ -4,7 +4,7 @@ import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGa
 import { drawPlatforms, platforms } from './physics.js';
 import { sprite, crouchSprite, deadSprite } from './assets.js';
 import { drawBullets } from './bullets.js';
-import { drawCarpets as drawEnemyCarpets, drawLowerCarpets as drawEnemyLowerCarpets } from './enemy.js';
+import { drawCarpets as drawEnemyCarpets, drawLowerCarpets as drawEnemyLowerCarpets, carpets, lowerCarpets } from './enemy.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 
 /**
@@ -23,7 +23,7 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.restore();
     } else {
-      state.flashActive = false;
+      state.setFlashActive(false);
     }
   }
 
@@ -41,25 +41,31 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   drawPlatforms(ctx, platforms);
 
   // Draw player
-  if (state.gameState === 'dying') {
+  if (state.gameState === 'dying' || state.gameState === 'gameover') {
     ctx.save();
+    const deadW = 96;
+    const deadH = 96;
+    const drawX = player.x + player.width / 2 - deadW / 2;
+    const drawY = player.feetY - deadH;
     if (player.facing < 0) {
-      ctx.translate(player.x + player.width / 2, player.y + player.height - 80);
+      ctx.translate(drawX + deadW / 2, drawY + deadH / 2);
       ctx.scale(-1, 1);
-      ctx.drawImage(deadSprite, 0, 0, 96, 96, -48, 0, 96, 96);
+      ctx.drawImage(deadSprite, 0, 0, deadW, deadH, -deadW / 2, -deadH / 2, deadW, deadH);
     } else {
-      ctx.drawImage(deadSprite, 0, 0, 96, 96, player.x + player.width / 2 - 48, player.y + player.height - 80, 96, 96);
+      ctx.drawImage(deadSprite, 0, 0, deadW, deadH, drawX, drawY, deadW, deadH);
     }
     ctx.restore();
   } else {
     if (player.crouching) {
       ctx.save();
+      const sy = crouchSprite.height / 2;
+      const sh = crouchSprite.height / 2;
       if (player.facing < 0) {
         ctx.translate(player.x + player.width, player.feetY - player.height);
         ctx.scale(-1, 1);
-        ctx.drawImage(crouchSprite, 0, 0, player.width, player.height, 0, 0, player.width, player.height);
+        ctx.drawImage(crouchSprite, 0, sy, player.width, sh, 0, player.height - sh, player.width, sh);
       } else {
-        ctx.drawImage(crouchSprite, 0, 0, player.width, player.height, player.x, player.feetY - player.height, player.width, player.height);
+        ctx.drawImage(crouchSprite, 0, sy, player.width, sh, player.x, player.feetY - sh, player.width, sh);
       }
       ctx.restore();
     } else {
@@ -83,6 +89,23 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     ctx.lineWidth = 2;
     ctx.strokeRect(player.x, player.y, player.width, player.height);
     ctx.restore();
+    // Draw red hitboxes for all visible carpets
+    ctx.save();
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    // Upper carpets
+    carpets.forEach(carpet => {
+      if (!carpet.alive && !carpet.falling && !carpet.onFloor) return;
+      const yDraw = (!carpet.alive && carpet.onFloor) ? carpet.y + 12 : carpet.y;
+      ctx.strokeRect(carpet.x, yDraw, 48, 48);
+    });
+    // Lower carpets
+    lowerCarpets.forEach(carpet => {
+      if (!carpet.alive && !carpet.falling && !carpet.onFloor) return;
+      const yDraw = (!carpet.alive && carpet.onFloor) ? carpet.y + 12 : carpet.y;
+      ctx.strokeRect(carpet.x, yDraw, 48, 48);
+    });
+    ctx.restore();
   }
 
   // Bullets & enemies
@@ -93,6 +116,9 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   // Game over
   if (state.gameState.includes('over')) {
     drawGameOver(ctx, canvas);
+    // Center the restart button
+    restartButton.x = Math.round(canvas.width / 2 - restartButton.width / 2);
+    restartButton.y = Math.round(canvas.height / 2 + 40);
     drawRestartButton(ctx, canvas, restartButton, isRestartHover);
     return;
   }

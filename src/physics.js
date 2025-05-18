@@ -8,7 +8,7 @@ export const PLATFORM_HEIGHT = 16;
 export const platforms = [
   { x: 200, y: 260, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
   { x: 320, y: 210, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
-  { x: 550, y: 170, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
+  { x: 100, y: 160, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
   { x: 400, y: 300, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT }
 ];
 

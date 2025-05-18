@@ -30,7 +30,7 @@ export function setFlashActive(val) { flashActive = val; }
  */
 export function setFlashEndTime(val) { flashEndTime = val; }
 export const FLASH_DURATION = 200;
-export const PHASE_CHANGE_KILL_COUNT = 15;
+export let PHASE_CHANGE_KILL_COUNT = 15;
 
 export let difficultyLevel = 1;
 export let nextPhaseKillCount = PHASE_CHANGE_KILL_COUNT;
@@ -43,4 +43,10 @@ export function decreaseDifficulty() {
     difficultyLevel--;
     nextPhaseKillCount = Math.max(PHASE_CHANGE_KILL_COUNT, nextPhaseKillCount - PHASE_CHANGE_KILL_COUNT);
   }
-} 
+}
+export function setPhaseChangeKillCount(val) {
+  PHASE_CHANGE_KILL_COUNT = val;
+  // Recalculate nextPhaseKillCount so the next phase is always reachable
+  setNextPhaseKillCount(killCount + PHASE_CHANGE_KILL_COUNT);
+}
+export function setNextPhaseKillCount(val) { nextPhaseKillCount = val; } 

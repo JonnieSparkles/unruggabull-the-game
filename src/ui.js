@@ -79,28 +79,37 @@ export function drawGameOver(ctx, canvas) {
 export function drawRestartButton(ctx, canvas, restartButton, isHover) {
   const { x, y, width, height } = restartButton;
   ctx.save();
-  ctx.font = '32px Arial';
+  ctx.font = 'bold 32px Arial';
   ctx.textAlign = 'center';
-  if (isHover) {
-    ctx.save();
-    ctx.translate(x + width / 2, y + height / 2);
-    ctx.scale(1.08, 1.15);
-    ctx.fillStyle = '#666';
-    ctx.strokeStyle = '#ff0';
-    ctx.lineWidth = 5;
-    ctx.fillRect(-width / 2, -height / 2, width, height);
-    ctx.strokeRect(-width / 2, -height / 2, width, height);
-    ctx.fillStyle = '#ff0';
-    ctx.fillText('Restart', 0, 12);
-    ctx.restore();
-  } else {
-    ctx.fillStyle = '#222';
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 3;
-    ctx.fillRect(x, y, width, height);
-    ctx.strokeRect(x, y, width, height);
-    ctx.fillStyle = '#fff';
-    ctx.fillText('Restart', canvas.width / 2, y + height - 12);
-  }
+  ctx.textBaseline = 'middle';
+  // Button background
+  let grad = ctx.createLinearGradient(x, y, x, y + height);
+  grad.addColorStop(0, isHover ? '#ffe066' : '#ffd700');
+  grad.addColorStop(1, isHover ? '#ffb300' : '#ff9900');
+  ctx.fillStyle = grad;
+  ctx.strokeStyle = isHover ? '#fffbe6' : '#fff8';
+  ctx.lineWidth = isHover ? 5 : 3;
+  ctx.shadowColor = isHover ? '#fffbe6' : '#000a';
+  ctx.shadowBlur = isHover ? 18 : 8;
+  // Rounded rect
+  const radius = 18;
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  // Button text
+  ctx.shadowColor = isHover ? '#fffbe6' : 'transparent';
+  ctx.shadowBlur = isHover ? 16 : 0;
+  ctx.fillStyle = isHover ? '#222' : '#fff';
+  ctx.fillText('Restart', x + width / 2, y + height / 2);
   ctx.restore();
 } 

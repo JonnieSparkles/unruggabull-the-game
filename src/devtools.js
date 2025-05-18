@@ -3,8 +3,10 @@
 // State variables for dev tools
 export let showDevSettings = false;
 export let showDifficulty = false;
-export let DEBUG_HITBOXES = true;
+export let DEBUG_HITBOXES = false;
 let prevGameState = null;
+
+import * as state from './state.js';
 
 /**
  * Draw the developer settings overlay.
@@ -51,6 +53,26 @@ export function drawDevSettings(ctx, canvas, difficultyLevel) {
   const plusX = minusX + btnSize + 10;
   ctx.strokeRect(plusX, minusY, btnSize, btnSize);
   ctx.fillText('+', plusX + btnSize/2, minusY + btnSize/2 + 4);
+  // Kill count requirement controls
+  ctx.textAlign = 'left';
+  ctx.font = '20px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.fillText('Kills per Phase:', canvas.width/2 - 120, canvas.height/2 + 130);
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 22px Arial';
+  ctx.fillStyle = '#ffe066';
+  ctx.fillText(state.PHASE_CHANGE_KILL_COUNT, canvas.width/2 + 40, canvas.height/2 + 130);
+  // Small +/- buttons for kill count
+  const kcBtnSize = 20;
+  const kcMinusX = canvas.width/2 + 80;
+  const kcY = canvas.height/2 + 115;
+  ctx.strokeStyle = '#fff';
+  ctx.strokeRect(kcMinusX, kcY, kcBtnSize, kcBtnSize);
+  ctx.fillStyle = '#fff';
+  ctx.fillText('-', kcMinusX + kcBtnSize/2, kcY + kcBtnSize/2 + 4);
+  const kcPlusX = kcMinusX + kcBtnSize + 8;
+  ctx.strokeRect(kcPlusX, kcY, kcBtnSize, kcBtnSize);
+  ctx.fillText('+', kcPlusX + kcBtnSize/2, kcY + kcBtnSize/2 + 4);
   // Close 'X' button
   const closeX = canvas.width/2 + 140;
   const closeY = canvas.height/2 - 70;
@@ -115,6 +137,23 @@ export function setupDevTools(canvas, draw, gameLoop, increaseDifficulty, decrea
     const plusX = minusX + btnSize + 10;
     if (mx >= plusX && mx <= plusX + btnSize && my >= minusY && my <= minusY + btnSize) {
       increaseDifficulty();
+      draw();
+      return;
+    }
+    // Kill count requirement -
+    const kcBtnSize = 20;
+    const kcMinusX = canvas.width/2 + 80, kcY = canvas.height/2 + 115;
+    const kcPlusX = kcMinusX + kcBtnSize + 8;
+    if (mx >= kcMinusX && mx <= kcMinusX + kcBtnSize && my >= kcY && my <= kcY + kcBtnSize) {
+      if (state.PHASE_CHANGE_KILL_COUNT > 1) {
+        state.setPhaseChangeKillCount(state.PHASE_CHANGE_KILL_COUNT - 1);
+        draw();
+      }
+      return;
+    }
+    // Kill count requirement +
+    if (mx >= kcPlusX && mx <= kcPlusX + kcBtnSize && my >= kcY && my <= kcY + kcBtnSize) {
+      state.setPhaseChangeKillCount(state.PHASE_CHANGE_KILL_COUNT + 1);
       draw();
       return;
     }

@@ -29,7 +29,8 @@ export function setupRestartUI(canvas, ctx, bullets) {
       resetGame(canvas, bullets);
       bgMusic.currentTime = 0;
       bgMusic.play();
-      state.gameState = 'playing';
+      state.setGameState('playing');
+      isRestartHover = false;
       gameLoop(canvas, ctx, bullets, restartButton, isRestartHover);
     }
   });
