@@ -1,0 +1,135 @@
+// Devtools module: manage developer settings UI and event listeners
+
+// State variables for dev tools
+export let showDevSettings = false;
+export let showDifficulty = false;
+export let DEBUG_HITBOXES = true;
+let prevGameState = null;
+
+/**
+ * Draw the developer settings overlay.
+ */
+export function drawDevSettings(ctx, canvas, difficultyLevel) {
+  // translucent background
+  ctx.save();
+  ctx.globalAlpha = 0.95;
+  ctx.fillStyle = '#222';
+  ctx.fillRect(canvas.width/2 - 180, canvas.height/2 - 80, 360, 260);
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(canvas.width/2 - 180, canvas.height/2 - 80, 360, 260);
+  // Title
+  ctx.font = 'bold 28px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.fillText('Dev Settings', canvas.width/2, canvas.height/2 - 40);
+  // Show Hitboxes checkbox
+  ctx.font = '22px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('Show Hitboxes', canvas.width/2 - 120, canvas.height/2 + 10);
+  const cbx = canvas.width/2 + 60;
+  const cby = canvas.height/2 - 10;
+  const cbw = 28;
+  const cbh = 28;
+  ctx.strokeRect(cbx, cby, cbw, cbh);
+  if (DEBUG_HITBOXES) ctx.fillRect(cbx + 2, cby + 2, cbw - 4, cbh - 4);
+  // Show Difficulty checkbox
+  ctx.fillText('Show Difficulty', canvas.width/2 - 120, canvas.height/2 + 50);
+  const dbx = canvas.width/2 + 60;
+  const dby = canvas.height/2 + 30;
+  ctx.strokeRect(dbx, dby, cbw, cbh);
+  if (showDifficulty) ctx.fillRect(dbx + 2, dby + 2, cbw - 4, cbh - 4);
+  // Difficulty controls
+  ctx.fillText(`Difficulty Level: ${difficultyLevel}`, canvas.width/2 - 120, canvas.height/2 + 90);
+  const btnSize = 24;
+  const minusX = canvas.width/2 + 60;
+  const minusY = canvas.height/2 + 74;
+  ctx.strokeRect(minusX, minusY, btnSize, btnSize);
+  ctx.textAlign = 'center';
+  ctx.fillText('-', minusX + btnSize/2, minusY + btnSize/2 + 4);
+  const plusX = minusX + btnSize + 10;
+  ctx.strokeRect(plusX, minusY, btnSize, btnSize);
+  ctx.fillText('+', plusX + btnSize/2, minusY + btnSize/2 + 4);
+  // Close 'X' button
+  const closeX = canvas.width/2 + 140;
+  const closeY = canvas.height/2 - 70;
+  ctx.font = 'bold 28px Arial';
+  ctx.fillText('×', closeX + 15, closeY + 25);
+  ctx.restore();
+}
+
+/**
+ * Initialize dev tools: keyboard and mouse listeners.
+ */
+export function setupDevTools(canvas, draw, gameLoop, increaseDifficulty, decreaseDifficulty, getGameState, setGameState) {
+  // Toggle dev settings with Ctrl+Shift+Q
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.shiftKey && (e.key === 'q' || e.key === 'Q')) {
+      const state = getGameState();
+      if (!showDevSettings && (state === 'playing' || state === 'dying')) {
+        prevGameState = state;
+        showDevSettings = true;
+        setGameState('paused-dev');
+        draw();
+      } else if (showDevSettings && state === 'paused-dev') {
+        showDevSettings = false;
+        setGameState(prevGameState || 'playing');
+        prevGameState = null;
+        gameLoop();
+      } else {
+        showDevSettings = !showDevSettings;
+        draw();
+      }
+    }
+  });
+
+  // Handle clicks within the dev settings overlay
+  canvas.addEventListener('click', function(e) {
+    if (!showDevSettings) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    // Hitboxes checkbox
+    const cbx = canvas.width/2 + 60, cby = canvas.height/2 - 10, cbw = 28, cbh = 28;
+    if (mx >= cbx && mx <= cbx + cbw && my >= cby && my <= cby + cbh) {
+      DEBUG_HITBOXES = !DEBUG_HITBOXES;
+      draw();
+      return;
+    }
+    // Difficulty toggle checkbox
+    const dbx = canvas.width/2 + 60, dby = canvas.height/2 + 30;
+    if (mx >= dbx && mx <= dbx + cbw && my >= dby && my <= dby + cbh) {
+      showDifficulty = !showDifficulty;
+      draw();
+      return;
+    }
+    // Decrease difficulty button
+    const minusX = canvas.width/2 + 60, minusY = canvas.height/2 + 74, btnSize = 24;
+    if (mx >= minusX && mx <= minusX + btnSize && my >= minusY && my <= minusY + btnSize) {
+      decreaseDifficulty();
+      draw();
+      return;
+    }
+    // Increase difficulty button
+    const plusX = minusX + btnSize + 10;
+    if (mx >= plusX && mx <= plusX + btnSize && my >= minusY && my <= minusY + btnSize) {
+      increaseDifficulty();
+      draw();
+      return;
+    }
+    // Close 'X' button
+    const closeX = canvas.width/2 + 140, closeY = canvas.height/2 - 70, closeW = 30, closeH = 30;
+    if (mx >= closeX && mx <= closeX + closeW && my >= closeY && my <= closeY + closeH) {
+      showDevSettings = false;
+      if (getGameState() === 'paused-dev') {
+        setGameState(prevGameState || 'playing');
+        prevGameState = null;
+        gameLoop();
+      } else {
+        draw();
+      }
+      return;
+    }
+  });
+}

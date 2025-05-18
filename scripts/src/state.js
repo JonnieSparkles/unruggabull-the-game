@@ -1,0 +1,46 @@
+// State module: centralize game state and settings
+
+export let gameState = 'start';
+export function setGameState(s) { gameState = s; }
+export function getGameState() { return gameState; }
+
+export let dyingStartTime = null;
+export function setDyingStartTime(t) { dyingStartTime = t; }
+export function getDyingStartTime() { return dyingStartTime; }
+
+export let killCount = 0;
+export function resetKillCount() { killCount = 0; }
+/**
+ * Increment the kill count by one.
+ */
+export function incrementKillCount() { killCount++; }
+/**
+ * Get the current kill count.
+ */
+export function getKillCount() { return killCount; }
+
+export let flashActive = false;
+export let flashEndTime = 0;
+/**
+ * Set whether the flash overlay is active.
+ */
+export function setFlashActive(val) { flashActive = val; }
+/**
+ * Set the time at which the flash should end.
+ */
+export function setFlashEndTime(val) { flashEndTime = val; }
+export const FLASH_DURATION = 200;
+export const PHASE_CHANGE_KILL_COUNT = 15;
+
+export let difficultyLevel = 1;
+export let nextPhaseKillCount = PHASE_CHANGE_KILL_COUNT;
+export function increaseDifficulty() {
+  difficultyLevel++;
+  nextPhaseKillCount += PHASE_CHANGE_KILL_COUNT;
+}
+export function decreaseDifficulty() {
+  if (difficultyLevel > 1) {
+    difficultyLevel--;
+    nextPhaseKillCount = Math.max(PHASE_CHANGE_KILL_COUNT, nextPhaseKillCount - PHASE_CHANGE_KILL_COUNT);
+  }
+} 
