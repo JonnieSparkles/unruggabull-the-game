@@ -19,6 +19,8 @@ const upperSpawnMaxY = canvas.height * 0.6;
 const lowerSpawnMinY = canvas.height * 0.6;
 const lowerSpawnMaxY = floorY - 48;
 
+import { difficultyLevel } from './state.js';
+
 /**
  * Primary enemy: flying carpshits
  */
@@ -74,10 +76,18 @@ export function getCarpshitHitbox(carpshit) {
  * Spawn a new upper carpshit off-screen
  */
 export function spawnCarpshit() {
+  let fromLeft = false;
+  if (difficultyLevel >= 2) fromLeft = Math.random() < 0.5;
+  const x = fromLeft
+    ? -48 - Math.random() * 200
+    : canvas.width + 48 + Math.random() * 200;
+  const vx = fromLeft
+    ? 1.5 + Math.random() * 1.2
+    : -(1.5 + Math.random() * 1.2);
   carpshits.push({
-    x: canvas.width + 48 + Math.random() * 200,
+    x,
     y: upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY),
-    vx: -(1.5 + Math.random()),
+    vx,
     alive: true,
     frame: 0,
     frameTimer: 0,
@@ -92,10 +102,18 @@ export function spawnCarpshit() {
  * Spawn a new lower carpshit off-screen
  */
 export function spawnLowerCarpshit() {
+  let fromLeft = false;
+  if (difficultyLevel >= 2) fromLeft = Math.random() < 0.5;
+  const x = fromLeft
+    ? -48 - Math.random() * 200
+    : canvas.width + 48 + Math.random() * 200;
+  const vx = fromLeft
+    ? 1 + Math.random() * 1.2
+    : -(1 + Math.random() * 1.2);
   lowerCarpshits.push({
-    x: canvas.width + 48 + Math.random() * 200,
+    x,
     y: lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY),
-    vx: -(1 + Math.random()),
+    vx,
     alive: true,
     frame: 0,
     frameTimer: 0,
@@ -126,13 +144,14 @@ export function updateCarpshits() {
     }
     if (!carpshit.alive && carpshit.onFloor) {
       if (performance.now() - carpshit.respawnTimer > 2000 + Math.random() * 2000) {
-        const fromLeft = false;
+        let fromLeft = false;
+        if (difficultyLevel >= 2) fromLeft = Math.random() < 0.5;
         if (fromLeft) {
           carpshit.x = -48 - Math.random() * 200;
-          carpshit.vx = 1.5 + Math.random();
+          carpshit.vx = 1.5 + Math.random() * 1.2;
         } else {
           carpshit.x = canvas.width + 48 + Math.random() * 200;
-          carpshit.vx = -(1.5 + Math.random());
+          carpshit.vx = -(1.5 + Math.random() * 1.2);
         }
         carpshit.y = upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY);
         carpshit.alive = true;
@@ -194,13 +213,14 @@ export function updateLowerCarpshits() {
     }
     if (!carpshit.alive && carpshit.onFloor) {
       if (performance.now() - carpshit.respawnTimer > 2000 + Math.random() * 2000) {
-        const fromLeft = false;
+        let fromLeft = false;
+        if (difficultyLevel >= 2) fromLeft = Math.random() < 0.5;
         if (fromLeft) {
           carpshit.x = -48 - Math.random() * 200;
-          carpshit.vx = 1 + Math.random();
+          carpshit.vx = 1 + Math.random() * 1.2;
         } else {
           carpshit.x = canvas.width + 48 + Math.random() * 200;
-          carpshit.vx = -(1 + Math.random());
+          carpshit.vx = -(1 + Math.random() * 1.2);
         }
         carpshit.y = lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY);
         carpshit.alive = true;
