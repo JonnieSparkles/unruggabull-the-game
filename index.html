@@ -181,6 +181,20 @@
         }, 1000); // Wait 1s for lets-go sound (adjust if needed)
       };
 
+      // Allow pressing Enter to start the game
+      document.addEventListener('keydown', function(e) {
+        // Only trigger if title screen is visible and overlay is not present
+        const overlay = document.getElementById('sound-overlay');
+        if (
+          (e.key === 'Enter' || e.code === 'Enter') &&
+          titleContainer &&
+          titleContainer.style.display !== 'none' &&
+          (!overlay || overlay.style.display === 'none')
+        ) {
+          startBtn.click();
+        }
+      });
+
       // Version label and credits modal logic
       const versionLabel = document.getElementById('version-label');
       const creditsModal = document.getElementById('credits-modal');

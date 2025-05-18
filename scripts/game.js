@@ -8,10 +8,16 @@ const carpetSprite = new Image();
 carpetSprite.src = 'assets/sprites/enemy-flying-carpet.png';
 const deadSprite = new Image();
 deadSprite.src = 'assets/sprites/unruggabull-dead.png';
+const crouchSprite = new Image();
+crouchSprite.src = 'assets/sprites/unruggabull-crouch.png';
+
+// Sprite dimensions (visual)
+const SPRITE_WIDTH = 48;
+const SPRITE_HEIGHT = 80;
 
 const player = {
   x: 50,
-  y: 300,
+  feetY: 380, // 300 (ground) + 80 (height)
   width: 48,
   height: 80,
   frame: 0,
@@ -22,7 +28,8 @@ const player = {
   grounded: true,
   firing: false,
   facing: 1, // 1 for right, -1 for left
-  health: 3
+  health: 3,
+  crouching: false
 };
 
 const keys = {};
@@ -79,21 +86,31 @@ function setupControls() {
       player.firing = true;
       fireBullet();
     }
+    if ((e.key === 'c' || e.key === 'C') && player.grounded) {
+      player.crouching = true;
+      player.height = 48;
+      player.y = player.feetY - player.height;
+    }
   });
   document.addEventListener('keyup', e => {
     keys[e.key] = false;
     if (e.key === 'f' || e.key === 'F' || e.key === 'j' || e.key === 'J' || e.key === 'Enter' || e.key === 'enter') player.firing = false;
+    if (e.key === 'c' || e.key === 'C') {
+      player.crouching = false;
+      player.height = 80;
+      player.y = player.feetY - player.height;
+    }
   });
 }
 
 function update() {
   if (gameState === 'dying') {
     // Animate body falling to the floor
-    if (player.y < canvas.height - player.height) {
+    if (player.feetY < canvas.height - player.height) {
       player.vy += 1.2; // gravity
-      player.y += player.vy;
-      if (player.y > canvas.height - player.height) {
-        player.y = canvas.height - player.height;
+      player.feetY += player.vy;
+      if (player.feetY > canvas.height - player.height) {
+        player.feetY = canvas.height - player.height;
         player.vy = 0;
         if (!dyingStartTime) dyingStartTime = performance.now();
       }
@@ -137,22 +154,24 @@ function update() {
 
   player.vy += 0.8; // gravity
   player.x += player.vx;
-  player.y += player.vy;
+  player.feetY += player.vy;
+  player.y = player.feetY - player.height;
 
   // platform collision first
   let onPlatform = false;
   if (player.vy >= 0) {
     for (const p of platforms) {
       if (
-        player.y + player.height <= p.y + player.vy &&
-        player.y + player.height + player.vy >= p.y &&
+        player.feetY <= p.y + player.vy &&
+        player.feetY + player.vy >= p.y &&
         player.x + player.width > p.x &&
         player.x < p.x + p.width
       ) {
-        player.y = p.y - player.height;
+        player.feetY = p.y;
         player.vy = 0;
         player.jumping = false;
         player.grounded = true;
+        player.y = player.feetY - player.height;
         onPlatform = true;
         break;
       }
@@ -161,11 +180,12 @@ function update() {
 
   // ground collision (only if not on platform)
   if (!onPlatform) {
-    if (player.y >= 300) {
-      player.y = 300;
+    if (player.feetY >= 380) { // 300 (ground) + 80 (height)
+      player.feetY = 380;
       player.vy = 0;
       player.jumping = false;
       player.grounded = true;
+      player.y = player.feetY - player.height;
     } else {
       player.grounded = false;
     }
@@ -182,6 +202,13 @@ function update() {
     player.frame = (player.frame + 1) % 40;
   } else {
     player.frame = 0;
+  }
+
+  // Prevent crouch in air
+  if (!player.grounded && player.crouching) {
+    player.crouching = false;
+    player.height = 80;
+    player.y = player.feetY - player.height;
   }
 
   updateBullets();
@@ -201,7 +228,7 @@ let restartButton = {
 
 function resetGame() {
   player.x = 50;
-  player.y = 300;
+  player.feetY = 380;
   player.vx = 0;
   player.vy = 0;
   player.jumping = false;
@@ -277,6 +304,10 @@ canvas.addEventListener('mousemove', function(e) {
   if (gameState.includes('over')) draw();
 });
 
+let DEBUG_HITBOXES = true; // Set to false to hide all debug hitboxes
+let showDevSettings = false;
+let prevGameState = null;
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -305,7 +336,7 @@ function draw() {
   drawPlatforms();
 
   // draw player
-  if (gameState.includes('over') || gameState === 'dying') {
+  if (gameState === 'dying') {
     ctx.save();
     if (player.facing < 0) {
       // Mirror horizontally, align bottom and center
@@ -318,20 +349,39 @@ function draw() {
     }
     ctx.restore();
   } else {
-    let frameIndex;
-    if (player.firing) {
-      frameIndex = 3; // Use the last frame (index 3) for firing
+    if (player.crouching) {
+      ctx.save();
+      if (player.facing < 0) {
+        ctx.translate(player.x + player.width, player.feetY - SPRITE_HEIGHT);
+        ctx.scale(-1, 1);
+        ctx.drawImage(crouchSprite, 0, 0, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, SPRITE_WIDTH, SPRITE_HEIGHT);
+      } else {
+        ctx.drawImage(crouchSprite, 0, 0, SPRITE_WIDTH, SPRITE_HEIGHT, player.x, player.feetY - SPRITE_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT);
+      }
+      ctx.restore();
     } else {
-      frameIndex = Math.floor(player.frame / 10) % 4;
+      if (player.firing) {
+        frameIndex = 3; // Use the last frame (index 3) for firing
+      } else {
+        frameIndex = Math.floor(player.frame / 10) % 4;
+      }
+      ctx.save();
+      if (player.facing < 0) {
+        ctx.translate(player.x + player.width, player.feetY - SPRITE_HEIGHT);
+        ctx.scale(-1, 1);
+        ctx.drawImage(sprite, frameIndex * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, SPRITE_WIDTH, SPRITE_HEIGHT);
+      } else {
+        ctx.drawImage(sprite, frameIndex * SPRITE_WIDTH, 0, SPRITE_WIDTH, SPRITE_HEIGHT, player.x, player.feetY - SPRITE_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT);
+      }
+      ctx.restore();
     }
+  }
+
+  if (DEBUG_HITBOXES) {
     ctx.save();
-    if (player.facing < 0) {
-      ctx.translate(player.x + 48, player.y);
-      ctx.scale(-1, 1);
-      ctx.drawImage(sprite, frameIndex * 48, 0, 48, 80, 0, 0, 48, 80);
-    } else {
-      ctx.drawImage(sprite, frameIndex * 48, 0, 48, 80, player.x, player.y, 48, 80);
-    }
+    ctx.strokeStyle = 'lime';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(player.x, player.y, player.width, player.height);
     ctx.restore();
   }
 
@@ -388,6 +438,43 @@ function draw() {
       ctx.textAlign = 'center';
       ctx.fillText('Restart', canvas.width / 2, restartButton.y + 40);
     }
+    ctx.restore();
+  }
+
+  // Dev settings overlay
+  if (showDevSettings) {
+    ctx.save();
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = '#222';
+    ctx.fillRect(canvas.width/2 - 180, canvas.height/2 - 80, 360, 160);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(canvas.width/2 - 180, canvas.height/2 - 80, 360, 160);
+    ctx.font = 'bold 28px Arial';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.fillText('Dev Settings', canvas.width/2, canvas.height/2 - 40);
+    ctx.font = '22px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('Show Hitboxes', canvas.width/2 - 120, canvas.height/2 + 10);
+    // Checkbox
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(canvas.width/2 + 60, canvas.height/2 - 10, 28, 28);
+    if (DEBUG_HITBOXES) {
+      ctx.fillStyle = '#0f0';
+      ctx.fillRect(canvas.width/2 + 62, canvas.height/2 - 8, 24, 24);
+    }
+    // Draw close 'X' button
+    const closeX = canvas.width/2 + 140;
+    const closeY = canvas.height/2 - 70;
+    ctx.save();
+    ctx.font = 'bold 28px Arial';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.fillText('×', closeX + 15, closeY + 25);
+    ctx.restore();
     ctx.restore();
   }
 }
@@ -480,6 +567,13 @@ function drawCarpets() {
       yDraw += 12;
     }
     ctx.drawImage(carpetSprite, frameToDraw * 48, 0, 48, 48, carpet.x, yDraw, 48, 48);
+    if (DEBUG_HITBOXES) {
+      ctx.save();
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(carpet.x, yDraw, 48, 48);
+      ctx.restore();
+    }
   });
 }
 
@@ -564,6 +658,13 @@ function drawLowerCarpets() {
       yDraw += 12;
     }
     ctx.drawImage(carpetSprite, frameToDraw * 48, 0, 48, 48, carpet.x, yDraw, 48, 48);
+    if (DEBUG_HITBOXES) {
+      ctx.save();
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(carpet.x, yDraw, 48, 48);
+      ctx.restore();
+    }
   });
 }
 
@@ -718,4 +819,50 @@ function startGame() {
   // Add respawn timer property to carpets and lowerCarpets
   carpets.forEach(c => c.respawnTimer = 0);
   lowerCarpets.forEach(c => c.respawnTimer = 0);
-} 
+}
+
+document.addEventListener('keydown', function(e) {
+  // Toggle dev settings window with CTRL+SHIFT+Q
+  if (e.ctrlKey && e.shiftKey && (e.key === 'q' || e.key === 'Q')) {
+    if (!showDevSettings && (gameState === 'playing' || gameState === 'dying')) {
+      prevGameState = gameState;
+      gameState = 'paused-dev';
+      showDevSettings = true;
+      draw();
+    } else if (showDevSettings && gameState === 'paused-dev') {
+      showDevSettings = false;
+      gameState = prevGameState || 'playing';
+      prevGameState = null;
+      gameLoop();
+    } else {
+      showDevSettings = !showDevSettings;
+      draw();
+    }
+  }
+});
+
+canvas.addEventListener('click', function(e) {
+  if (!showDevSettings) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  // Checkbox area
+  const cbx = canvas.width/2 + 60, cby = canvas.height/2 - 10, cbw = 28, cbh = 28;
+  if (mx >= cbx && mx <= cbx + cbw && my >= cby && my <= cby + cbh) {
+    DEBUG_HITBOXES = !DEBUG_HITBOXES;
+    draw();
+  }
+  // Close button area
+  const closeX = canvas.width/2 + 140, closeY = canvas.height/2 - 70, closeW = 30, closeH = 30;
+  if (mx >= closeX && mx <= closeX + closeW && my >= closeY && my <= closeY + closeH) {
+    showDevSettings = false;
+    if (gameState === 'paused-dev') {
+      gameState = prevGameState || 'playing';
+      prevGameState = null;
+      gameLoop();
+    } else {
+      draw();
+    }
+    return;
+  }
+}); 
