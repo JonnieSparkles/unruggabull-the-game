@@ -1,6 +1,7 @@
 v0.0.2
 -Added crouching
--
+-Added difficulty levels and scaling enemy difficulty
+-Added dev mode for hitbox detection and difficulty adjustments
 
 
 v0.0.1

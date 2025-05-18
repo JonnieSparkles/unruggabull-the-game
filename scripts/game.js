@@ -50,17 +50,34 @@ let gameState = 'start'; // 'start', 'controls', 'playing', 'gameover'
 let dyingStartTime = null;
 
 // Flying carpet enemies
-const carpets = [
-  { x: 700, y: 220, vx: -2, alive: true, frame: 0, frameTimer: 0, falling: false, vy: 0, onFloor: false },
-  { x: 400, y: 150, vx: -1.5, alive: true, frame: 0, frameTimer: 0, falling: false, vy: 0, onFloor: false },
-  { x: 900, y: 100, vx: -2.5, alive: true, frame: 0, frameTimer: 0, falling: false, vy: 0, onFloor: false }
-];
+const NUM_CARPETS = 3;
+const carpets = Array.from({ length: NUM_CARPETS }, () => ({
+  x: canvas.width + 48 + Math.random() * 200,
+  y: 80 + Math.random() * 180,
+  vx: -(1.5 + Math.random()), // speed between -1.5 and -2.5
+  alive: true,
+  frame: 0,
+  frameTimer: 0,
+  falling: false,
+  vy: 0,
+  onFloor: false,
+  respawnTimer: 0
+}));
 
 // Lower flying carpets (animated)
-const lowerCarpets = [
-  { x: 600, y: 340, vx: -1.5, alive: true, frame: 0, frameTimer: 0, falling: false, vy: 0, onFloor: false },
-  { x: 300, y: 320, vx: -2, alive: true, frame: 0, frameTimer: 0, falling: false, vy: 0, onFloor: false }
-];
+const NUM_LOWER_CARPETS = 2;
+const lowerCarpets = Array.from({ length: NUM_LOWER_CARPETS }, () => ({
+  x: canvas.width + 48 + Math.random() * 200,
+  y: 300 + Math.random() * 40,
+  vx: -(1 + Math.random()), // speed between -1 and -2
+  alive: true,
+  frame: 0,
+  frameTimer: 0,
+  falling: false,
+  vy: 0,
+  onFloor: false,
+  respawnTimer: 0
+}));
 
 // Platform system (fixed, non-overlapping)
 const PLATFORM_WIDTH = 120;
@@ -77,15 +94,9 @@ function generatePlatforms() {
 
 function setupControls() {
   document.addEventListener('keydown', e => {
+    const controlledKeys = ['a', 'A', 'd', 'D', 'j', 'J', 'f', 'F', 'Enter', ' ', 'c', 'C'];
+    if (controlledKeys.includes(e.key)) e.preventDefault();
     keys[e.key] = true;
-    if (
-      gameState === 'playing' &&
-      (e.key === 'f' || e.key === 'F' || e.key === 'j' || e.key === 'J' || e.key === 'Enter' || e.key === 'enter') &&
-      !player.firing
-    ) {
-      player.firing = true;
-      fireBullet();
-    }
     if ((e.key === 'c' || e.key === 'C') && player.grounded) {
       player.crouching = true;
       player.height = 48;
@@ -93,14 +104,114 @@ function setupControls() {
     }
   });
   document.addEventListener('keyup', e => {
+    const controlledKeys = ['a', 'A', 'd', 'D', 'j', 'J', 'f', 'F', 'Enter', ' ', 'c', 'C'];
+    if (controlledKeys.includes(e.key)) e.preventDefault();
     keys[e.key] = false;
-    if (e.key === 'f' || e.key === 'F' || e.key === 'j' || e.key === 'J' || e.key === 'Enter' || e.key === 'enter') player.firing = false;
     if (e.key === 'c' || e.key === 'C') {
       player.crouching = false;
       player.height = 80;
       player.y = player.feetY - player.height;
     }
   });
+}
+
+// Insert helper functions to separate player logic
+function handleMovement() {
+  let isWalking = false;
+  if (keys['d'] || keys['D']) {
+    player.vx = player.speed;
+    isWalking = true;
+    player.facing = 1;
+  } else if (keys['a'] || keys['A']) {
+    player.vx = -player.speed;
+    isWalking = true;
+    player.facing = -1;
+  } else {
+    player.vx = 0;
+  }
+  wasWalking = isWalking;
+}
+function handleJumping() {
+  if (keys[' '] && player.grounded) {
+    player.vy = -12;
+    player.jumping = true;
+    player.grounded = false;
+    jumpSound.currentTime = 0;
+    jumpSound.play();
+  }
+}
+function handlePhysics() {
+  player.vy += 0.8; // gravity
+  player.x += player.vx;
+  player.feetY += player.vy;
+  player.y = player.feetY - player.height;
+  // platform collision
+  let onPlatform = false;
+  if (player.vy >= 0) {
+    for (const p of platforms) {
+      if (
+        player.feetY <= p.y + player.vy &&
+        player.feetY + player.vy >= p.y &&
+        player.x + player.width > p.x &&
+        player.x < p.x + p.width
+      ) {
+        player.feetY = p.y;
+        player.vy = 0;
+        player.jumping = false;
+        player.grounded = true;
+        player.y = player.feetY - player.height;
+        onPlatform = true;
+        break;
+      }
+    }
+  }
+  // ground collision
+  if (!onPlatform) {
+    if (player.feetY >= 380) {
+      player.feetY = 380;
+      player.vy = 0;
+      player.jumping = false;
+      player.grounded = true;
+      player.y = player.feetY - player.height;
+    } else {
+      player.grounded = false;
+    }
+  }
+  // horizontal wrap
+  if (player.x + player.width < 0) {
+    player.x = canvas.width;
+  } else if (player.x > canvas.width) {
+    player.x = -player.width;
+  }
+  // frame update
+  if (player.vx !== 0) {
+    player.frame = (player.frame + 1) % 40;
+  } else {
+    player.frame = 0;
+  }
+}
+function handleCrouch() {
+  if (!player.grounded && player.crouching) {
+    player.crouching = false;
+    player.height = 80;
+    player.y = player.feetY - player.height;
+  }
+}
+function handleFiring() {
+  const fireKeyPressed = keys['f'] || keys['F'] || keys['j'] || keys['J'] || keys['Enter'];
+  if (fireKeyPressed && !player.firing) {
+    player.firing = true;
+    fireBullet();
+  } else if (!fireKeyPressed) {
+    player.firing = false;
+  }
+}
+function updatePlayer() {
+  handleMovement();
+  handleJumping();
+  handlePhysics();
+  handleCrouch();
+  handleFiring();
 }
 
 function update() {
@@ -124,93 +235,7 @@ function update() {
     return;
   }
   if (gameState !== 'playing') return;
-  let isWalking = false;
-  if (keys['d'] || keys['D']) {
-    player.vx = player.speed;
-    isWalking = true;
-    player.facing = 1;
-  } else if (keys['a'] || keys['A']) {
-    player.vx = -player.speed;
-    isWalking = true;
-    player.facing = -1;
-  } else {
-    player.vx = 0;
-  }
-
-  // (Optional) Play walk sound only when starting to walk
-  // if (isWalking && !wasWalking) {
-  //   walkSound.currentTime = 0;
-  //   walkSound.play();
-  // }
-  wasWalking = isWalking;
-
-  if ((keys[' ']) && player.grounded) {
-    player.vy = -12;
-    player.jumping = true;
-    player.grounded = false;
-    jumpSound.currentTime = 0;
-    jumpSound.play();
-  }
-
-  player.vy += 0.8; // gravity
-  player.x += player.vx;
-  player.feetY += player.vy;
-  player.y = player.feetY - player.height;
-
-  // platform collision first
-  let onPlatform = false;
-  if (player.vy >= 0) {
-    for (const p of platforms) {
-      if (
-        player.feetY <= p.y + player.vy &&
-        player.feetY + player.vy >= p.y &&
-        player.x + player.width > p.x &&
-        player.x < p.x + p.width
-      ) {
-        player.feetY = p.y;
-        player.vy = 0;
-        player.jumping = false;
-        player.grounded = true;
-        player.y = player.feetY - player.height;
-        onPlatform = true;
-        break;
-      }
-    }
-  }
-
-  // ground collision (only if not on platform)
-  if (!onPlatform) {
-    if (player.feetY >= 380) { // 300 (ground) + 80 (height)
-      player.feetY = 380;
-      player.vy = 0;
-      player.jumping = false;
-      player.grounded = true;
-      player.y = player.feetY - player.height;
-    } else {
-      player.grounded = false;
-    }
-  }
-
-  // horizontal wrap
-  if (player.x + player.width < 0) {
-    player.x = canvas.width;
-  } else if (player.x > canvas.width) {
-    player.x = -player.width;
-  }
-
-  if (player.vx !== 0) {
-    player.frame = (player.frame + 1) % 40;
-  } else {
-    player.frame = 0;
-  }
-
-  // Prevent crouch in air
-  if (!player.grounded && player.crouching) {
-    player.crouching = false;
-    player.height = 80;
-    player.y = player.feetY - player.height;
-  }
-
+  updatePlayer();
   updateBullets();
   updateCarpets();
   checkBulletCarpetCollisions();
@@ -237,37 +262,31 @@ function resetGame() {
   player.facing = 1;
   player.health = 3;
   killCount = 0;
-  // Reset carpets
-  carpets.forEach((carpet, i) => {
-    const original = [
-      { x: 700, y: 220, vx: -2 },
-      { x: 400, y: 150, vx: -1.5 },
-      { x: 900, y: 100, vx: -2.5 }
-    ][i];
-    carpet.x = original.x;
-    carpet.y = original.y;
-    carpet.vx = original.vx;
+  // Reset carpets with new random positions and speeds
+  carpets.forEach(carpet => {
+    carpet.x = canvas.width + 48 + Math.random() * 200;
+    carpet.y = 80 + Math.random() * 180;
+    carpet.vx = -(1.5 + Math.random());
     carpet.alive = true;
     carpet.frame = 0;
     carpet.frameTimer = 0;
     carpet.falling = false;
     carpet.vy = 0;
     carpet.onFloor = false;
+    carpet.respawnTimer = 0;
   });
-  lowerCarpets.forEach((carpet, i) => {
-    const original = [
-      { x: 600, y: 340, vx: -1.5 },
-      { x: 300, y: 320, vx: -2 }
-    ][i];
-    carpet.x = original.x;
-    carpet.y = original.y;
-    carpet.vx = original.vx;
+  // Reset lower carpets with new random positions and speeds
+  lowerCarpets.forEach(carpet => {
+    carpet.x = canvas.width + 48 + Math.random() * 200;
+    carpet.y = 300 + Math.random() * 40;
+    carpet.vx = -(1 + Math.random());
     carpet.alive = true;
     carpet.frame = 0;
     carpet.frameTimer = 0;
     carpet.falling = false;
     carpet.vy = 0;
     carpet.onFloor = false;
+    carpet.respawnTimer = 0;
   });
   bullets.length = 0;
   gameState = 'gameover';
@@ -308,8 +327,83 @@ let DEBUG_HITBOXES = true; // Set to false to hide all debug hitboxes
 let showDevSettings = false;
 let prevGameState = null;
 
+// Screen flash when reaching 15 kills
+let flashActive = false;
+let flashEndTime = 0;
+const FLASH_DURATION = 200;
+const PHASE_CHANGE_KILL_COUNT = 15;
+
+// Difficulty settings
+let difficultyLevel = 1;
+let nextPhaseKillCount = PHASE_CHANGE_KILL_COUNT;
+
+// Dev overlay: show and manually set difficulty
+let showDifficulty = false;
+
+// Spawn additional carpets and lower carpets for difficulty increases
+function spawnCarpet() {
+  carpets.push({
+    x: canvas.width + 48 + Math.random() * 200,
+    y: 80 + Math.random() * 180,
+    vx: -(1.5 + Math.random()),
+    alive: true,
+    frame: 0,
+    frameTimer: 0,
+    falling: false,
+    vy: 0,
+    onFloor: false,
+    respawnTimer: 0
+  });
+}
+function spawnLowerCarpet() {
+  lowerCarpets.push({
+    x: canvas.width + 48 + Math.random() * 200,
+    y: 300 + Math.random() * 40,
+    vx: -(1 + Math.random()),
+    alive: true,
+    frame: 0,
+    frameTimer: 0,
+    falling: false,
+    vy: 0,
+    onFloor: false,
+    respawnTimer: 0
+  });
+}
+// Increase difficulty: bump level, set next threshold, and add new enemies
+function increaseDifficulty() {
+  difficultyLevel++;
+  nextPhaseKillCount += PHASE_CHANGE_KILL_COUNT;
+  spawnCarpet();
+  spawnLowerCarpet();
+}
+// Decrease difficulty: lower level, adjust threshold, and remove spawned enemies
+function decreaseDifficulty() {
+  if (difficultyLevel > 1) {
+    difficultyLevel--;
+    nextPhaseKillCount = Math.max(PHASE_CHANGE_KILL_COUNT, nextPhaseKillCount - PHASE_CHANGE_KILL_COUNT);
+    // Remove one carpet and lowerCarpet if above initial counts
+    if (carpets.length > NUM_CARPETS) carpets.pop();
+    if (lowerCarpets.length > NUM_LOWER_CARPETS) lowerCarpets.pop();
+  }
+}
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw flash overlay if active
+  if (flashActive) {
+    const now = performance.now();
+    if (now < flashEndTime) {
+      ctx.save();
+      // Fade out overlay
+      const alpha = 0.8 * ((flashEndTime - now) / FLASH_DURATION);
+      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    } else {
+      flashActive = false;
+    }
+  }
 
   if (gameState === 'controls') {
     showControlsScreen();
@@ -331,6 +425,16 @@ function draw() {
   ctx.textAlign = 'center';
   ctx.fillText(`Unrugged: ${killCount}`, canvas.width / 2, 40);
   ctx.restore();
+
+  // draw difficulty if toggled
+  if (showDifficulty) {
+    ctx.save();
+    ctx.font = '24px Arial';
+    ctx.fillStyle = '#0ff';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Difficulty: ${difficultyLevel}`, canvas.width / 2, 70);
+    ctx.restore();
+  }
 
   // draw platforms first so sprites are in front
   drawPlatforms();
@@ -446,11 +550,11 @@ function draw() {
     ctx.save();
     ctx.globalAlpha = 0.95;
     ctx.fillStyle = '#222';
-    ctx.fillRect(canvas.width/2 - 180, canvas.height/2 - 80, 360, 160);
+    ctx.fillRect(canvas.width/2 - 180, canvas.height/2 - 80, 360, 260);
     ctx.globalAlpha = 1;
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 3;
-    ctx.strokeRect(canvas.width/2 - 180, canvas.height/2 - 80, 360, 160);
+    ctx.strokeRect(canvas.width/2 - 180, canvas.height/2 - 80, 360, 260);
     ctx.font = 'bold 28px Arial';
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
@@ -458,14 +562,28 @@ function draw() {
     ctx.font = '22px Arial';
     ctx.textAlign = 'left';
     ctx.fillText('Show Hitboxes', canvas.width/2 - 120, canvas.height/2 + 10);
-    // Checkbox
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
+    // Checkbox for hitboxes
     ctx.strokeRect(canvas.width/2 + 60, canvas.height/2 - 10, 28, 28);
     if (DEBUG_HITBOXES) {
-      ctx.fillStyle = '#0f0';
       ctx.fillRect(canvas.width/2 + 62, canvas.height/2 - 8, 24, 24);
     }
+    // Checkbox for difficulty
+    ctx.fillText('Show Difficulty', canvas.width/2 - 120, canvas.height/2 + 50);
+    ctx.strokeRect(canvas.width/2 + 60, canvas.height/2 + 30, 28, 28);
+    if (showDifficulty) {
+      ctx.fillRect(canvas.width/2 + 62, canvas.height/2 + 32, 24, 24);
+    }
+    // Manual difficulty controls
+    ctx.fillText(`Difficulty Level: ${difficultyLevel}`, canvas.width/2 - 120, canvas.height/2 + 90);
+    const btnSize = 24;
+    const minusX = canvas.width/2 + 60;
+    const minusY = canvas.height/2 + 74;
+    ctx.strokeRect(minusX, minusY, btnSize, btnSize);
+    ctx.textAlign = 'center';
+    ctx.fillText('-', minusX + btnSize/2, minusY + btnSize/2 + 4);
+    const plusX = minusX + btnSize + 10;
+    ctx.strokeRect(plusX, minusY, btnSize, btnSize);
+    ctx.fillText('+', plusX + btnSize/2, minusY + btnSize/2 + 4);
     // Draw close 'X' button
     const closeX = canvas.width/2 + 140;
     const closeY = canvas.height/2 - 70;
@@ -480,11 +598,23 @@ function draw() {
 }
 
 function fireBullet() {
-  // Determine direction: 1 for right, -1 for left
   const direction = player.facing;
+
+  // Precise offset: always spawn at the front edge of the sprite
+  const bulletOffsetX = direction === 1
+    ? player.width - 6  // right-facing: front-right
+    : -6;               // left-facing: just left of player
+  const bulletOffsetY = player.crouching
+    ? player.height / 2
+    : player.height / 2 + 5;
+  const bulletX = player.x + bulletOffsetX;
+  const bulletY = player.y + bulletOffsetY;
+
+  // Optional debug
+  // console.log("Bullet:", { x: bulletX, y: bulletY, facing: direction, crouching: player.crouching, vx: 10 * direction });
   bullets.push({
-    x: player.x + player.width / 2 + 20,
-    y: player.y + player.height / 2 + 5,
+    x: bulletX,
+    y: bulletY,
     vx: 10 * direction,
     vy: 0
   });
@@ -510,6 +640,16 @@ function drawBullets() {
     ctx.arc(bullet.x, bullet.y, 6, 0, Math.PI * 2);
     ctx.fill();
   });
+  if (DEBUG_HITBOXES) {
+    ctx.save();
+    ctx.fillStyle = 'red';
+    bullets.forEach(bullet => {
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
 }
 
 function updateCarpets() {
@@ -528,9 +668,15 @@ function updateCarpets() {
     if (!carpet.alive && carpet.onFloor) {
       // Respawn after 2-4 seconds
       if (performance.now() - carpet.respawnTimer > 2000 + Math.random() * 2000) {
-        carpet.x = canvas.width + 48 + Math.random() * 200;
+        const fromLeft = killCount >= PHASE_CHANGE_KILL_COUNT && Math.random() < 0.5;
+        if (fromLeft) {
+          carpet.x = -48 - Math.random() * 200;
+          carpet.vx = 1.5 + Math.random();
+        } else {
+          carpet.x = canvas.width + 48 + Math.random() * 200;
+          carpet.vx = -(1.5 + Math.random());
+        }
         carpet.y = 80 + Math.random() * 180; // random y between 80 and 260
-        carpet.vx = -1.5 - Math.random(); // random speed
         carpet.alive = true;
         carpet.frame = 0;
         carpet.frameTimer = 0;
@@ -550,9 +696,11 @@ function updateCarpets() {
         carpet.frame = (carpet.frame + 1) % 3;
         carpet.frameTimer = 0;
       }
-      // Loop carpets to the right if they go off screen
-      if (carpet.x < -48) {
+      // Wrap carpets on trailing side: left-moving wrap to right, right-moving wrap to left
+      if (carpet.vx < 0 && carpet.x < -48) {
         carpet.x = canvas.width + 48;
+      } else if (carpet.vx > 0 && carpet.x > canvas.width + 48) {
+        carpet.x = -48;
       }
     }
   });
@@ -597,6 +745,12 @@ function checkBulletCarpetCollisions() {
         carpetDeathSound.play();
         bullets.splice(i, 1);
         killCount++;
+        // Trigger flash on reaching 15
+        if (killCount === nextPhaseKillCount) {
+          flashActive = true;
+          flashEndTime = performance.now() + FLASH_DURATION;
+          increaseDifficulty();
+        }
         break;
       }
     }
@@ -619,9 +773,15 @@ function updateLowerCarpets() {
     if (!carpet.alive && carpet.onFloor) {
       // Respawn after 2-4 seconds
       if (performance.now() - carpet.respawnTimer > 2000 + Math.random() * 2000) {
-        carpet.x = canvas.width + 48 + Math.random() * 200;
+        const fromLeft = killCount >= PHASE_CHANGE_KILL_COUNT && Math.random() < 0.5;
+        if (fromLeft) {
+          carpet.x = -48 - Math.random() * 200;
+          carpet.vx = 1 + Math.random();
+        } else {
+          carpet.x = canvas.width + 48 + Math.random() * 200;
+          carpet.vx = -(1 + Math.random());
+        }
         carpet.y = 300 + Math.random() * 40; // random y for lower carpets
-        carpet.vx = -1.5 - Math.random(); // random speed
         carpet.alive = true;
         carpet.frame = 0;
         carpet.frameTimer = 0;
@@ -641,9 +801,11 @@ function updateLowerCarpets() {
         carpet.frame = (carpet.frame + 1) % 3;
         carpet.frameTimer = 0;
       }
-      // Loop carpets to the right if they go off screen
-      if (carpet.x < -48) {
+      // Wrap carpets on trailing side: left-moving wrap to right, right-moving wrap to left
+      if (carpet.vx < 0 && carpet.x < -48) {
         carpet.x = canvas.width + 48;
+      } else if (carpet.vx > 0 && carpet.x > canvas.width + 48) {
+        carpet.x = -48;
       }
     }
   });
@@ -686,6 +848,12 @@ function checkBulletLowerCarpetCollisions() {
         carpetDeathSound.play();
         bullets.splice(i, 1);
         killCount++;
+        // Trigger flash on reaching 15
+        if (killCount === nextPhaseKillCount) {
+          flashActive = true;
+          flashEndTime = performance.now() + FLASH_DURATION;
+          increaseDifficulty();
+        }
         break;
       }
     }
@@ -851,6 +1019,28 @@ canvas.addEventListener('click', function(e) {
   if (mx >= cbx && mx <= cbx + cbw && my >= cby && my <= cby + cbh) {
     DEBUG_HITBOXES = !DEBUG_HITBOXES;
     draw();
+    return;
+  }
+  // Difficulty toggle checkbox
+  const dbx = canvas.width/2 + 60, dby = canvas.height/2 + 30, dbw = 28, dbh = 28;
+  if (mx >= dbx && mx <= dbx + dbw && my >= dby && my <= dby + dbh) {
+    showDifficulty = !showDifficulty;
+    draw();
+    return;
+  }
+  // Manual difficulty buttons
+  const btnSize = 24;
+  const minusX = canvas.width/2 + 60, minusY = canvas.height/2 + 74;
+  if (mx >= minusX && mx <= minusX + btnSize && my >= minusY && my <= minusY + btnSize) {
+    decreaseDifficulty();
+    draw();
+    return;
+  }
+  const plusX = minusX + btnSize + 10;
+  if (mx >= plusX && mx <= plusX + btnSize && my >= minusY && my <= minusY + btnSize) {
+    increaseDifficulty();
+    draw();
+    return;
   }
   // Close button area
   const closeX = canvas.width/2 + 140, closeY = canvas.height/2 - 70, closeW = 30, closeH = 30;
