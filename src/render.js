@@ -216,9 +216,10 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       ctx.restore();
     }
 
-    // Bullets & enemies
+    // Bullets always visible
+    drawBullets(ctx, bullets, DEBUG_HITBOXES);
+    // Enemies only when not in boss transition or boss fight
     if (!getBossTransition() && !getBossActive()) {
-      drawBullets(ctx, bullets, DEBUG_HITBOXES);
       drawEnemyCarpshits(ctx);
       drawEnemyLowerCarpshits(ctx);
     }

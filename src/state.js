@@ -1,6 +1,6 @@
 // State module: centralize game state and settings
 
-import { difficultyIncreaseSound } from './sound.js';
+import { difficultyIncreaseSounds } from './sound.js';
 
 export let gameState = 'start';
 export function setGameState(s) { gameState = s; }
@@ -37,9 +37,10 @@ export let PHASE_CHANGE_KILL_COUNT = 15;
 export let difficultyLevel = 1;
 export let nextPhaseKillCount = PHASE_CHANGE_KILL_COUNT;
 export function increaseDifficulty() {
-  // Play difficulty increase sound
-  difficultyIncreaseSound.currentTime = 0;
-  difficultyIncreaseSound.play();
+  // Play a random reaction sound
+  const sound = difficultyIncreaseSounds[Math.floor(Math.random() * difficultyIncreaseSounds.length)];
+  sound.currentTime = 0;
+  sound.play();
   difficultyLevel++;
   nextPhaseKillCount += PHASE_CHANGE_KILL_COUNT;
 }

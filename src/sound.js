@@ -13,9 +13,13 @@ bgMusic.volume = 0.3;
 export const fireSound = new Audio('assets/audio/sfx/blaster-fire.mp3');
 
 /**
- * Difficulty increase sound.
+ * Unruggabull reactions.
  */
-export const difficultyIncreaseSound = new Audio('assets/audio/sfx/unruggabull/oh-yeaaaa.mp3');
+export const difficultyIncreaseSounds = [
+  new Audio('assets/audio/sfx/unruggabull/oh-yeaaaa.mp3'),
+  new Audio('assets/audio/sfx/unruggabull/permanence.mp3'),
+  // Add more as needed
+];
 
 /**
  * Carpshit death sound.
