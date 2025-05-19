@@ -83,6 +83,16 @@ export let bossPause = false;
 export let bossPauseStartTime = 0;
 export const BOSS_PAUSE_DURATION = 2000; // ms for dramatic pause
 
+// Blink-out effect for platforms and carpshits during boss transition
+export let blinkingOut = false;
+export let blinkingOutStartTime = 0;
+export const BLINK_OUT_DURATION = 700; // ms
+
+// Carpshits return during boss fight phase
+export let carpshitsDuringBoss = false;
+export function setCarpshitsDuringBoss(val) { carpshitsDuringBoss = val; }
+export function getCarpshitsDuringBoss() { return carpshitsDuringBoss; }
+
 export function setBossActive(val) { bossActive = val; }
 export function getBossActive() { return bossActive; }
 
@@ -113,4 +123,9 @@ export function getBossPauseStartTime() { return bossPauseStartTime; }
 // Player auto-run left after boss entrance
 export let playerAutoRunLeft = false;
 export function setPlayerAutoRunLeft(val) { playerAutoRunLeft = val; }
-export function getPlayerAutoRunLeft() { return playerAutoRunLeft; } 
+export function getPlayerAutoRunLeft() { return playerAutoRunLeft; }
+
+export function setBlinkingOut(val) { blinkingOut = val; }
+export function getBlinkingOut() { return blinkingOut; }
+export function setBlinkingOutStartTime(val) { blinkingOutStartTime = val; }
+export function getBlinkingOutStartTime() { return blinkingOutStartTime; } 

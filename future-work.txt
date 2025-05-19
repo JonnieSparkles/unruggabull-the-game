@@ -3,6 +3,7 @@ rugfather
 -level intro
 -level finish screen
 -whats gameover during boss?
+-animate garage opening more
 
 
 add changelog to version number 

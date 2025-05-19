@@ -10,6 +10,7 @@ import * as state from './state.js';
 import { bgMusic, garageDoorSound } from './sound.js';
 import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
+import rugfatherBoss, { checkBossBulletCollision } from './levels/rugcoAlley/rugfather.js';
 
 /**
  * Perform one update cycle: input, physics, firing, bullet & enemy updates, and collision checks.
@@ -101,15 +102,24 @@ export function updateGame(bullets, canvas) {
       state.setBossHold(false);
       state.setBossTransition(true);
       state.setBossTransitionStartTime(now);
-      // Remove all carpshits and platforms
-      enemyCarpshits.length = 0;
-      enemyLowerCarpshits.length = 0;
-      platforms.length = 0;
+      // Start blink-out effect
+      state.setBlinkingOut(true);
+      state.setBlinkingOutStartTime(now);
       // Play garage door opening sound at transition start
       garageDoorSound.currentTime = 0;
       garageDoorSound.play();
     }
     return;
+  }
+  // During blink-out, wait before removing platforms/carpshits
+  if (state.getBlinkingOut()) {
+    if (performance.now() - state.getBlinkingOutStartTime() > state.BLINK_OUT_DURATION) {
+      enemyCarpshits.length = 0;
+      enemyLowerCarpshits.length = 0;
+      platforms.length = 0;
+      bullets.length = 0;
+      state.setBlinkingOut(false);
+    }
   }
   // During transition, skip normal updates until completed
   if (state.getBossTransition()) {
@@ -140,9 +150,16 @@ export function updateGame(bullets, canvas) {
     if (elapsed > interval * framesToCycle) {
       state.setBossTransition(false);
       state.setBossActive(true);
-      // Spawn boss
-      state.setCurrentBoss(levels[getCurrentLevelKey()].boss);
-      state.getCurrentBoss().spawn();
+      // Spawn boss only if not already defeated
+      if (state.gameState !== 'congrats') {
+        state.setCurrentBoss(levels[getCurrentLevelKey()].boss);
+        state.getCurrentBoss().spawn();
+      }
+      // Resume level music
+      const levelConfig = levels[getCurrentLevelKey()];
+      bgMusic.src = levelConfig.music;
+      bgMusic.currentTime = 0;
+      bgMusic.play();
     }
     return;
   }
@@ -152,6 +169,17 @@ export function updateGame(bullets, canvas) {
     // If boss is still walking forward, skip player update
     if (state.getCurrentBoss().walkingForward) {
       return;
+    }
+    // Bullet-boss collision
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      if (checkBossBulletCollision(bullets[i])) {
+        state.getCurrentBoss().hit(1);
+        bullets.splice(i, 1);
+      }
+    }
+    // If boss is defeated, show congrats screen (handled in boss logic)
+    if (state.gameState === 'congrats') {
+      // Optionally, add more win logic here
     }
     // Otherwise, allow normal update (player can move, shoot, etc.)
   }
@@ -175,7 +203,7 @@ export function updateGame(bullets, canvas) {
   // Handle firing input: spawn bullets when fire key is pressed
   handleFiring(keys, player, bullets);
   updateBullets(bullets, canvas.width);
-  if (!state.getBossTransition() && !state.getBossActive()) {
+  if (!state.getBossTransition() && !state.getBossActive() || state.getCarpshitsDuringBoss()) {
     updateEnemyCarpshits();
     checkBulletcarpshitCollisions(bullets, enemyCarpshits, handleBulletKill);
     updateEnemyLowerCarpshits();

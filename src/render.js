@@ -10,7 +10,7 @@ import { drawCarpshits as drawEnemyCarpshits, drawLowerCarpshits as drawEnemyLow
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 import { getHitbox } from './player.js';
 import { getCarpshitHitbox } from './enemy.js';
-import { getBossHold, getBossPause, getBossTransition, getBossActive, getCurrentBoss, getScreenShake, getScreenShakeStartTime, SCREEN_SHAKE_DURATION } from './state.js';
+import { getBossHold, getBossPause, getBossTransition, getBossActive, getCurrentBoss, getScreenShake, getScreenShakeStartTime, SCREEN_SHAKE_DURATION, getBlinkingOut, getBlinkingOutStartTime, BLINK_OUT_DURATION, getCarpshitsDuringBoss } from './state.js';
 
 /**
  * Render the current game frame.
@@ -62,7 +62,19 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     }
 
     // Platforms
-    if (!getBossTransition() && !getBossActive()) drawPlatforms(ctx, platforms);
+    if (!getBossTransition() && !getBossActive()) {
+      if (getBlinkingOut()) {
+        const elapsed = performance.now() - getBlinkingOutStartTime();
+        const blink = Math.floor(elapsed / 80) % 2 === 0;
+        ctx.save();
+        ctx.globalAlpha = blink ? 0.2 + 0.8 * (1 - elapsed / BLINK_OUT_DURATION) : 0.1;
+        drawPlatforms(ctx, platforms);
+        ctx.globalAlpha = 1.0;
+        ctx.restore();
+      } else {
+        drawPlatforms(ctx, platforms);
+      }
+    }
 
     // Draw player
     if (getBossHold() || getBossTransition()) {
@@ -204,12 +216,20 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       // Upper carpshits
       carpshits.forEach(carpshit => {
         if (!carpshit.alive && !carpshit.falling && !carpshit.onFloor) return;
+        if (getBlinkingOut()) {
+          const elapsed = performance.now() - getBlinkingOutStartTime();
+          if (Math.floor(elapsed / 80) % 2 === 0) return;
+        }
         const { x: cx, y: cy, width: cw, height: ch } = getCarpshitHitbox(carpshit);
         ctx.strokeRect(cx, cy, cw, ch);
       });
       // Lower carpshits
       lowerCarpshits.forEach(carpshit => {
         if (!carpshit.alive && !carpshit.falling && !carpshit.onFloor) return;
+        if (getBlinkingOut()) {
+          const elapsed = performance.now() - getBlinkingOutStartTime();
+          if (Math.floor(elapsed / 80) % 2 === 0) return;
+        }
         const { x: cx, y: cy, width: cw, height: ch } = getCarpshitHitbox(carpshit);
         ctx.strokeRect(cx, cy, cw, ch);
       });
@@ -218,10 +238,21 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
 
     // Bullets always visible
     drawBullets(ctx, bullets, DEBUG_HITBOXES);
-    // Enemies only when not in boss transition or boss fight
-    if (!getBossTransition() && !getBossActive()) {
-      drawEnemyCarpshits(ctx);
-      drawEnemyLowerCarpshits(ctx);
+    // Enemies only when not in boss transition or boss fight, or if carpshitsDuringBoss is true
+    if (!getBossTransition() && !getBossActive() || getCarpshitsDuringBoss()) {
+      if (getBlinkingOut()) {
+        const elapsed = performance.now() - getBlinkingOutStartTime();
+        const blink = Math.floor(elapsed / 80) % 2 === 0;
+        ctx.save();
+        ctx.globalAlpha = blink ? 0.2 + 0.8 * (1 - elapsed / BLINK_OUT_DURATION) : 0.1;
+        drawEnemyCarpshits(ctx);
+        drawEnemyLowerCarpshits(ctx);
+        ctx.globalAlpha = 1.0;
+        ctx.restore();
+      } else {
+        drawEnemyCarpshits(ctx);
+        drawEnemyLowerCarpshits(ctx);
+      }
     }
 
     // Game over
