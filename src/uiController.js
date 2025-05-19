@@ -20,7 +20,8 @@ export const restartButton = {
  */
 export function setupRestartUI(canvas, ctx, bullets) {
   canvas.addEventListener('click', function(e) {
-    if (!state.gameState.includes('over')) return;
+    // Allow restart on game over or congrats screens
+    if (!state.gameState.includes('over') && state.gameState !== 'congrats') return;
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
@@ -41,7 +42,8 @@ export function setupRestartUI(canvas, ctx, bullets) {
   });
 
   canvas.addEventListener('mousemove', function(e) {
-    if (!state.gameState.includes('over')) return;
+    // Allow hover on game over or congrats screens
+    if (!state.gameState.includes('over') && state.gameState !== 'congrats') return;
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
@@ -49,7 +51,7 @@ export function setupRestartUI(canvas, ctx, bullets) {
       mx >= restartButton.x && mx <= restartButton.x + restartButton.width &&
       my >= restartButton.y && my <= restartButton.y + restartButton.height
     );
-    if (state.gameState.includes('over')) {
+    if (state.gameState.includes('over') || state.gameState === 'congrats') {
       renderGame(ctx, canvas, bullets, player, restartButton, isRestartHover);
     }
   });

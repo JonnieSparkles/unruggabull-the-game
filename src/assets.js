@@ -16,4 +16,8 @@ export const jumpingSprite = new Image();
 jumpingSprite.src = 'assets/sprites/unruggabull-jumping.png';
 
 export const shockedSprite = new Image();
-shockedSprite.src = 'assets/sprites/unruggabull-shocked.png'; 
+shockedSprite.src = 'assets/sprites/unruggabull-shocked.png';
+
+// Sprite for walking forward into the garage (back view)
+export const walkingForwardSprite = new Image();
+walkingForwardSprite.src = 'assets/sprites/unruggabull-walking-forward.png'; 

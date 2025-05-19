@@ -2,9 +2,9 @@
 import * as state from './state.js';
 import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
-import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGameOver, drawRestartButton } from './ui.js';
+import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGameOver, drawCongrats, drawRestartButton } from './ui.js';
 import { drawPlatforms, platforms } from './physics.js';
-import { sprite, crouchSprite, deadSprite, jumpingSprite, shockedSprite } from './assets.js';
+import { sprite, crouchSprite, deadSprite, jumpingSprite, shockedSprite, walkingForwardSprite } from './assets.js';
 import { drawBullets } from './bullets.js';
 import { drawCarpshits as drawEnemyCarpshits, drawLowerCarpshits as drawEnemyLowerCarpshits, carpshits, lowerCarpshits } from './enemy.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
@@ -35,6 +35,25 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const levelConfig = levels[getCurrentLevelKey()];
   levelConfig.background(ctx, canvas);
+
+  // Special exit sequence rendering
+  if (state.getGameState() === 'bossExit') {
+    // Draw player walking into garage using forward sprite
+    const frameCount = 4;
+    const frameW = 96;
+    const frameH = 96;
+    const frameIndex = Math.floor(player.frame / 10) % frameCount;
+    ctx.drawImage(
+      walkingForwardSprite,
+      frameIndex * frameW, 0, frameW, frameH,
+      player.x, player.feetY - frameH, frameW, frameH
+    );
+    return;
+  }
+  // During door closing, background handles animation; skip other rendering
+  if (state.getGameState() === 'bossExitDoorClosing') {
+    return;
+  }
 
   // Flash overlay
   if (state.flashActive) {
@@ -253,6 +272,24 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
         drawEnemyCarpshits(ctx);
         drawEnemyLowerCarpshits(ctx);
       }
+    }
+
+    // Congrats screen
+    if (state.gameState === 'congrats') {
+      // Fade overlay
+      ctx.save();
+      ctx.globalAlpha = 0.6;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 1.0;
+      ctx.restore();
+
+      drawCongrats(ctx, canvas);
+      // Center the restart button
+      restartButton.x = Math.round(canvas.width / 2 - restartButton.width / 2);
+      restartButton.y = Math.round(canvas.height / 2 + 60);
+      drawRestartButton(ctx, canvas, restartButton, isRestartHover);
+      shouldReturn = true;
     }
 
     // Game over

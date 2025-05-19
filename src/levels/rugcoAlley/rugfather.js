@@ -60,8 +60,9 @@ function update() {
     } else {
       state.opacity = 0;
       state.dying = false;
+      // After death animation, begin exit walk into garage
       setTimeout(() => {
-        stateModule.setGameState('congrats');
+        stateModule.setGameState('bossExit');
       }, 500);
     }
     return;

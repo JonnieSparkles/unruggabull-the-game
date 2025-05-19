@@ -128,4 +128,27 @@ export function getPlayerAutoRunLeft() { return playerAutoRunLeft; }
 export function setBlinkingOut(val) { blinkingOut = val; }
 export function getBlinkingOut() { return blinkingOut; }
 export function setBlinkingOutStartTime(val) { blinkingOutStartTime = val; }
-export function getBlinkingOutStartTime() { return blinkingOutStartTime; } 
+export function getBlinkingOutStartTime() { return blinkingOutStartTime; }
+
+// Add bossTriggered flag to prevent boss scene from re-triggering after defeat
+export let bossTriggered = false;
+export function setBossTriggered(val) { bossTriggered = val; }
+export function getBossTriggered() { return bossTriggered; }
+
+// Exit sequence control after boss defeat
+export let bossExit = false;
+export function setBossExit(val) { bossExit = val; }
+export function getBossExit() { return bossExit; }
+
+// Door closing sequence control after exit walking
+export let bossExitDoorClosing = false;
+export let bossExitDoorStartTime = 0;
+export function setBossExitDoorClosing(val) { bossExitDoorClosing = val; }
+export function getBossExitDoorClosing() { return bossExitDoorClosing; }
+export function setBossExitDoorStartTime(val) { bossExitDoorStartTime = val; }
+export function getBossExitDoorStartTime() { return bossExitDoorStartTime; }
+
+// Congrats image fade-in control
+export let congratsStartTime = 0;
+export function setCongratsStartTime(val) { congratsStartTime = val; }
+export function getCongratsStartTime() { return congratsStartTime; } 

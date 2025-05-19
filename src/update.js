@@ -7,7 +7,7 @@ import { updateCarpshits as updateEnemyCarpshits, updateLowerCarpshits as update
 import { checkBulletcarpshitCollisions, checkBulletLowercarpshitCollisions, checkPlayercarpshitCollisions } from './collision.js';
 import { handleBulletKill, handlePlayerHit } from './callbacks.js';
 import * as state from './state.js';
-import { bgMusic, garageDoorSound } from './sound.js';
+import { bgMusic, garageDoorSound, garageDoorCloseSound } from './sound.js';
 import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
 import rugfatherBoss, { checkBossBulletCollision } from './levels/rugcoAlley/rugfather.js';
@@ -36,11 +36,36 @@ export function updateGame(bullets, canvas) {
     }
     return;
   }
+  // Handle exit walking sequence after boss defeat
+  if (state.gameState === 'bossExit') {
+    const centerX = Math.round(canvas.width / 2 - player.width / 2);
+    const walkSpeed = 4;
+    // Animate walking into garage
+    if (player.x < centerX) {
+      player.x += walkSpeed;
+      player.facing = 1;
+      player.frame = (player.frame + 1) % 40;
+    } else {
+      // Start door closing animation
+      state.setGameState('bossExitDoorClosing');
+      state.setBossExitDoorStartTime(performance.now());
+      state.setBossExitDoorClosing(true);
+      garageDoorCloseSound.currentTime = 0;
+      garageDoorCloseSound.play();
+    }
+    return;
+  }
+  // Skip updates during door closing
+  if (state.gameState === 'bossExitDoorClosing') {
+    return;
+  }
+  // Only continue normal updates while playing
   if (state.gameState !== 'playing') return;
   const now = performance.now();
   // Boss hold: when reaching difficulty 6, start hold phase
-  if (!state.getBossHold() && !state.getBossTransition() && !state.getBossActive() && state.difficultyLevel >= 6) {
+  if (!state.getBossHold() && !state.getBossTransition() && !state.getBossActive() && !state.getBossTriggered() && state.difficultyLevel >= 6) {
     state.setBossHold(true);
+    state.setBossTriggered(true);
     state.setBossHoldStartTime(now);
     // Stop music immediately
     bgMusic.pause();

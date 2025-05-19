@@ -35,4 +35,10 @@ gameOverSound.volume = 1.0;
 /**
  * Garage door opening sound for boss transition.
  */
-export const garageDoorSound = new Audio('assets/audio/sfx/garage-door-opening.mp3'); 
+export const garageDoorSound = new Audio('assets/audio/sfx/garage-door-opening.mp3');
+
+/**
+ * Garage door closing sound for the exit sequence after boss defeat.
+ */
+export const garageDoorCloseSound = new Audio('assets/audio/sfx/garage-door-closing.mp3');
+garageDoorCloseSound.volume = 1.0; 

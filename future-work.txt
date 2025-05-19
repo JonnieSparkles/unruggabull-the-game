@@ -1,4 +1,6 @@
 rugfather
+-unruggabull hit frames
+-boss keeps looping
 -figure out the battle
 -level intro
 -level finish screen

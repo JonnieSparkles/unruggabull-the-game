@@ -15,6 +15,11 @@ import { getCurrentLevelKey } from './state.js';
  * Reset player, enemies, and bullets for a new game.
  */
 export function resetGame(canvas, bullets) {
+  // Reset boss trigger state
+  state.setBossTriggered(false);
+  // Reset exit sequence flags
+  state.setBossExit(false);
+  state.setBossExitDoorClosing(false);
   player.x = 50;
   player.feetY = canvas.height - 20;
   player.vx = 0;
@@ -58,10 +63,23 @@ export function resetGame(canvas, bullets) {
  * Main game loop.
  */
 export function gameLoop(canvas, ctx, bullets, restartButton, isRestartHover) {
-  if (state.gameState !== 'playing' && state.gameState !== 'dying') return;
+  // Continue loop for playing, dying, exit phases, or congrats state
+  if (
+    state.gameState !== 'playing' &&
+    state.gameState !== 'dying' &&
+    state.gameState !== 'bossExit' &&
+    state.gameState !== 'bossExitDoorClosing' &&
+    state.gameState !== 'congrats'
+  ) return;
   updateGame(bullets, canvas);
   renderGame(ctx, canvas, bullets, player, restartButton, isRestartHover);
-  if (state.gameState === 'playing' || state.gameState === 'dying') {
+  if (
+    state.gameState === 'playing' ||
+    state.gameState === 'dying' ||
+    state.gameState === 'bossExit' ||
+    state.gameState === 'bossExitDoorClosing' ||
+    state.gameState === 'congrats'
+  ) {
     requestAnimationFrame(() => gameLoop(canvas, ctx, bullets, restartButton, isRestartHover));
   }
 }
