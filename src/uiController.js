@@ -4,6 +4,8 @@ import { resetGame, gameLoop } from './controller.js';
 import { renderGame } from './render.js';
 import { bgMusic } from './sound.js';
 import { player } from './player.js';
+import levels from './levels/index.js';
+import { getCurrentLevelKey } from './state.js';
 
 export let isRestartHover = false;
 export const restartButton = {
@@ -26,7 +28,10 @@ export function setupRestartUI(canvas, ctx, bullets) {
       mx >= restartButton.x && mx <= restartButton.x + restartButton.width &&
       my >= restartButton.y && my <= restartButton.y + restartButton.height
     ) {
+      // Reset game state and reload level-specific music
       resetGame(canvas, bullets);
+      const levelConfig = levels[getCurrentLevelKey()];
+      bgMusic.src = levelConfig.music;
       bgMusic.currentTime = 0;
       bgMusic.play();
       state.setGameState('playing');

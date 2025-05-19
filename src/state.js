@@ -63,4 +63,48 @@ export function getCurrentLevelKey() { return currentLevelKey; }
 
 // Level boss control
 export let bossActive = false;
-export let currentBoss = null; 
+export let currentBoss = null;
+// Boss transition control
+export let bossTransition = false;
+export let bossTransitionStartTime = 0;
+// Screen shake control
+export let screenShake = false;
+export let screenShakeStartTime = 0;
+export const SCREEN_SHAKE_DURATION = 1000;
+
+// Boss hold (pre-transition) control
+export let bossHold = false;
+export let bossHoldStartTime = 0;
+export const BOSS_HOLD_DURATION = 2000; // ms to hold frames 1-2 before transition
+
+// Boss dramatic pause (after walk to center, before door opens)
+export let bossPause = false;
+export let bossPauseStartTime = 0;
+export const BOSS_PAUSE_DURATION = 2000; // ms for dramatic pause
+
+export function setBossActive(val) { bossActive = val; }
+export function getBossActive() { return bossActive; }
+
+export function setCurrentBoss(boss) { currentBoss = boss; }
+export function getCurrentBoss() { return currentBoss; }
+
+export function setBossTransition(val) { bossTransition = val; }
+export function getBossTransition() { return bossTransition; }
+
+export function setBossTransitionStartTime(val) { bossTransitionStartTime = val; }
+export function getBossTransitionStartTime() { return bossTransitionStartTime; }
+// Screen shake setters/getters
+export function setScreenShake(val) { screenShake = val; }
+export function getScreenShake() { return screenShake; }
+export function setScreenShakeStartTime(val) { screenShakeStartTime = val; }
+export function getScreenShakeStartTime() { return screenShakeStartTime; }
+
+export function setBossHold(val) { bossHold = val; }
+export function getBossHold() { return bossHold; }
+export function setBossHoldStartTime(val) { bossHoldStartTime = val; }
+export function getBossHoldStartTime() { return bossHoldStartTime; }
+
+export function setBossPause(val) { bossPause = val; }
+export function getBossPause() { return bossPause; }
+export function setBossPauseStartTime(val) { bossPauseStartTime = val; }
+export function getBossPauseStartTime() { return bossPauseStartTime; } 

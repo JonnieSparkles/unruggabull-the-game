@@ -18,7 +18,9 @@ export const player = {
   facing: 1, // 1 for right, -1 for left
   health: 3,
   crouching: false,
-  muzzleFlashTimer: 0
+  muzzleFlashTimer: 0,
+  shockedFrame: 0,
+  shockedFrameTimer: 0
 };
 
 /**

@@ -1,7 +1,11 @@
 v0.0.3
 -Changed screen size to 960x540
+-Increased Unruggabull and Carpshit sizes
 -Animated level background
 -Crouching now moves slower
+-Restructured to levels directories
+-RUGFATHER
+
 
 
 v0.0.2

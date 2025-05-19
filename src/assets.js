@@ -13,4 +13,7 @@ export const crouchSprite = new Image();
 crouchSprite.src = 'assets/sprites/unruggabull-crouching.png';
 
 export const jumpingSprite = new Image();
-jumpingSprite.src = 'assets/sprites/unruggabull-jumping.png'; 
+jumpingSprite.src = 'assets/sprites/unruggabull-jumping.png';
+
+export const shockedSprite = new Image();
+shockedSprite.src = 'assets/sprites/unruggabull-shocked.png'; 

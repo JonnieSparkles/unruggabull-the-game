@@ -26,4 +26,9 @@ export const carpshitDeathSound = new Audio('assets/audio/sfx/carpshit-death.mp3
  * Game over sound.
  */
 export const gameOverSound = new Audio('assets/audio/sfx/game-over.mp3');
-gameOverSound.volume = 1.0; 
+gameOverSound.volume = 1.0;
+
+/**
+ * Garage door opening sound for boss transition.
+ */
+export const garageDoorSound = new Audio('assets/audio/sfx/garage-door-opening.mp3'); 
