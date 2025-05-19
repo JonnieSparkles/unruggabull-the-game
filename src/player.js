@@ -26,7 +26,7 @@ export const player = {
 /**
  * Sound effect for jumping.
  */
-export const jumpSound = new Audio('assets/audio/sfx/unruggabull-jump.mp3');
+export const jumpSound = new Audio('assets/audio/sfx/unruggabull/unruggabull-jump.mp3');
 
 /**
  * Handle horizontal movement input.

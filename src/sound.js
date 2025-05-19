@@ -20,7 +20,7 @@ export const difficultyIncreaseSound = new Audio('assets/audio/sfx/unruggabull/o
 /**
  * Carpshit death sound.
  */
-export const carpshitDeathSound = new Audio('assets/audio/sfx/carpshit-death.mp3');
+export const carpshitDeathSound = new Audio('assets/audio/sfx/carpshit/carpshit-death.mp3');
 
 /**
  * Game over sound.

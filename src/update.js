@@ -101,6 +101,10 @@ export function updateGame(bullets, canvas) {
       state.setBossHold(false);
       state.setBossTransition(true);
       state.setBossTransitionStartTime(now);
+      // Remove all carpshits and platforms
+      enemyCarpshits.length = 0;
+      enemyLowerCarpshits.length = 0;
+      platforms.length = 0;
       // Play garage door opening sound at transition start
       garageDoorSound.currentTime = 0;
       garageDoorSound.play();
@@ -171,10 +175,12 @@ export function updateGame(bullets, canvas) {
   // Handle firing input: spawn bullets when fire key is pressed
   handleFiring(keys, player, bullets);
   updateBullets(bullets, canvas.width);
-  updateEnemyCarpshits();
-  checkBulletcarpshitCollisions(bullets, enemyCarpshits, handleBulletKill);
-  updateEnemyLowerCarpshits();
-  checkBulletLowercarpshitCollisions(bullets, enemyLowerCarpshits, handleBulletKill);
-  checkPlayercarpshitCollisions(player, enemyCarpshits, handlePlayerHit);
-  checkPlayercarpshitCollisions(player, enemyLowerCarpshits, handlePlayerHit);
+  if (!state.getBossTransition() && !state.getBossActive()) {
+    updateEnemyCarpshits();
+    checkBulletcarpshitCollisions(bullets, enemyCarpshits, handleBulletKill);
+    updateEnemyLowerCarpshits();
+    checkBulletLowercarpshitCollisions(bullets, enemyLowerCarpshits, handleBulletKill);
+    checkPlayercarpshitCollisions(player, enemyCarpshits, handlePlayerHit);
+    checkPlayercarpshitCollisions(player, enemyLowerCarpshits, handlePlayerHit);
+  }
 } 
