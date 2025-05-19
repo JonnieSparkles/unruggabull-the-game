@@ -15,7 +15,7 @@ export const fireSound = new Audio('assets/audio/sfx/blaster-fire.mp3');
 /**
  * Difficulty increase sound.
  */
-export const difficultyIncreaseSound = new Audio('assets/audio/sfx/oh-yeaaaa.mp3');
+export const difficultyIncreaseSound = new Audio('assets/audio/sfx/unruggabull/oh-yeaaaa.mp3');
 
 /**
  * Carpshit death sound.
@@ -25,7 +25,7 @@ export const carpshitDeathSound = new Audio('assets/audio/sfx/carpshit-death.mp3
 /**
  * Game over sound.
  */
-export const gameOverSound = new Audio('assets/audio/sfx/game-over.mp3');
+export const gameOverSound = new Audio('assets/audio/sfx/unruggabull/game-over.mp3');
 gameOverSound.volume = 1.0;
 
 /**
