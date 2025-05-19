@@ -142,9 +142,28 @@ export function updateGame(bullets, canvas) {
     }
     return;
   }
-  // If boss is active, only update boss logic
+  // If boss is active, update boss logic
   if (state.getBossActive() && state.getCurrentBoss()) {
     state.getCurrentBoss().update();
+    // If boss is still walking forward, skip player update
+    if (state.getCurrentBoss().walkingForward) {
+      return;
+    }
+    // Otherwise, allow normal update (player can move, shoot, etc.)
+  }
+  // Player auto-run left after boss entrance
+  if (state.getPlayerAutoRunLeft()) {
+    const leftEdge = 32;
+    const runSpeed = 6;
+    if (player.x > leftEdge) {
+      player.x -= runSpeed;
+      player.facing = -1;
+      player.frame = (player.frame + 1) % 40;
+    } else {
+      player.x = leftEdge;
+      state.setPlayerAutoRunLeft(false);
+    }
+    // Skip normal input while auto-running
     return;
   }
   updatePlayerInput();

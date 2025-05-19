@@ -107,4 +107,9 @@ export function getBossHoldStartTime() { return bossHoldStartTime; }
 export function setBossPause(val) { bossPause = val; }
 export function getBossPause() { return bossPause; }
 export function setBossPauseStartTime(val) { bossPauseStartTime = val; }
-export function getBossPauseStartTime() { return bossPauseStartTime; } 
+export function getBossPauseStartTime() { return bossPauseStartTime; }
+
+// Player auto-run left after boss entrance
+export let playerAutoRunLeft = false;
+export function setPlayerAutoRunLeft(val) { playerAutoRunLeft = val; }
+export function getPlayerAutoRunLeft() { return playerAutoRunLeft; } 

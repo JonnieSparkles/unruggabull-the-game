@@ -2,7 +2,7 @@
 import * as state from '../../state.js';
 // Level background sprite sheet (multiple frames)
 const bgSprite = new Image();
-bgSprite.src = 'assets/sprites/levels/rugcoAlley/background.png';
+bgSprite.src = 'assets/sprites/levels/rugcoAlley/background-rugcoAlley.png';
 
 export default function drawRugcoBackground(ctx, canvas) {
   const now = performance.now();

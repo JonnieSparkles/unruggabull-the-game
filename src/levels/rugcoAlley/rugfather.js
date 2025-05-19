@@ -1,3 +1,6 @@
+import { setPlayerAutoRunLeft } from '../../state.js';
+import { player } from '../../player.js';
+
 // Level 1 Boss: Rugfather
 // Access the canvas and context
 document; // ensure module scope
@@ -18,7 +21,9 @@ const state = {
   hp: 100,
   active: false,
   opacity: 0,
-  entering: true
+  entering: true,
+  walkingForward: false,
+  scale: 1.0
 };
 
 // Spawn the boss at center-top of the screen
@@ -26,30 +31,62 @@ function spawn() {
   state.active = true;
   state.hp = 100;
   state.x = canvas.width / 2 - BOSS_WIDTH / 2;
-  // Place feet at garage floor (bottom of door)
-  const garageFloorY = canvas.height - 120; // adjust as needed for your art
-  state.y = garageFloorY - BOSS_HEIGHT;
+  state.scale = 1.0;
+  // Start at garage floor (further back)
+  const garageFloorY = canvas.height - 120;
+  state.y = garageFloorY - BOSS_HEIGHT * state.scale;
   state.opacity = 0;
   state.entering = true;
+  state.walkingForward = false;
 }
 
 // Basic oscillation movement
 function update() {
   if (!state.active) return;
+  const playerFloorY = canvas.height - 20;
+  const garageFloorY = canvas.height - 120;
   if (state.entering) {
     // Fade in only (no vertical movement)
     if (state.opacity < 1) {
-      state.opacity += 0.04;
+      state.opacity += 0.02; // slower fade
       if (state.opacity > 1) state.opacity = 1;
     }
+    // Keep at garage floor during fade-in
+    state.y = garageFloorY - BOSS_HEIGHT * state.scale;
     if (state.opacity === 1) {
       state.entering = false;
+      state.walkingForward = true;
+    }
+    if (state.walkingForward && state.opacity === 1) {
+      setPlayerAutoRunLeft(true);
+      player.facing = -1;
+      player.feetY = canvas.height - 20;
+    }
+    return;
+  }
+  // Hybrid: walk forward (scale up and move y)
+  if (state.walkingForward) {
+    const finalScale = 2.0;
+    const scaleSpeed = 0.01; // slower scale
+    // Animate scale
+    if (state.scale < finalScale) {
+      state.scale += scaleSpeed;
+      if (state.scale > finalScale) state.scale = finalScale;
+    }
+    // Animate y from garage floor to player floor
+    const startY = garageFloorY - BOSS_HEIGHT * 1.0;
+    const endY = playerFloorY - BOSS_HEIGHT * finalScale;
+    // Progress 0 to 1
+    const progress = (state.scale - 1.0) / (finalScale - 1.0);
+    state.y = startY + (endY - startY) * progress;
+    if (state.scale === finalScale) {
+      state.walkingForward = false;
     }
     return;
   }
   // Idle/battle movement
   const t = performance.now() / 500;
-  state.x = canvas.width / 2 - BOSS_WIDTH / 2 + Math.sin(t) * 100;
+  state.x = canvas.width / 2 - (BOSS_WIDTH * state.scale) / 2 + Math.sin(t) * 100;
 }
 
 // Draw the boss and its HP bar
@@ -57,7 +94,13 @@ function draw() {
   if (!state.active) return;
   ctx.save();
   ctx.globalAlpha = state.opacity;
-  ctx.drawImage(bossSprite, state.x, state.y, BOSS_WIDTH, BOSS_HEIGHT);
+  ctx.drawImage(
+    bossSprite,
+    state.x,
+    state.y,
+    BOSS_WIDTH * state.scale,
+    BOSS_HEIGHT * state.scale
+  );
   ctx.globalAlpha = 1.0;
   ctx.restore();
   // Health bar
@@ -78,6 +121,16 @@ function hit(damage = 10) {
   }
 }
 
+// Get boss hitbox (for collision)
+function getHitbox() {
+  return {
+    x: state.x,
+    y: state.y,
+    width: BOSS_WIDTH * state.scale,
+    height: BOSS_HEIGHT * state.scale
+  };
+}
+
 // Export boss interface
-const rugfatherBoss = { spawn, update, draw, hit };
+const rugfatherBoss = { spawn, update, draw, hit, getHitbox };
 export default rugfatherBoss; 
