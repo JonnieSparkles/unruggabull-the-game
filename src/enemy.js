@@ -13,7 +13,10 @@ export const CARPSHIT_SPRITE_WIDTH = 64;
 export const CARPSHIT_SPRITE_HEIGHT = 50;
 
 // Define dynamic floor and spawn ranges
-const floorY = canvas.height - 20;
+import levels from './levels/index.js';
+import { getCurrentLevelKey } from './state.js';
+const levelConfig = levels[getCurrentLevelKey()];
+const floorY = levelConfig.floorY;
 const upperSpawnMinY = canvas.height * 0.1;
 const upperSpawnMaxY = canvas.height * 0.6;
 const lowerSpawnMinY = canvas.height * 0.6;
@@ -132,7 +135,6 @@ export function updateCarpshits() {
     if (carpshit.falling) {
       carpshit.vy += 0.7;
       carpshit.y += carpshit.vy;
-      const floorY = canvas.height - 20;
       const thresholdY = floorY - 48;
       if (carpshit.y >= thresholdY) {
         carpshit.y = thresholdY;
@@ -201,7 +203,6 @@ export function updateLowerCarpshits() {
     if (carpshit.falling) {
       carpshit.vy += 0.7;
       carpshit.y += carpshit.vy;
-      const floorY = canvas.height - 20;
       const thresholdY = floorY - 48;
       if (carpshit.y >= thresholdY) {
         carpshit.y = thresholdY;

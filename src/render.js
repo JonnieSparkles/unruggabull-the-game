@@ -36,6 +36,7 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   // Clear and draw level background (override during bossExit)
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const levelConfig = levels[getCurrentLevelKey()];
+  const floorY = levelConfig.floorY;
   if (state.getGameState() === 'bossExit') {
     // If Unruggabull is still visible (hasn't finished vertical walk), hold on final door-open frame (index 9)
     const garageFloorY = ctx.canvas.height - 120;
@@ -103,8 +104,6 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       const frameW = 96;
       const frameH = 96;
       const frameIndex = Math.floor(player.frame / 10) % frameCount;
-      const floorY = canvas.height - 20;
-      const garageFloorY = canvas.height - 120;
       const progress = (floorY - player.feetY) / (floorY - garageFloorY);
       const scaleFactor = 1 - progress * 0.5; // shrink up to 50%
       const drawW = frameW * scaleFactor;
@@ -133,7 +132,7 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     const imgW = BOSS_WIDTH * scale;
     const imgH = BOSS_HEIGHT * scale;
     const imgX = Math.round(canvas.width / 2 - imgW / 2);
-    const imgY = Math.round(canvas.height - 20 - imgH);
+    const imgY = Math.round(levelConfig.floorY - imgH);
     ctx.drawImage(bossDeadImage, imgX, imgY, imgW, imgH);
     return;
   }

@@ -19,7 +19,8 @@ import { setBossShockedStartTime, getBossShockedStartTime, setAutoRunLeft, getAu
 export function updateGame(bullets, canvas) {
   if (state.gameState === 'dying') {
     // Animate body falling to the floor
-    const floorY = canvas.height - 20;
+    const levelConfig = levels[getCurrentLevelKey()];
+    const floorY = levelConfig.floorY;
     if (player.feetY < floorY) {
       player.vy += 1.2; // gravity
       player.feetY += player.vy;
@@ -46,7 +47,8 @@ export function updateGame(bullets, canvas) {
         return;
       } else {
         // End pause and snap to floor once
-        const floorY = canvas.height - 20;
+        const levelConfig = levels[getCurrentLevelKey()];
+        const floorY = levelConfig.floorY;
         player.feetY = floorY;
         state.setExitPause(false);
       }
@@ -106,7 +108,8 @@ export function updateGame(bullets, canvas) {
   // During hold, wait before starting transition
   if (state.getBossHold()) {
     // Simulate unruggabull falling to ground during hold
-    const floorY = canvas.height - 20;
+    const levelConfig = levels[getCurrentLevelKey()];
+    const floorY = levelConfig.floorY;
     if (player.feetY < floorY) {
       player.vy += 0.7;
       player.feetY += player.vy;

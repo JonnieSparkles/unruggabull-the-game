@@ -7,6 +7,8 @@ import { setAutoRunLeft } from '../../state.js';
 import { setBossBattleStarted, getBossBattleStarted } from '../../state.js';
 import { startBossIntro, updateBossIntro } from './rugfatherOrchestrator.js';
 import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
+import levels from '../../levels/index.js';
+import { getCurrentLevelKey } from '../../state.js';
 
 // Level 1 Boss: Rugfather
 // Access the canvas and context
@@ -386,7 +388,7 @@ function hit(damage = 1) {
     for (let i = 0; i < NUM_LOWER_CARPSHITS; i++) {
       lowerCarpshits.push({
         x: canvas.width + 48 + Math.random() * 200,
-        y: canvas.height * 0.6 + Math.random() * ((canvas.height - 20 - 48) - canvas.height * 0.6),
+        y: canvas.height * 0.6 + Math.random() * ((levelConfig.floorY - 48) - canvas.height * 0.6),
         vx: -(1 + Math.random()),
         alive: true,
         frame: 0,

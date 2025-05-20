@@ -1,5 +1,8 @@
 // Physics / World definitions
 
+import levels from './levels/index.js';
+import { getCurrentLevelKey } from './state.js';
+
 /**
  * Platform dimensions and fixed layout
  */
@@ -51,7 +54,8 @@ export function handlePhysics(player, platforms, canvas) {
   }
   // ground collision
   if (!onPlatform) {
-    const floorY = canvas.height - 20;
+    const levelConfig = levels[getCurrentLevelKey()];
+    const floorY = levelConfig.floorY;
     if (player.feetY >= floorY) {
       player.feetY = floorY;
       player.vy = 0;

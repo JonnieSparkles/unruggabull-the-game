@@ -21,7 +21,8 @@ export function resetGame(canvas, bullets) {
   state.setBossExit(false);
   state.setBossExitDoorClosing(false);
   player.x = 50;
-  player.feetY = canvas.height - 20;
+  const levelConfig = levels[getCurrentLevelKey()];
+  player.feetY = levelConfig.floorY;
   player.vx = 0;
   player.vy = 0;
   player.jumping = false;
