@@ -32,9 +32,12 @@ export function setupRestartUI(canvas, ctx, bullets) {
       // Reset game state and reload level-specific music
       resetGame(canvas, bullets);
       const levelConfig = levels[getCurrentLevelKey()];
+      // Pause before changing src to avoid AbortError
+      bgMusic.pause();
       bgMusic.src = levelConfig.music;
       bgMusic.currentTime = 0;
-      bgMusic.play();
+      // Play in a microtask to avoid race with pause
+      Promise.resolve().then(() => bgMusic.play());
       state.setGameState('playing');
       isRestartHover = false;
       gameLoop(canvas, ctx, bullets, restartButton, isRestartHover);

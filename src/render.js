@@ -4,13 +4,14 @@ import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
 import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGameOver, drawCongrats, drawRestartButton } from './ui.js';
 import { drawPlatforms, platforms } from './physics.js';
-import { sprite, crouchSprite, deadSprite, jumpingSprite, shockedSprite, walkingForwardSprite } from './assets.js';
+import { sprite, crouchSprite, deadSprite, jumpingSprite, shockedSprite, walkingForwardSprite, bossDeadImage } from './assets.js';
 import { drawBullets } from './bullets.js';
 import { drawCarpshits as drawEnemyCarpshits, drawLowerCarpshits as drawEnemyLowerCarpshits, carpshits, lowerCarpshits } from './enemy.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 import { getHitbox } from './player.js';
 import { getCarpshitHitbox } from './enemy.js';
 import { getBossHold, getBossPause, getBossTransition, getBossActive, getCurrentBoss, getScreenShake, getScreenShakeStartTime, SCREEN_SHAKE_DURATION, getBlinkingOut, getBlinkingOutStartTime, BLINK_OUT_DURATION, getCarpshitsDuringBoss } from './state.js';
+import { bgSprite, FIRST_FLICKER_FRAMES, TRANSITION_FRAMES } from './levels/rugcoAlley/background.js';
 
 /**
  * Render the current game frame.
@@ -31,27 +32,108 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       ctx.translate(dx, dy);
     }
   }
-  // Clear and draw level background
+  // Clear and draw level background (override during bossExit)
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const levelConfig = levels[getCurrentLevelKey()];
-  levelConfig.background(ctx, canvas);
+  if (state.getGameState() === 'bossExit') {
+    // If Unruggabull is still visible (hasn't finished vertical walk), hold on final door-open frame (index 9)
+    const garageFloorY = ctx.canvas.height - 120;
+    if (player.feetY > garageFloorY + 10) {
+      const frameIndex = FIRST_FLICKER_FRAMES + TRANSITION_FRAMES - 1;
+      ctx.drawImage(
+        bgSprite,
+        frameIndex * ctx.canvas.width, 0,
+        ctx.canvas.width, ctx.canvas.height,
+        0, 0,
+        ctx.canvas.width, ctx.canvas.height
+      );
+    } else {
+      // After Unruggabull has entered, flicker between frames 2 and 1
+      const flickerInterval = 1000 / 1.5;
+      const flickerFrames = [2, 1];
+      const idx = Math.floor(performance.now() / flickerInterval) % 2;
+      const frameIndex = flickerFrames[idx];
+      ctx.drawImage(
+        bgSprite,
+        frameIndex * ctx.canvas.width, 0,
+        ctx.canvas.width, ctx.canvas.height,
+        0, 0,
+        ctx.canvas.width, ctx.canvas.height
+      );
+    }
+  } else {
+    levelConfig.background(ctx, canvas);
+  }
 
   // Special exit sequence rendering
   if (state.getGameState() === 'bossExit') {
-    // Draw player walking into garage using forward sprite
-    const frameCount = 4;
-    const frameW = 96;
-    const frameH = 96;
-    const frameIndex = Math.floor(player.frame / 10) % frameCount;
+    // Draw dead boss at recorded exit position
+    const BOSS_WIDTH = 128;
+    const BOSS_HEIGHT = 128;
+    const exitX = state.getExitBossX();
+    const exitY = state.getExitBossY();
+    const exitScale = state.getExitBossScale();
     ctx.drawImage(
-      walkingForwardSprite,
-      frameIndex * frameW, 0, frameW, frameH,
-      player.x, player.feetY - frameH, frameW, frameH
+      bossDeadImage,
+      exitX,
+      exitY,
+      BOSS_WIDTH * exitScale,
+      BOSS_HEIGHT * exitScale
     );
+    // Determine exit phase: horizontal or vertical
+    const centerX = Math.round(canvas.width / 2 - player.width / 2);
+    const garageFloorY = canvas.height - 120;
+    if (Math.abs(player.x - centerX) > 2) {
+      // Horizontal walking: use side-view sprite
+      const walkFrame = Math.floor(player.frame / 10) % 4;
+      ctx.save();
+      if (player.facing < 0) {
+        // Flip sprite when facing left
+        ctx.translate(player.x + player.width, player.feetY - player.height);
+        ctx.scale(-1, 1);
+        ctx.drawImage(sprite, walkFrame * player.width, 0, player.width, player.height, 0, 0, player.width, player.height);
+      } else {
+        ctx.drawImage(sprite, walkFrame * player.width, 0, player.width, player.height, player.x, player.feetY - player.height, player.width, player.height);
+      }
+      ctx.restore();
+    } else {
+      // Vertical walking into garage with perspective shrink
+      const frameCount = 4;
+      const frameW = 96;
+      const frameH = 96;
+      const frameIndex = Math.floor(player.frame / 10) % frameCount;
+      const floorY = canvas.height - 20;
+      const garageFloorY = canvas.height - 120;
+      const progress = (floorY - player.feetY) / (floorY - garageFloorY);
+      const scaleFactor = 1 - progress * 0.5; // shrink up to 50%
+      const drawW = frameW * scaleFactor;
+      const drawH = frameH * scaleFactor;
+      const drawX = player.x + player.width / 2 - drawW / 2;
+      const drawY = player.feetY - drawH;
+      ctx.drawImage(
+        walkingForwardSprite,
+        frameIndex * frameW,
+        0,
+        frameW,
+        frameH,
+        drawX,
+        drawY,
+        drawW,
+        drawH
+      );
+    }
     return;
   }
-  // During door closing, background handles animation; skip other rendering
+  // During door closing, keep showing dead boss behind the closing door
   if (state.getGameState() === 'bossExitDoorClosing') {
+    const scale = 2.0;
+    const BOSS_WIDTH = 128;
+    const BOSS_HEIGHT = 128;
+    const imgW = BOSS_WIDTH * scale;
+    const imgH = BOSS_HEIGHT * scale;
+    const imgX = Math.round(canvas.width / 2 - imgW / 2);
+    const imgY = Math.round(canvas.height - 20 - imgH);
+    ctx.drawImage(bossDeadImage, imgX, imgY, imgW, imgH);
     return;
   }
 

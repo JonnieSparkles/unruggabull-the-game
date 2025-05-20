@@ -4,18 +4,25 @@ import * as state from '../../state.js';
 const bgSprite = new Image();
 bgSprite.src = 'assets/sprites/levels/rugcoAlley/background-rugcoAlley.png';
 
+// Export sprite and frame constants for manual draw
+export { bgSprite, FIRST_FLICKER_FRAMES, TRANSITION_FRAMES };
+
+// Constants for animation frames
+const TOTAL_FRAMES = 10;
+const FIRST_FLICKER_FRAMES = 2;
+const TRANSITION_FRAMES = TOTAL_FRAMES - FIRST_FLICKER_FRAMES; // 8 frames
+
 export default function drawRugcoBackground(ctx, canvas) {
   const now = performance.now();
-  // During boss exit door closing, play reverse of opening frames
-  if (state.bossExitDoorClosing) {
-    const elapsed = now - state.bossExitDoorStartTime;
-    const framesToCycle = 6;
+  // During boss exit door closing: reverse of opening frames
+  if (state.getBossExitDoorClosing()) {
+    const elapsed = now - state.getBossExitDoorStartTime();
+    const framesToCycle = TRANSITION_FRAMES;
     const transitionDuration = 13000;
     const interval = transitionDuration / framesToCycle;
     let idx = Math.floor(elapsed / interval);
     if (idx >= framesToCycle) idx = framesToCycle - 1;
-    const startIndex = 2;
-    const frameIndex = startIndex + (framesToCycle - 1 - idx);
+    const frameIndex = FIRST_FLICKER_FRAMES + (framesToCycle - 1 - idx);
     ctx.drawImage(
       bgSprite,
       frameIndex * canvas.width, 0,
@@ -23,7 +30,7 @@ export default function drawRugcoBackground(ctx, canvas) {
       0, 0,
       canvas.width, canvas.height
     );
-    // Once closing animation is done, show congrats
+    // Once closing animation is done, proceed to congrats
     if (elapsed > transitionDuration) {
       state.setBossExitDoorClosing(false);
       state.setGameState('congrats');
@@ -31,33 +38,50 @@ export default function drawRugcoBackground(ctx, canvas) {
     }
     return;
   }
-  // During boss transition, cycle frames 3-8 (using indexes 1-6)
-  if (state.bossTransition) {
-    const elapsed = now - state.bossTransitionStartTime;
-    const framesToCycle = 6; // total frames to display
-    const transitionDuration = 13000; // ms for full cycle
-    const interval = transitionDuration / framesToCycle;
-    let idx = Math.floor(elapsed / interval);
-    if (idx >= framesToCycle) idx = framesToCycle - 1;
-    const startIndex = 2; // start from third frame (index 2)
-    const frameIndex = startIndex + idx;
+  // During boss transition: hold first two flicker frames, then cycle opening frames
+  if (state.getBossTransition()) {
+    const elapsed = now - state.getBossTransitionStartTime();
+    const initialHold = 2000; // ms to hold flicker before full opening
+    if (elapsed < initialHold) {
+      // Flicker between first two frames at original rate
+      const flickerInterval = 1000 / 1.5;
+      const fiIdx = Math.floor(now / flickerInterval) % FIRST_FLICKER_FRAMES;
+      ctx.drawImage(
+        bgSprite,
+        fiIdx * canvas.width, 0,
+        canvas.width, canvas.height,
+        0, 0,
+        canvas.width, canvas.height
+      );
+    } else {
+      // Cycle remaining frames over the rest of the transition
+      const framesToCycle = TRANSITION_FRAMES; // 8 frames
+      const transitionDuration = 13000; // total ms for opening
+      const cycleDuration = transitionDuration - initialHold;
+      const interval = cycleDuration / framesToCycle;
+      let idx = Math.floor((elapsed - initialHold) / interval);
+      if (idx >= framesToCycle) idx = framesToCycle - 1;
+      const frameIndex = FIRST_FLICKER_FRAMES + idx;
+      ctx.drawImage(
+        bgSprite,
+        frameIndex * canvas.width, 0,
+        canvas.width, canvas.height,
+        0, 0,
+        canvas.width, canvas.height
+      );
+    }
+    return;
+  }
+  // During bossActive, flicker between last two frames (9 and 10)
+  if (state.getBossActive()) {
+    const lastA = FIRST_FLICKER_FRAMES + TRANSITION_FRAMES - 2;
+    const lastB = FIRST_FLICKER_FRAMES + TRANSITION_FRAMES - 1;
+    const flickerInterval = 500;
+    const frameFlip = Math.floor(now / flickerInterval) % 2;
+    const frameIndex = frameFlip === 0 ? lastA : lastB;
     ctx.drawImage(
       bgSprite,
       frameIndex * canvas.width, 0,
-      canvas.width, canvas.height,
-      0, 0,
-      canvas.width, canvas.height
-    );
-    return;
-  }
-  // If boss is active, hold on final transition frame (index startIndex+framesToCycle-1)
-  if (state.bossActive) {
-    const startIndex = 2;
-    const framesToCycle = 6;
-    const finalFrameIndex = startIndex + framesToCycle - 1;
-    ctx.drawImage(
-      bgSprite,
-      finalFrameIndex * canvas.width, 0,
       canvas.width, canvas.height,
       0, 0,
       canvas.width, canvas.height

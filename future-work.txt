@@ -1,11 +1,13 @@
 rugfather
 -unruggabull hit frames
--boss keeps looping
+-disable walking through side of levels
 -figure out the battle
 -level intro
 -level finish screen
 -whats gameover during boss?
--animate garage opening more
+-goodbye rugfather Sounds
+-add unruggabull hit sound
+-platforms and carpshits should flicker/fade out
 
 
 add changelog to version number 

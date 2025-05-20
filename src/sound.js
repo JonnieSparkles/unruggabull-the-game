@@ -41,4 +41,9 @@ export const garageDoorSound = new Audio('assets/audio/sfx/garage-door-opening.m
  * Garage door closing sound for the exit sequence after boss defeat.
  */
 export const garageDoorCloseSound = new Audio('assets/audio/sfx/garage-door-closing.mp3');
-garageDoorCloseSound.volume = 1.0; 
+garageDoorCloseSound.volume = 1.0;
+
+// Entrance sound effects
+export const evilLaughSfx = new Audio('assets/audio/sfx/rugfather/ha-ha-evil-echo-laugh.mp3');
+export const fireWindsSwoosh = new Audio('assets/audio/sfx/fire-winds-swoosh.mp3');
+export const helloUnruggabullSfx = new Audio('assets/audio/sfx/rugfather/hello-unruggabull.mp3'); 

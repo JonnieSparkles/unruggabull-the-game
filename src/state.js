@@ -151,4 +151,49 @@ export function getBossExitDoorStartTime() { return bossExitDoorStartTime; }
 // Congrats image fade-in control
 export let congratsStartTime = 0;
 export function setCongratsStartTime(val) { congratsStartTime = val; }
-export function getCongratsStartTime() { return congratsStartTime; } 
+export function getCongratsStartTime() { return congratsStartTime; }
+
+// Exit boss position and scale
+export let exitBossX = 0;
+export let exitBossY = 0;
+export let exitBossScale = 1;
+export function setExitBossX(val) { exitBossX = val; }
+export function getExitBossX() { return exitBossX; }
+export function setExitBossY(val) { exitBossY = val; }
+export function getExitBossY() { return exitBossY; }
+export function setExitBossScale(val) { exitBossScale = val; }
+export function getExitBossScale() { return exitBossScale; }
+
+// Exit pause control (dramatic pause before unloading boss)
+export let exitPause = false;
+export let exitPauseStartTime = 0;
+export const EXIT_PAUSE_DURATION = 1000; // ms to pause before exit sequence
+export function setExitPause(val) { exitPause = val; }
+export function getExitPause() { return exitPause; }
+export function setExitPauseStartTime(val) { exitPauseStartTime = val; }
+export function getExitPauseStartTime() { return exitPauseStartTime; }
+
+// Boss shocked animation timing
+export let bossShockedStartTime = 0;
+export function setBossShockedStartTime(val) { bossShockedStartTime = val; }
+export function getBossShockedStartTime() { return bossShockedStartTime; }
+
+// Auto-run left for Unruggabull
+export let autoRunLeft = false;
+export function setAutoRunLeft(val) { autoRunLeft = val; }
+export function getAutoRunLeft() { return autoRunLeft; }
+
+// Boss battle start control (after entrance and hold)
+export let bossBattleStarted = false;
+export function setBossBattleStarted(val) { bossBattleStarted = val; }
+export function getBossBattleStarted() { return bossBattleStarted; }
+
+// Evil laugh playback control during blink
+export let laughPlayed = false;
+export function setLaughPlayed(val) { laughPlayed = val; }
+export function getLaughPlayed() { return laughPlayed; }
+
+// Boss jump control after battle starts
+export let bossJumped = false;
+export function setBossJumped(val) { bossJumped = val; }
+export function getBossJumped() { return bossJumped; } 

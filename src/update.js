@@ -11,6 +11,7 @@ import { bgMusic, garageDoorSound, garageDoorCloseSound } from './sound.js';
 import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
 import rugfatherBoss, { checkBossBulletCollision } from './levels/rugcoAlley/rugfather.js';
+import { setBossShockedStartTime, getBossShockedStartTime, setAutoRunLeft, getAutoRunLeft, getBossBattleStarted } from './state.js';
 
 /**
  * Perform one update cycle: input, physics, firing, bullet & enemy updates, and collision checks.
@@ -36,14 +37,33 @@ export function updateGame(bullets, canvas) {
     }
     return;
   }
-  // Handle exit walking sequence after boss defeat
-  if (state.gameState === 'bossExit') {
-    const centerX = Math.round(canvas.width / 2 - player.width / 2);
+  // Exit sequence handling after boss defeat
+  if (state.getGameState() === 'bossExit') {
+    const now = performance.now();
+    // Dramatic pause before exit movement
+    if (state.getExitPause()) {
+      if (now - state.getExitPauseStartTime() < state.EXIT_PAUSE_DURATION) {
+        return;
+      } else {
+        // End pause and snap to floor once
+        const floorY = canvas.height - 20;
+        player.feetY = floorY;
+        state.setExitPause(false);
+      }
+    }
+    const garageFloorY = canvas.height - 120;
     const walkSpeed = 4;
-    // Animate walking into garage
-    if (player.x < centerX) {
-      player.x += walkSpeed;
-      player.facing = 1;
+    // Walk horizontally to the center door
+    const centerX = Math.round(canvas.width / 2 - player.width / 2);
+    if (Math.abs(player.x - centerX) > 2) {
+      player.x += player.x < centerX ? walkSpeed : -walkSpeed;
+      player.facing = player.x < centerX ? 1 : -1;
+      player.frame = (player.frame + 1) % 40;
+      return;
+    }
+    // Then walk 'into' the garage: move up
+    if (player.feetY > garageFloorY) {
+      player.feetY -= walkSpeed;
       player.frame = (player.frame + 1) % 40;
     } else {
       // Start door closing animation
@@ -133,6 +153,8 @@ export function updateGame(bullets, canvas) {
       // Play garage door opening sound at transition start
       garageDoorSound.currentTime = 0;
       garageDoorSound.play();
+      // NEW: Set shocked animation to start after a short delay
+      setBossShockedStartTime(now + 300);
     }
     return;
   }
@@ -161,10 +183,15 @@ export function updateGame(bullets, canvas) {
       player.frame = (player.frame + 1) % 40;
     } else {
       player.x = centerX;
-      // Animate shocked
-      player.shockedFrameTimer++;
-      if (player.shockedFrameTimer > 10) {
-        player.shockedFrame = (player.shockedFrame + 1) % 4;
+      // Animate shocked only after delay
+      if (now >= getBossShockedStartTime()) {
+        player.shockedFrameTimer++;
+        if (player.shockedFrameTimer > 10) {
+          player.shockedFrame = (player.shockedFrame + 1) % 4;
+          player.shockedFrameTimer = 0;
+        }
+      } else {
+        player.shockedFrame = 0;
         player.shockedFrameTimer = 0;
       }
     }
@@ -185,49 +212,50 @@ export function updateGame(bullets, canvas) {
       bgMusic.src = levelConfig.music;
       bgMusic.currentTime = 0;
       bgMusic.play();
+      // Add after boss entrance logic (e.g., after bossActive is set):
+      setAutoRunLeft(false); // restore controls when fight begins
     }
     return;
   }
-  // If boss is active, update boss logic
-  if (state.getBossActive() && state.getCurrentBoss()) {
+  // If boss has been spawned (active) update boss entrance logic
+  if (state.getCurrentBoss()) {
     state.getCurrentBoss().update();
-    // If boss is still walking forward, skip player update
-    if (state.getCurrentBoss().walkingForward) {
-      return;
+  }
+  // Pre-battle: disable controls only if the boss has been spawned and battle hasn't started
+  if (state.getCurrentBoss() && !getBossBattleStarted()) {
+    if (getAutoRunLeft()) {
+      const safeX = 32;
+      player.x -= player.speed;
+      player.facing = -1;
+      player.frame = (player.frame + 1) % 40;
+      if (player.x <= safeX) {
+        player.x = safeX;
+        setAutoRunLeft(false);
+      }
     }
+    // Skip input and enemy updates until battle starts
+    return;
+  }
+  // Battle has started: allow player control and boss update
+  updatePlayerInput();
+  handlePhysics(player, platforms, canvas);
+  handleFiring(keys, player, bullets);
+  updateBullets(bullets, canvas.width);
+
+  // Update boss if present
+  if (state.getCurrentBoss()) {
+    const boss = state.getCurrentBoss();
+    boss.update();
     // Bullet-boss collision
     for (let i = bullets.length - 1; i >= 0; i--) {
       if (checkBossBulletCollision(bullets[i])) {
-        state.getCurrentBoss().hit(1);
+        boss.hit(1);
         bullets.splice(i, 1);
       }
     }
-    // If boss is defeated, show congrats screen (handled in boss logic)
-    if (state.gameState === 'congrats') {
-      // Optionally, add more win logic here
-    }
-    // Otherwise, allow normal update (player can move, shoot, etc.)
   }
-  // Player auto-run left after boss entrance
-  if (state.getPlayerAutoRunLeft()) {
-    const leftEdge = 32;
-    const runSpeed = 6;
-    if (player.x > leftEdge) {
-      player.x -= runSpeed;
-      player.facing = -1;
-      player.frame = (player.frame + 1) % 40;
-    } else {
-      player.x = leftEdge;
-      state.setPlayerAutoRunLeft(false);
-    }
-    // Skip normal input while auto-running
-    return;
-  }
-  updatePlayerInput();
-  handlePhysics(player, platforms, canvas);
-  // Handle firing input: spawn bullets when fire key is pressed
-  handleFiring(keys, player, bullets);
-  updateBullets(bullets, canvas.width);
+
+  // Update enemies after battle begins
   if (!state.getBossTransition() && !state.getBossActive() || state.getCarpshitsDuringBoss()) {
     updateEnemyCarpshits();
     checkBulletcarpshitCollisions(bullets, enemyCarpshits, handleBulletKill);

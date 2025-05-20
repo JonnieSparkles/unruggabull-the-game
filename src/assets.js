@@ -1,7 +1,7 @@
 // Asset module: export all game sprite images
 
 export const sprite = new Image();
-sprite.src = 'assets/sprites/unruggabull-walking.png';
+sprite.src = 'assets/sprites/unruggabull-walking-horizontal.png';
 
 export const carpshitSprite = new Image();
 carpshitSprite.src = 'assets/sprites/enemy-carpshit.png';
@@ -20,4 +20,8 @@ shockedSprite.src = 'assets/sprites/unruggabull-shocked.png';
 
 // Sprite for walking forward into the garage (back view)
 export const walkingForwardSprite = new Image();
-walkingForwardSprite.src = 'assets/sprites/unruggabull-walking-forward.png'; 
+walkingForwardSprite.src = 'assets/sprites/unruggabull-walking-forward.png';
+
+// Boss dead sprite used when the boss falls and before exit sequence
+export const bossDeadImage = new Image();
+bossDeadImage.src = 'assets/sprites/levels/rugcoAlley/rugfather-dead.png'; 
