@@ -95,40 +95,15 @@ function handleEvent(event, now) {
     case 'autoRunLeft':
       setAutoRunLeft(event.data !== false);
       break;
-    case 'setPlayerInvulnerable':
-      if (typeof event.data === 'object') {
-        player.invulnerable = !!event.data.value;
-        player.invulnerableUntil = event.data.duration ? now + event.data.duration : null;
-      } else {
-        player.invulnerable = !!event.data;
-        player.invulnerableUntil = null;
-      }
-      break;
     case 'startBattle':
       setBossBattleStarted(true);
       setAutoRunLeft(false);
-      // End intro, show idle or attack
       bossState.entering = false;
       bossState.sprite = 'idle';
-      break;
-    case 'setBossPosition':
-      if (event.data && typeof event.data.x === 'number') {
-        bossState.x = event.data.x;
-      }
-      if (event.data && event.data.y !== undefined) {
-        bossState.y = resolveY(event.data.y);
-      }
       break;
     case 'tweenBossPosition':
       if (event.data && typeof event.data.x === 'number' && event.data.y !== undefined) {
         startTween(bossState, { x: event.data.x, y: resolveY(event.data.y) }, event.duration || 0, now);
-      }
-      break;
-    case 'setBossScale':
-      if (typeof event.data === 'object' && event.data.scale !== undefined) {
-        bossState.scale = event.data.scale;
-      } else if (typeof event.data === 'number') {
-        bossState.scale = event.data;
       }
       break;
     case 'tweenBossScale':
@@ -137,17 +112,14 @@ function handleEvent(event, now) {
       }
       break;
     case 'setPlayerFacing':
-      if (event.data === 'left') player.facing = -1;
-      else if (event.data === 'right') player.facing = 1;
+      player.facing = event.data === 'left' ? -1 : 1;
       break;
     case 'setBossSprite':
-      if (typeof event.data === 'string') {
-        bossState.sprite = event.data;
-      }
+      bossState.sprite = event.data;
       break;
     case 'flashScreen':
-      // data = duration
-      if (typeof event.data === 'number') stateModule.setFlashActive(true), stateModule.setFlashEndTime(now + event.data);
+      stateModule.setFlashActive(true);
+      stateModule.setFlashEndTime(now + event.data);
       break;
     case 'screenShake':
       stateModule.setScreenShake(true);
@@ -158,11 +130,9 @@ function handleEvent(event, now) {
       stateModule.setBlinkingOutStartTime(now);
       break;
     case 'fadeOutEnemies':
-      // reuse blinking out for enemies
       stateModule.setBlinkingOut(true);
       break;
     case 'removePlatforms':
-      // clear platforms array
       platforms.length = 0;
       break;
     case 'removeEnemies':

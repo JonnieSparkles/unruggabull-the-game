@@ -71,10 +71,18 @@ export function handlePhysics(player, platforms, canvas) {
   // horizontal wrap (configurable per level)
   const levelConfig = levels[getCurrentLevelKey()];
   if (levelConfig.wrapHorizontal) {
+    // wrap around edges
     if (player.x + PLAYER_WIDTH < 0) {
       player.x = canvas.width;
     } else if (player.x > canvas.width) {
       player.x = -PLAYER_WIDTH;
+    }
+  } else {
+    // clamp to level bounds
+    if (player.x < 0) {
+      player.x = 0;
+    } else if (player.x + PLAYER_WIDTH > canvas.width) {
+      player.x = canvas.width - PLAYER_WIDTH;
     }
   }
   // frame update
