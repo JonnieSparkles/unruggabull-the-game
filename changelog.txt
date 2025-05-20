@@ -1,11 +1,21 @@
 v0.0.3
--Changed screen size to 960x540
--Increased Unruggabull and Carpshit sizes
--Animated level background
--Crouching now moves slower
--Restructured to levels directories
--RUGFATHER
-
+-Changed game resolution to 960x540 for sharper, widescreen display
+-Increased sprite scale for Unruggabull and Carpshit for better visibility and presence
+-Animated background added to Rugco Alley for added immersion
+-Crouching movement slowed to improve feel and differentiate from walk
+-Restructured level organization under /levels/ for modular scene setup
+-Introduced the Rugfather 👿
+--Fully scripted cinematic entrance using timeline system
+--Boss sprite scale/position now controlled via timeline events
+--Sound effects, blinking, and movement all orchestrated cleanly
+-Cutscene timeline system added
+--Supports actions like setPlayerSprite, fadeInBoss, movePlayerTo, etc.
+--Full support for player, boss, camera, and audio events in a single sequence
+-Player input lock system implemented (player.controlEnabled)
+--Sprite map introduced for player actions
+--Maps states like walk, shocked, crouch, etc. to sprite assets
+-Simplifies rendering logic and makes cutscene scripting easier
+-Set up groundwork for multi-character sprite maps (boss and enemy support planned)
 
 
 v0.0.2

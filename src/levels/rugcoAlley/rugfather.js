@@ -5,6 +5,8 @@ import { bgMusic, evilLaughSfx, fireWindsSwoosh, helloUnruggabullSfx } from '../
 import { carpshits, lowerCarpshits, NUM_CARPSHITS, NUM_LOWER_CARPSHITS } from '../../enemy.js';
 import { setAutoRunLeft } from '../../state.js';
 import { setBossBattleStarted, getBossBattleStarted } from '../../state.js';
+import { startBossIntro, updateBossIntro } from './rugfatherOrchestrator.js';
+import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
 
 // Level 1 Boss: Rugfather
 // Access the canvas and context
@@ -41,7 +43,10 @@ const state = {
   dying: false,
   deathStart: 0,
   spinEndTime: 0,
-  helloPlayed: false
+  helloPlayed: false,
+  fadeInStartTime: null,
+  fadeInDuration: 0,
+  sprite: 'idle'
 };
 
 const bossCenterX = () => canvas.width / 2 - BOSS_WIDTH / 2;
@@ -65,8 +70,6 @@ function spawn() {
   state.opacity = 1;  // fully visible during blink, then transparent afterward
   state.entering = true;
   state.blinking = false;
-  state.blinkStartTime = performance.now() + 1000; // wait 1s before blinking
-  state.blinkActualStartTime = 0;
   state.laughPlayed = false;
   state.walkingForward = false;
   state.bossInPosition = false;
@@ -75,6 +78,8 @@ function spawn() {
   state.helloPlayed = false;
   // reset battle flag too
   setBossBattleStarted(false);
+  // start the intro sequence
+  startBossIntro();
 }
 
 // Basic oscillation movement
@@ -103,20 +108,25 @@ function update() {
   }
   if (!state.active) return;
   const now = performance.now();
+
+  // handle fade-in transition
+  if (state.fadeInStartTime != null) {
+    const t = now - state.fadeInStartTime;
+    state.opacity = Math.min(1, t / state.fadeInDuration);
+    if (t >= state.fadeInDuration) {
+      state.fadeInStartTime = null;
+    }
+  }
+
+  if (state.entering) {
+    updateBossIntro(now);
+    return;
+  }
+
   const finalScale = 2.0;
   const initialScale = 1.0;
   // headY so that feet end at player's feetY
   const headY = player.feetY - BOSS_HEIGHT * finalScale;
-
-  // 1. Initial wait before blink
-  if (state.entering && !state.blinking) {
-    if (now >= state.blinkStartTime) {
-      state.blinking = true;
-      state.entering = false;
-      state.blinkActualStartTime = now;
-    }
-    return;
-  }
 
   // 2. Blinking eyes
   if (state.blinking) {
@@ -209,14 +219,42 @@ function draw() {
     return;
   }
   if (!state.active) return;
-  // Guard: only draw if position and scale are valid and image is loaded
   if (!isFinite(state.x) || !isFinite(state.y) || !isFinite(state.scale) || !bossSpriteSheet.complete || bossSpriteSheet.naturalWidth === 0) {
     return;
   }
-  // Before blinking starts, don't draw the boss at all
-  if (state.entering) return;
+  if (state.entering) {
+    // Timeline-driven boss sprite override during intro
+    const spriteState = state.sprite || 'idle';
+    let spriteInfo = RUGFATHER_SPRITES[spriteState];
+    if (!spriteInfo) {
+      console.warn(`Unknown boss sprite state: "${spriteState}"; defaulting to idle.`);
+      spriteInfo = RUGFATHER_SPRITES['idle'];
+    }
+    const t = performance.now();
+    let frameNumber;
+    if (spriteInfo.frameSequence) {
+      frameNumber = spriteInfo.frameSequence[Math.floor(t / spriteInfo.frameDuration) % spriteInfo.frameSequence.length];
+    } else if (spriteInfo.animated) {
+      frameNumber = Math.floor(t / spriteInfo.frameDuration) % spriteInfo.frameCount;
+    } else {
+      frameNumber = spriteInfo.frame;
+    }
+    const FRAME_W = BOSS_WIDTH;
+    const FRAME_H = BOSS_HEIGHT;
+    ctx.save();
+    ctx.globalAlpha = state.opacity;
+    ctx.drawImage(
+      spriteInfo.image,
+      frameNumber * FRAME_W, 0, FRAME_W, FRAME_H,
+      state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
+    );
+    ctx.globalAlpha = 1.0;
+    ctx.restore();
+    return;
+  }
   ctx.save();
   ctx.globalAlpha = state.opacity;
+
   // Determine which sprite frame to draw
   const FRAME_W = BOSS_WIDTH;
   const FRAME_H = BOSS_HEIGHT;
@@ -388,6 +426,9 @@ function getHitbox() {
 // Export boss interface
 const rugfatherBoss = { spawn, update, draw, hit, getHitbox };
 export default rugfatherBoss;
+
+// Expose internal boss state for orchestrator
+export const bossState = state;
 
 // Helper for bullet collision
 export function checkBossBulletCollision(bullet) {

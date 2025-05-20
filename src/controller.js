@@ -5,7 +5,7 @@ import { bgMusic } from './sound.js';
 import * as state from './state.js';
 import { updateGame } from './update.js';
 import { renderGame } from './render.js';
-import { sprite, carpshitSprite } from './assets.js';
+import { walkingSprite, carpshitSprite } from './assets.js';
 import { player } from './player.js';
 import { carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits } from './enemy.js';
 import levels from './levels/index.js';
@@ -108,7 +108,7 @@ export function startGame(canvas, ctx, bullets, restartButton, isRestartHover) {
   }
   document.addEventListener('keydown', controlsScreenHandler);
   canvas.addEventListener('click', controlsScreenHandler);
-  if (sprite.complete && carpshitSprite.complete) {
+  if (walkingSprite.complete && carpshitSprite.complete) {
     state.setGameState('controls');
     renderGame(ctx, canvas, bullets, player, restartButton, isRestartHover);
   } else {
@@ -120,7 +120,7 @@ export function startGame(canvas, ctx, bullets, restartButton, isRestartHover) {
         renderGame(ctx, canvas, bullets, player, restartButton, isRestartHover);
       }
     }
-    sprite.onload = tryStart;
+    walkingSprite.onload = tryStart;
     carpshitSprite.onload = tryStart;
   }
   enemyCarpshits.forEach(c => c.respawnTimer = 0);

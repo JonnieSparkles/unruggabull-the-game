@@ -26,7 +26,10 @@ export function handleBulletKill(bullets, index, carpshit) {
  * Handle when the player collides with a carpshit: decrement health, trigger game over if needed.
  */
 export function handlePlayerHit(carpshit) {
+  if (player.invulnerable) return;
   player.health--;
+  player.invulnerable = true;
+  player.invulnerableUntil = performance.now() + 1500;
   carpshit.alive = false;
   carpshit.frame = 3;
   carpshit.falling = true;

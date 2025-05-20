@@ -82,6 +82,11 @@ export function updateGame(bullets, canvas) {
   // Only continue normal updates while playing
   if (state.gameState !== 'playing') return;
   const now = performance.now();
+  // Reset player invulnerability if expired
+  if (player.invulnerable && player.invulnerableUntil != null && now > player.invulnerableUntil) {
+    player.invulnerable = false;
+    player.invulnerableUntil = null;
+  }
   // Boss hold: when reaching difficulty 6, start hold phase
   if (!state.getBossHold() && !state.getBossTransition() && !state.getBossActive() && !state.getBossTriggered() && state.difficultyLevel >= 6) {
     state.setBossHold(true);
@@ -240,6 +245,18 @@ export function updateGame(bullets, canvas) {
   updatePlayerInput();
   handlePhysics(player, platforms, canvas);
   handleFiring(keys, player, bullets);
+  // Sprite state: firing overrides movement
+  if (player.firing) {
+    player.sprite = 'fire';
+  } else if (!player.grounded && !player.crouching) {
+    player.sprite = 'jump';
+  } else if (player.crouching) {
+    player.sprite = 'crouch';
+  } else if (player.vx !== 0) {
+    player.sprite = 'walk';
+  } else {
+    player.sprite = 'idle';
+  }
   updateBullets(bullets, canvas.width);
 
   // Update boss if present

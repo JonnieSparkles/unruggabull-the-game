@@ -1,7 +1,7 @@
 // Asset module: export all game sprite images
 
-export const sprite = new Image();
-sprite.src = 'assets/sprites/unruggabull-walking-horizontal.png';
+export const walkingSprite = new Image();
+walkingSprite.src = 'assets/sprites/unruggabull-walking-horizontal.png';
 
 export const carpshitSprite = new Image();
 carpshitSprite.src = 'assets/sprites/enemy-carpshit.png';

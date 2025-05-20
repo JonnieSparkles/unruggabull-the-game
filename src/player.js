@@ -20,7 +20,11 @@ export const player = {
   crouching: false,
   muzzleFlashTimer: 0,
   shockedFrame: 0,
-  shockedFrameTimer: 0
+  shockedFrameTimer: 0,
+  controlEnabled: true,
+  sprite: 'idle',
+  invulnerable: false,
+  invulnerableUntil: null
 };
 
 /**
@@ -89,6 +93,7 @@ export function handleCrouch() {
  * Update player input: movement, jumping, crouch.
  */
 export function updatePlayerInput() {
+  if (!player.controlEnabled) return;
   handleMovement();
   handleJumping();
   handleCrouch();
