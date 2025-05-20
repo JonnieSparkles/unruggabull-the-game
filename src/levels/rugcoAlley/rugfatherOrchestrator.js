@@ -1,4 +1,4 @@
-import { cutsceneTimeline } from './rugfatherCutscene.js';
+import { introsceneTimeline } from './rugfatherIntroScene.js';
 import { setAutoRunLeft, setBossBattleStarted } from '../../state.js';
 import { bossState } from './rugfather.js';
 import { player } from '../../player.js';
@@ -54,8 +54,8 @@ export function startBossIntro() {
  */
 export function updateBossIntro(now) {
   const elapsed = now - timelineStart;
-  while (timelineIndex < cutsceneTimeline.length && elapsed >= cutsceneTimeline[timelineIndex].time) {
-    const event = cutsceneTimeline[timelineIndex];
+  while (timelineIndex < introsceneTimeline.length && elapsed >= introsceneTimeline[timelineIndex].time) {
+    const event = introsceneTimeline[timelineIndex];
     handleEvent(event, now);
     timelineIndex++;
   }

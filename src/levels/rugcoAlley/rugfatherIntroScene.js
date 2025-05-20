@@ -3,7 +3,7 @@ import { FLASH_DURATION, BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from '../../co
 import { garageDoorSound } from '../../sound.js';
 
 // Master cutscene timeline for Rugfather boss intro and transition
-export const cutsceneTimeline = [
+export const introsceneTimeline = [
   // Phase 1: Shock (0ms)
   { time: 0,    action: 'flashScreen',      data: FLASH_DURATION },
   { time: 0,    action: 'screenShake' },
