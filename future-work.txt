@@ -1,13 +1,15 @@
 rugfather
 -unruggabull hit frames
--disable walking through side of levels
+-add unruggabull hit sound
 -figure out the battle
--level intro
+-level intro/story
 -level finish screen
 -whats gameover during boss?
 -goodbye rugfather Sounds
--add unruggabull hit sound
 -platforms and carpshits should flicker/fade out
+-fix intro screen to 960x540
+-master unrugabull sprite
+-improve difficulty of carpshits
 
 
 add changelog to version number 

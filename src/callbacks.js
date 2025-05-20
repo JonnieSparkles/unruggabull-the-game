@@ -2,6 +2,8 @@
 import { carpshitDeathSound, gameOverSound } from './sound.js';
 import * as state from './state.js';
 import { player } from './player.js';
+import { FLASH_DURATION, INVULNERABLE_TIME } from './constants/timing.js';
+import { GAME_STATES } from './constants/gameStates.js';
 
 /**
  * Handle when a bullet hits a carpshit: kill carpshit, play sound, update score and difficulty.

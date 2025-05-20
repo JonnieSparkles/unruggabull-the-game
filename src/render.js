@@ -10,9 +10,11 @@ import { drawCarpshits as drawEnemyCarpshits, drawLowerCarpshits as drawEnemyLow
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 import { getHitbox } from './player.js';
 import { getCarpshitHitbox } from './enemy.js';
-import { getBossHold, getBossPause, getBossTransition, getBossActive, getCurrentBoss, getScreenShake, getScreenShakeStartTime, SCREEN_SHAKE_DURATION, getBlinkingOut, getBlinkingOutStartTime, BLINK_OUT_DURATION, getCarpshitsDuringBoss } from './state.js';
+import { getBossHold, getBossPause, getBossTransition, getBossActive, getCurrentBoss, getScreenShake, getScreenShakeStartTime, SCREEN_SHAKE_DURATION, getBlinkingOut, getBlinkingOutStartTime, getCarpshitsDuringBoss } from './state.js';
+import { BLINK_OUT_DURATION } from './constants/timing.js';
 import { bgSprite, FIRST_FLICKER_FRAMES, TRANSITION_FRAMES } from './levels/rugcoAlley/background.js';
 import { PLAYER_SPRITES } from './playerSprites.js';
+import { PLAYER_WIDTH, PLAYER_HEIGHT } from './constants/player.js';
 
 /**
  * Render the current game frame.

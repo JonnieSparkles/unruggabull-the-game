@@ -1,6 +1,10 @@
 // State module: centralize game state and settings
 
 import { difficultyIncreaseSounds } from './sound.js';
+import { FLASH_DURATION, INVULNERABLE_TIME, RESPAWN_DELAY, BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './constants/timing.js';
+
+// Re-export timing constants for legacy references
+export { FLASH_DURATION, INVULNERABLE_TIME, RESPAWN_DELAY, BOSS_HOLD_DURATION, BLINK_OUT_DURATION };
 
 export let gameState = 'start';
 export function setGameState(s) { gameState = s; }
@@ -31,7 +35,6 @@ export function setFlashActive(val) { flashActive = val; }
  * Set the time at which the flash should end.
  */
 export function setFlashEndTime(val) { flashEndTime = val; }
-export const FLASH_DURATION = 200;
 export let PHASE_CHANGE_KILL_COUNT = 15;
 
 export let difficultyLevel = 1;
@@ -76,17 +79,14 @@ export const SCREEN_SHAKE_DURATION = 1000;
 // Boss hold (pre-transition) control
 export let bossHold = false;
 export let bossHoldStartTime = 0;
-export const BOSS_HOLD_DURATION = 2000; // ms to hold frames 1-2 before transition
 
 // Boss dramatic pause (after walk to center, before door opens)
 export let bossPause = false;
 export let bossPauseStartTime = 0;
-export const BOSS_PAUSE_DURATION = 2000; // ms for dramatic pause
 
 // Blink-out effect for platforms and carpshits during boss transition
 export let blinkingOut = false;
 export let blinkingOutStartTime = 0;
-export const BLINK_OUT_DURATION = 700; // ms
 
 // Carpshits return during boss fight phase
 export let carpshitsDuringBoss = false;

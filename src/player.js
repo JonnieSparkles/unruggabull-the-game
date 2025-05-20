@@ -1,4 +1,5 @@
 import { keys } from './input.js';
+import { PLAYER_WIDTH, PLAYER_HEIGHT, MOVE_SPEED, CROUCH_SPEED, JUMP_FORCE, MAX_VELOCITY } from './constants/player.js';
 
 /**
  * Player state and related assets.
@@ -6,10 +7,10 @@ import { keys } from './input.js';
 export const player = {
   x: 50,
   feetY: 380, // 300 (ground) + 80 (height)
-  width: 64,
-  height: 96,
+  width: PLAYER_WIDTH,
+  height: PLAYER_HEIGHT,
   frame: 0,
-  speed: 4,
+  speed: MOVE_SPEED,
   vx: 0,
   vy: 0,
   jumping: false,
@@ -38,8 +39,8 @@ export const jumpSound = new Audio('assets/audio/sfx/unruggabull/unruggabull-jum
 export function handleMovement() {
   let isWalking = false;
   // Slow down if crouching
-  const normalSpeed = 4;
-  const crouchSpeed = 2.5;
+  const normalSpeed = MOVE_SPEED;
+  const crouchSpeed = CROUCH_SPEED;
   player.speed = player.crouching ? crouchSpeed : normalSpeed;
   if (keys['d'] || keys['D']) {
     player.vx = player.speed;
@@ -60,7 +61,7 @@ export function handleMovement() {
  */
 export function handleJumping() {
   if (keys[' '] && player.grounded) {
-    player.vy = -12;
+    player.vy = JUMP_FORCE;
     player.jumping = true;
     player.grounded = false;
     jumpSound.currentTime = 0;

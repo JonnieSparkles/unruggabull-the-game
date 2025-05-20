@@ -1,5 +1,5 @@
 import { evilLaughSfx, fireWindsSwoosh, helloUnruggabullSfx } from '../../sound.js';
-import { FLASH_DURATION } from '../../state.js';
+import { FLASH_DURATION, BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from '../../constants/timing.js';
 import { garageDoorSound } from '../../sound.js';
 
 // Master cutscene timeline for Rugfather boss intro and transition
@@ -21,7 +21,7 @@ export const cutsceneTimeline = [
 
   // Phase 4: Boss Entrance (2700ms)
   { time: 2700, action: 'fadeInBoss',        duration: 1000 },
-  { time: 2700, action: 'tweenBossPosition', data: { x: 300, y: 50 }, duration: 1000 },
+  { time: 2700, action: 'tweenBossPosition', data: { x: 300, y: 'floor' }, duration: 1000 },
   { time: 2700, action: 'tweenBossScale',    data: { scale: 2.0 },    duration: 1000 },
   // Boss Blink & Spin
   { time: 3200, action: 'setBossSprite',     data: 'blink' },

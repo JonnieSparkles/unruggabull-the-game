@@ -12,6 +12,8 @@ import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
 import rugfatherBoss, { checkBossBulletCollision } from './levels/rugcoAlley/rugfather.js';
 import { setBossShockedStartTime, getBossShockedStartTime, setAutoRunLeft, getAutoRunLeft, getBossBattleStarted } from './state.js';
+import { FLASH_DURATION, BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './constants/timing.js';
+import { GAME_STATES } from './constants/gameStates.js';
 
 /**
  * Perform one update cycle: input, physics, firing, bullet & enemy updates, and collision checks.

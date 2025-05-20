@@ -5,6 +5,8 @@ import { player } from '../../player.js';
 import * as stateModule from '../../state.js';
 import { platforms } from '../../physics.js';
 import { carpshits, lowerCarpshits } from '../../enemy.js';
+import levels from '../../levels/index.js';
+import { getCurrentLevelKey } from '../../state.js';
 
 let timelineStart = 0;
 let timelineIndex = 0;
@@ -27,6 +29,14 @@ function updateTweens(now) {
     }
     if (t >= 1) tweens.splice(i, 1);
   }
+}
+
+function resolveY(y) {
+  if (y === 'floor') {
+    const levelConfig = levels[getCurrentLevelKey()];
+    return levelConfig.floorY;
+  }
+  return y;
 }
 
 /**
@@ -102,14 +112,16 @@ function handleEvent(event, now) {
       bossState.sprite = 'idle';
       break;
     case 'setBossPosition':
-      if (event.data && typeof event.data.x === 'number' && typeof event.data.y === 'number') {
+      if (event.data && typeof event.data.x === 'number') {
         bossState.x = event.data.x;
-        bossState.y = event.data.y;
+      }
+      if (event.data && event.data.y !== undefined) {
+        bossState.y = resolveY(event.data.y);
       }
       break;
     case 'tweenBossPosition':
-      if (event.data && typeof event.data.x === 'number' && typeof event.data.y === 'number') {
-        startTween(bossState, { x: event.data.x, y: event.data.y }, event.duration || 0, now);
+      if (event.data && typeof event.data.x === 'number' && event.data.y !== undefined) {
+        startTween(bossState, { x: event.data.x, y: resolveY(event.data.y) }, event.duration || 0, now);
       }
       break;
     case 'setBossScale':

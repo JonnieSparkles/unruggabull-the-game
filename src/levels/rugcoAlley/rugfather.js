@@ -9,6 +9,9 @@ import { startBossIntro, updateBossIntro } from './rugfatherOrchestrator.js';
 import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
 import levels from '../../levels/index.js';
 import { getCurrentLevelKey } from '../../state.js';
+import { FLASH_DURATION, BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from '../../constants/timing.js';
+import { GAME_STATES } from '../../constants/gameStates.js';
+import { PLAYER_WIDTH, PLAYER_HEIGHT } from '../../constants/player.js';
 
 // Level 1 Boss: Rugfather
 // Access the canvas and context
@@ -125,82 +128,7 @@ function update() {
     return;
   }
 
-  const finalScale = 2.0;
-  const initialScale = 1.0;
-  // headY so that feet end at player's feetY
-  const headY = player.feetY - BOSS_HEIGHT * finalScale;
-
-  // 2. Blinking eyes
-  if (state.blinking) {
-    const t = now - state.blinkActualStartTime;
-    // Play evil laugh during last ~3400ms of blink
-    if (t >= blinkTotalDuration - 3400 && !state.laughPlayed) {
-      evilLaughSfx.currentTime = 0;
-      evilLaughSfx.play();
-      state.laughPlayed = true;
-    }
-    // Determine blink on/off
-    let total = 0;
-    let on = true;
-    for (let i = 0; i < blinkPattern.length; i++) {
-      total += blinkPattern[i];
-      if (t < total) {
-        on = i % 2 === 0;
-        break;
-      }
-    }
-    state.opacity = on ? 1 : 0;
-    // End blinking
-    if (t >= blinkTotalDuration) {
-      state.blinking = false;
-      state.walkingForward = true;
-      state.spinEndTime = now;
-      stateModule.setBossTransitionStartTime(now);
-      setAutoRunLeft(true);
-      // start move sound
-      fireWindsSwoosh.currentTime = 0;
-      fireWindsSwoosh.play();
-      // Resume background music only after blinking
-      bgMusic.currentTime = 0;
-      bgMusic.play();
-    }
-    return;
-  }
-
-  // 3. Spin/Scale & Move Out
-  if (state.walkingForward) {
-    const t2 = now - stateModule.getBossTransitionStartTime();
-    const spinDuration = 3200;
-    const totalTime = spinDuration * 2;
-    const progress = Math.min(t2 / totalTime, 1);
-    // scale and position
-    state.scale = initialScale + (finalScale - initialScale) * progress;
-    state.x = bossStartX() + (bossFinalX() - bossStartX()) * progress;
-    state.y = headY;
-    state.opacity = progress;
-    if (progress >= 1) {
-      state.scale = finalScale;
-      state.walkingForward = false;
-      state.bossInPosition = true;
-      // Boss will be set active after hold in draw()
-    }
-    return;
-  }
-
-  // 4. Post-entrance hold: draw handles battle start
-  if (state.bossInPosition && !stateModule.getBossBattleStarted()) {
-    return; // draw() handles draw hold and battle flag
-  }
-
-  // 5. After battle starts: boss holds in place
-  if (stateModule.getBossBattleStarted()) {
-    // boss holds in place
-    return;
-  }
-
-  // Idle/battle movement (if needed later)
-  const t3 = now / (500 / state.speedMultiplier);
-  state.x = canvas.width / 2 - (BOSS_WIDTH * state.scale) / 2 + Math.sin(t3) * 100;
+  // Post-intro and battle logic are now fully controlled by timeline and combat handlers.
 }
 
 // Draw the boss and its HP bar

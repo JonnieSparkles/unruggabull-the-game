@@ -2,6 +2,8 @@
 
 import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
+import { PLAYER_WIDTH, PLAYER_HEIGHT } from './constants/player.js';
+import { GRAVITY } from './constants/physics.js';
 
 /**
  * Platform dimensions and fixed layout
@@ -28,10 +30,10 @@ export function generatePlatforms() {
  */
 export function handlePhysics(player, platforms, canvas) {
   // gravity and movement
-  player.vy += 0.8;
+  player.vy += GRAVITY;
   player.x += player.vx;
   player.feetY += player.vy;
-  player.y = player.feetY - player.height;
+  player.y = player.feetY - PLAYER_HEIGHT;
   // platform collision
   let onPlatform = false;
   if (player.vy >= 0) {
@@ -39,14 +41,14 @@ export function handlePhysics(player, platforms, canvas) {
       if (
         player.feetY <= p.y + player.vy &&
         player.feetY + player.vy >= p.y &&
-        player.x + player.width > p.x &&
+        player.x + PLAYER_WIDTH > p.x &&
         player.x < p.x + p.width
       ) {
         player.feetY = p.y;
         player.vy = 0;
         player.jumping = false;
         player.grounded = true;
-        player.y = player.feetY - player.height;
+        player.y = player.feetY - PLAYER_HEIGHT;
         onPlatform = true;
         break;
       }
@@ -61,16 +63,19 @@ export function handlePhysics(player, platforms, canvas) {
       player.vy = 0;
       player.jumping = false;
       player.grounded = true;
-      player.y = player.feetY - player.height;
+      player.y = player.feetY - PLAYER_HEIGHT;
     } else {
       player.grounded = false;
     }
   }
-  // horizontal wrap
-  if (player.x + player.width < 0) {
-    player.x = canvas.width;
-  } else if (player.x > canvas.width) {
-    player.x = -player.width;
+  // horizontal wrap (configurable per level)
+  const levelConfig = levels[getCurrentLevelKey()];
+  if (levelConfig.wrapHorizontal) {
+    if (player.x + PLAYER_WIDTH < 0) {
+      player.x = canvas.width;
+    } else if (player.x > canvas.width) {
+      player.x = -PLAYER_WIDTH;
+    }
   }
   // frame update
   if (player.vx !== 0) {

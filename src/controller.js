@@ -10,6 +10,7 @@ import { player } from './player.js';
 import { carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits } from './enemy.js';
 import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
+import { GAME_STATES } from './constants/gameStates.js';
 
 /**
  * Reset player, enemies, and bullets for a new game.
