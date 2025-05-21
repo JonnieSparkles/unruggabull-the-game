@@ -13,6 +13,7 @@ import { FLASH_DURATION } from '../../constants/timing.js';
 import { BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './rugfatherConstants.js';
 import { GAME_STATES } from '../../constants/gameStates.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT } from '../../constants/player.js';
+import { updateBossAI } from './rugfatherAI.js';
 
 // Level 1 Boss: Rugfather
 // Access the canvas and context
@@ -26,8 +27,8 @@ bossSpriteSheet.src = 'assets/sprites/levels/rugcoAlley/rugfather-sprite.png';
 const bossDeadSprite = new Image();
 bossDeadSprite.src = 'assets/sprites/levels/rugcoAlley/rugfather-dead.png';
 
-const BOSS_WIDTH = 128;
-const BOSS_HEIGHT = 128;
+const BOSS_WIDTH = 256;
+const BOSS_HEIGHT = 256;
 
 // Export sprite dimensions for external positioning
 export { BOSS_WIDTH, BOSS_HEIGHT };
@@ -46,7 +47,7 @@ const state = {
   laughPlayed: false,
   bossInPosition: false,
   jumpDone: false,
-  scale: 1.0,
+  scale: 0.5,
   speedMultiplier: 1.0,
   dying: false,
   deathStart: 0,
@@ -54,7 +55,11 @@ const state = {
   helloPlayed: false,
   fadeInStartTime: null,
   fadeInDuration: 0,
-  sprite: 'idle'
+  sprite: 'idle',
+  lastAttackTime: 0,
+  attackCooldown: 3000,
+  attackAnimationStartTime: null,
+  hasSpawnedProjectile: false
 };
 
 const bossCenterX = () => canvas.width / 2 - BOSS_WIDTH / 2;
@@ -69,10 +74,10 @@ const blinkTotalDuration = blinkPattern.reduce((a, b) => a + b, 0);
 function spawn() {
   state.active = true;
   state.hp = 5;
-  state.scale = 1.0;
+  state.scale = 0.5;
   state.x = bossStartX();
   // Anchor head at a fixed Y so feet align at player.feetY when fully scaled
-  const finalScale = 2.0;
+  const finalScale = 1.0;
   const headY = player.feetY - BOSS_HEIGHT * finalScale;
   state.y = headY;
   state.opacity = 1;  // fully visible during blink, then transparent afterward
@@ -83,6 +88,9 @@ function spawn() {
   state.spinEndTime = 0;
   state.jumpDone = false;
   state.helloPlayed = false;
+  state.lastAttackTime = performance.now();
+  state.attackAnimationStartTime = null;
+  state.hasSpawnedProjectile = false;
   // reset battle flag too
   setBossBattleStarted(false);
   // start the intro sequence
@@ -131,6 +139,7 @@ function update() {
   }
 
   // Post-intro and battle logic are now fully controlled by timeline and combat handlers.
+  updateBossAI(now);
 }
 
 // Draw the boss and its HP bar
@@ -235,6 +244,33 @@ function draw() {
     const frameDuration = spriteInfo.frameDuration;
     const frameIdx = Math.floor(t / frameDuration) % frameSequence.length;
     const frameData = frameSequence[frameIdx];
+    ctx.save();
+    ctx.globalAlpha = state.opacity;
+    if (frameData.mirror) {
+      ctx.translate(state.x + FRAME_W * state.scale, state.y);
+      ctx.scale(-1, 1);
+      ctx.drawImage(
+        spriteInfo.image,
+        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
+        0, 0, FRAME_W * state.scale, FRAME_H * state.scale
+      );
+    } else {
+      ctx.drawImage(
+        spriteInfo.image,
+        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
+        state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
+      );
+    }
+    ctx.globalAlpha = 1.0;
+    ctx.restore();
+    return;
+  } else if (state.sprite === 'attack') {
+    // Draw attack animation
+    const spriteInfo = RUGFATHER_SPRITES.attack;
+    const elapsed = performance.now() - (state.attackAnimationStartTime || performance.now());
+    const idx = Math.floor(elapsed / spriteInfo.frameDuration) % spriteInfo.frameSequence.length;
+    let frameData = spriteInfo.frameSequence[idx];
+    if (typeof frameData === 'number') frameData = { frame: frameData, mirror: false };
     ctx.save();
     ctx.globalAlpha = state.opacity;
     if (frameData.mirror) {

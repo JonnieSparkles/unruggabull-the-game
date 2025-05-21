@@ -1,5 +1,6 @@
 // Level 1: Rugco Alley background
 import * as state from '../../state.js';
+const getBackgroundFlickerMode = state.getBackgroundFlickerMode;
 // Level background sprite sheet (multiple frames)
 const bgSprite = new Image();
 bgSprite.src = 'assets/sprites/levels/rugcoAlley/background-rugcoAlley.png';
@@ -72,8 +73,9 @@ export default function drawRugcoBackground(ctx, canvas) {
     }
     return;
   }
-  // During bossActive, flicker between last two frames (9 and 10)
-  if (state.getBossActive()) {
+  // Timeline-driven background flicker mode
+  const flickerMode = getBackgroundFlickerMode();
+  if (flickerMode === 'doorOpenFlicker') {
     const lastA = FIRST_FLICKER_FRAMES + TRANSITION_FRAMES - 2;
     const lastB = FIRST_FLICKER_FRAMES + TRANSITION_FRAMES - 1;
     const flickerInterval = 500;

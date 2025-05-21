@@ -7,10 +7,11 @@ export let DEBUG_HITBOXES = false;
 let prevGameState = null;
 
 import * as state from './state.js';
-import rugfatherBoss, { bossState } from './levels/rugcoAlley/rugfather.js';
+import rugfatherBoss, { bossState, BOSS_WIDTH, BOSS_HEIGHT } from './levels/rugcoAlley/rugfather.js';
 import { player } from './player.js';
-import { setCurrentBoss, setBossActive, setBossBattleStarted, setBossTransition, setBossHold, setBossPause, setBlinkingOut, setAutoRunLeft } from './state.js';
+import { setCurrentBoss, setBossActive, setBossBattleStarted, setBossTransition, setBossHold, setBossPause, setBlinkingOut, setAutoRunLeft, setBossTriggered, getCurrentLevelKey } from './state.js';
 import { skipToBattle } from './levels/rugcoAlley/rugfatherOrchestrator.js';
+import levels from './levels/index.js';
 
 /**
  * Draw the developer settings overlay.
@@ -105,34 +106,17 @@ export function setupDevTools(canvas, draw, gameLoop, increaseDifficulty, decrea
   // Toggle dev settings with Ctrl+Shift+Q
   document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && e.shiftKey && (e.key === 'q' || e.key === 'Q')) {
-      const gs = getGameState();
-      if (!showDevSettings && (gs === 'playing' || gs === 'dying')) {
-        prevGameState = gs;
+      // Toggle dev settings overlay and pause/unpause game uniformly
+      if (!showDevSettings) {
+        prevGameState = getGameState();
         showDevSettings = true;
         setGameState('paused-dev');
         draw();
-      } else if (showDevSettings && gs === 'paused-dev') {
+      } else {
         showDevSettings = false;
         setGameState(prevGameState || 'playing');
         prevGameState = null;
         gameLoop();
-      } else {
-        // Toggle overlay from any other state (including 'start')
-        showDevSettings = !showDevSettings;
-        // If on title screen, hide title UI and show canvas overlay
-        if (gs === 'start') {
-          const title = document.getElementById('title-container');
-          if (title) title.style.display = showDevSettings ? 'none' : '';
-          // Adjust canvas style
-          if (showDevSettings) {
-            canvas.style.opacity = '1';
-            canvas.style.zIndex = '999';
-          } else {
-            canvas.style.opacity = '0';
-            canvas.style.zIndex = '1';
-          }
-        }
-        draw();
       }
     }
   });
@@ -195,8 +179,8 @@ export function setupDevTools(canvas, draw, gameLoop, increaseDifficulty, decrea
       // Initialize level as if starting game, then go straight to playing
       showDevSettings = false;
       window.startGame();
+      setBossTriggered(true);
       setGameState('playing');
-      // Set up boss intro
       setCurrentBoss(rugfatherBoss);
       setBossActive(true);
       rugfatherBoss.spawn();
@@ -209,6 +193,7 @@ export function setupDevTools(canvas, draw, gameLoop, increaseDifficulty, decrea
       // Initialize level and go straight to playing
       showDevSettings = false;
       window.startGame();
+      setBossTriggered(true);
       setGameState('playing');
       setCurrentBoss(rugfatherBoss);
       setBossActive(true);
@@ -216,6 +201,14 @@ export function setupDevTools(canvas, draw, gameLoop, increaseDifficulty, decrea
       rugfatherBoss.spawn();
       setAutoRunLeft(false);
       skipToBattle();
+      // Manually finalize position and scale to match normal battle
+      const floorY = levels[getCurrentLevelKey()].floorY;
+      bossState.scale = 1.0;
+      bossState.x = Math.round(canvas.width * 0.75 - (BOSS_WIDTH * bossState.scale) / 2);
+      bossState.y = floorY - (BOSS_HEIGHT * bossState.scale);
+      // Position player
+      player.x = Math.round(canvas.width * 0.25 - player.width / 2);
+      player.facing = 1;
       // Resume main game loop in battle state
       gameLoop();
       return;

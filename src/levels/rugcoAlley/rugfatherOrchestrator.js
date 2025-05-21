@@ -1,5 +1,5 @@
 import { rugfatherIntroTimeline as introsceneTimeline } from './rugfatherIntroScene.js';
-import { setAutoRunLeft, setBossBattleStarted } from '../../state.js';
+import { setAutoRunLeft, setBossBattleStarted, setBackgroundFlickerMode } from '../../state.js';
 import rugfatherBoss, { bossState, BOSS_HEIGHT } from './rugfather.js';
 import { player } from '../../player.js';
 import * as stateModule from '../../state.js';
@@ -48,6 +48,8 @@ export function startBossIntro() {
   timelineIndex = 0;
   // Disable player manual controls by auto-running left
   setAutoRunLeft(true);
+  // Ensure background flicker is in default mode at the start
+  setBackgroundFlickerMode('default');
 }
 
 /**
@@ -214,6 +216,9 @@ function handleEvent(event, now) {
       bgMusic.src = levelConfig.music;
       bgMusic.currentTime = 0;
       bgMusic.play();
+      break;
+    case 'cycleGarageDoorOpen':
+      setBackgroundFlickerMode('doorOpenFlicker');
       break;
     default:
       break;

@@ -17,6 +17,7 @@ import { startGame, gameLoop } from './controller.js';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const bullets = [];
+window.bullets = bullets;
 
 /**
  * DevTools difficulty adjustment wrappers.

@@ -220,4 +220,9 @@ export function playPlayerHitSound() {
 export let playerHitFlashActive = false;
 export let playerHitFlashEndTime = 0;
 export function setPlayerHitFlashActive(val) { playerHitFlashActive = val; }
-export function setPlayerHitFlashEndTime(val) { playerHitFlashEndTime = val; } 
+export function setPlayerHitFlashEndTime(val) { playerHitFlashEndTime = val; }
+
+// Background flicker/cycle mode for timeline-driven effects
+export let backgroundFlickerMode = 'default';
+export function setBackgroundFlickerMode(mode) { backgroundFlickerMode = mode; }
+export function getBackgroundFlickerMode() { return backgroundFlickerMode; } 

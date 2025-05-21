@@ -5,8 +5,7 @@ import { getCurrentLevelKey } from './state.js';
 import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGameOver, drawCongrats, drawRestartButton } from './ui.js';
 import { drawPlatforms, platforms } from './physics.js';
 import { walkingSprite, crouchSprite, deadSprite, jumpingSprite, shockedSprite, walkingForwardSprite, bossDeadImage } from './assets.js';
-import { drawBullets } from './bullets.js';
-import { drawCarpshits as drawEnemyCarpshits, drawLowerCarpshits as drawEnemyLowerCarpshits, carpshits, lowerCarpshits } from './enemies/carpshits.js';
+import { drawCarpshits, drawLowerCarpshits, carpshits, lowerCarpshits } from './enemies/carpshits.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 import { getHitbox } from './player.js';
 import { getCarpshitHitbox } from './enemies/carpshits.js';
@@ -15,6 +14,7 @@ import { BLINK_OUT_DURATION } from './levels/rugcoAlley/rugfatherConstants.js';
 import { bgSprite, FIRST_FLICKER_FRAMES, TRANSITION_FRAMES } from './levels/rugcoAlley/background.js';
 import { PLAYER_SPRITES } from './playerSprites.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT } from './constants/player.js';
+import { drawProjectiles } from './projectiles/index.js';
 
 /**
  * Render the current game frame.
@@ -42,11 +42,14 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   }
   ctx.save();
   let shouldReturn = false;
+  let shaking = false;
   if (getScreenShake()) {
     const elapsedShake = now - getScreenShakeStartTime();
     if (elapsedShake > SCREEN_SHAKE_DURATION) {
       state.setScreenShake(false);
     } else {
+      shaking = true;
+      ctx.save();
       const magnitude = 10;
       const dx = (Math.random() * 2 - 1) * magnitude;
       const dy = (Math.random() * 2 - 1) * magnitude;
@@ -57,103 +60,16 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const levelConfig = levels[getCurrentLevelKey()];
   const floorY = levelConfig.floorY;
-  if (state.getGameState() === 'bossExit') {
-    // If Unruggabull is still visible (hasn't finished vertical walk), hold on final door-open frame (index 9)
-    const garageFloorY = ctx.canvas.height - 120;
-    if (player.feetY > garageFloorY + 10) {
-      const frameIndex = FIRST_FLICKER_FRAMES + TRANSITION_FRAMES - 1;
-      ctx.drawImage(
-        bgSprite,
-        frameIndex * ctx.canvas.width, 0,
-        ctx.canvas.width, ctx.canvas.height,
-        0, 0,
-        ctx.canvas.width, ctx.canvas.height
-      );
-    } else {
-      // After Unruggabull has entered, flicker between frames 2 and 1
-      const flickerInterval = 1000 / 1.5;
-      const flickerFrames = [2, 1];
-      const idx = Math.floor(performance.now() / flickerInterval) % 2;
-      const frameIndex = flickerFrames[idx];
-      ctx.drawImage(
-        bgSprite,
-        frameIndex * ctx.canvas.width, 0,
-        ctx.canvas.width, ctx.canvas.height,
-        0, 0,
-        ctx.canvas.width, ctx.canvas.height
-      );
-    }
-  } else {
     levelConfig.background(ctx, canvas);
-  }
-
-  // Special exit sequence rendering
-  if (state.getGameState() === 'bossExit') {
-    // Draw dead boss at recorded exit position
-    const BOSS_WIDTH = 128;
-    const BOSS_HEIGHT = 128;
-    const exitX = state.getExitBossX();
-    const exitY = state.getExitBossY();
-    const exitScale = state.getExitBossScale();
-    ctx.drawImage(
-      bossDeadImage,
-      exitX,
-      exitY,
-      BOSS_WIDTH * exitScale,
-      BOSS_HEIGHT * exitScale
-    );
-    // Determine exit phase: horizontal or vertical
-    const centerX = Math.round(canvas.width / 2 - player.width / 2);
-    const garageFloorY = canvas.height - 120;
-    if (Math.abs(player.x - centerX) > 2) {
-      // Horizontal walking: use side-view sprite
-      const walkFrame = Math.floor(player.frame / 10) % 4;
+  if (state.getGameState() === 'bossExit' || state.getGameState() === 'bossExitDoorClosing') {
       ctx.save();
-      if (player.facing < 0) {
-        // Flip sprite when facing left
-        ctx.translate(player.x + player.width, player.feetY - player.height);
-        ctx.scale(-1, 1);
-        ctx.drawImage(walkingSprite, walkFrame * player.width, 0, player.width, player.height, 0, 0, player.width, player.height);
-      } else {
-        ctx.drawImage(walkingSprite, walkFrame * player.width, 0, player.width, player.height, player.x, player.feetY - player.height, player.width, player.height);
-      }
+    ctx.font = 'bold 72px Arial';
+    ctx.fillStyle = '#0f0';
+    ctx.textAlign = 'center';
+    ctx.fillText('VICTORY!', canvas.width / 2, canvas.height / 2);
       ctx.restore();
-    } else {
-      // Vertical walking into garage with perspective shrink
-      const frameCount = 4;
-      const frameW = 96;
-      const frameH = 96;
-      const frameIndex = Math.floor(player.frame / 10) % frameCount;
-      const progress = (floorY - player.feetY) / (floorY - garageFloorY);
-      const scaleFactor = 1 - progress * 0.5; // shrink up to 50%
-      const drawW = frameW * scaleFactor;
-      const drawH = frameH * scaleFactor;
-      const drawX = player.x + player.width / 2 - drawW / 2;
-      const drawY = player.feetY - drawH;
-      ctx.drawImage(
-        walkingForwardSprite,
-        frameIndex * frameW,
-        0,
-        frameW,
-        frameH,
-        drawX,
-        drawY,
-        drawW,
-        drawH
-      );
-    }
-    return;
-  }
-  // During door closing, keep showing dead boss behind the closing door
-  if (state.getGameState() === 'bossExitDoorClosing') {
-    const scale = 2.0;
-    const BOSS_WIDTH = 128;
-    const BOSS_HEIGHT = 128;
-    const imgW = BOSS_WIDTH * scale;
-    const imgH = BOSS_HEIGHT * scale;
-    const imgX = Math.round(canvas.width / 2 - imgW / 2);
-    const imgY = Math.round(levelConfig.floorY - imgH);
-    ctx.drawImage(bossDeadImage, imgX, imgY, imgW, imgH);
+    if (shaking) ctx.restore();
+    // TODO: move full exit/defeat sequence logic into rugfatherDefeatScene.js using rugfatherDefeatTimeline
     return;
   }
 
@@ -236,31 +152,21 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       }
 
       ctx.save();
-      // Invulnerability blink effect while player is invulnerable
-      if (player.invulnerable && performance.now() < player.invulnerableUntil) {
-        // blink every 150ms
-        if (Math.floor(performance.now() / 150) % 2 === 0) {
-          ctx.globalCompositeOperation = 'lighter';
+      // Player hit flash: brighten sprite for a brief moment
+      if (state.playerHitFlashActive) {
+        ctx.globalAlpha = 1.0;
+        ctx.globalCompositeOperation = 'lighter';
+        if (performance.now() > state.playerHitFlashEndTime) {
+          state.setPlayerHitFlashActive(false);
         }
       }
-      // Special case: dead sprite, mirror if facing left
+      // Special case: dead sprite is always unmirrored and uses full width
       if (spriteState === 'dead') {
-        const deadMirror = player.facing < 0;
-        if (deadMirror) {
-          ctx.translate(player.x + frameWidth, destY);
-          ctx.scale(-1, 1);
-          ctx.drawImage(
-            img,
-            0, 0, frameWidth, frameHeight,
-            0, 0, frameWidth, frameHeight
-          );
-        } else {
-          ctx.drawImage(
-            img,
-            0, 0, frameWidth, frameHeight,
-            player.x, destY, frameWidth, frameHeight
-          );
-        }
+        ctx.drawImage(
+          img,
+          0, 0, frameWidth, frameHeight,
+          player.x, destY, frameWidth, frameHeight
+        );
       } else {
         // Mirror if frameData.mirror is true, or if player is facing left and not in walkForward (back view)
         const shouldMirror = frameData.mirror || (player.facing < 0 && spriteState !== 'walkForward');
@@ -339,8 +245,8 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       ctx.restore();
     }
 
-    // Bullets always visible
-    drawBullets(ctx, bullets, DEBUG_HITBOXES);
+    // Projectiles (player bullets and boss carpets)
+    drawProjectiles(ctx, DEBUG_HITBOXES);
     // Enemies only when not in boss transition or boss fight, or if carpshitsDuringBoss is true
     if (!getBossTransition() && !getBossActive() || getCarpshitsDuringBoss()) {
       if (getBlinkingOut()) {
@@ -348,13 +254,13 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
         const blink = Math.floor(elapsed / 80) % 2 === 0;
         ctx.save();
         ctx.globalAlpha = blink ? 0.2 + 0.8 * (1 - elapsed / BLINK_OUT_DURATION) : 0.1;
-        drawEnemyCarpshits(ctx);
-        drawEnemyLowerCarpshits(ctx);
+        drawCarpshits(ctx);
+        drawLowerCarpshits(ctx);
         ctx.globalAlpha = 1.0;
         ctx.restore();
       } else {
-        drawEnemyCarpshits(ctx);
-        drawEnemyLowerCarpshits(ctx);
+        drawCarpshits(ctx);
+        drawLowerCarpshits(ctx);
       }
     }
 
@@ -421,6 +327,11 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   if (showDevSettings) {
     drawDevSettings(ctx, canvas, state.difficultyLevel);
   }
+  if (shouldReturn) {
+    if (shaking) ctx.restore();
+    ctx.restore();
+    return;
+  }
+  if (shaking) ctx.restore();
   ctx.restore();
-  if (shouldReturn) return;
 } 

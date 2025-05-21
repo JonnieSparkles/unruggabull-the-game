@@ -27,3 +27,6 @@ export const rugfatherDefeatTimeline = [
   // 5. End scene
   { time: 8000, action: 'transitionTo', data: 'congrats' }
 ];
+
+// TODO: Implement boss defeat rendering and orchestration here using rugfatherDefeatTimeline.
+//       The full exit/defeat sequence logic has been moved from render.js and will be integrated.

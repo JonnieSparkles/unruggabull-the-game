@@ -1,11 +1,11 @@
 // Update module: game tick logic
 import { keys } from './input.js';
-import { player, updatePlayerInput } from './player.js';
+import { player, updatePlayerInput, getHitbox } from './player.js';
 import { platforms, handlePhysics } from './physics.js';
-import { updateBullets, handleFiring } from './bullets.js';
-import { updateCarpshits as updateEnemyCarpshits, updateLowerCarpshits as updateEnemyLowerCarpshits, carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits } from './enemies/carpshits.js';
+import { projectiles, updateProjectiles, spawnPlayerBullet } from './projectiles/index.js';
+import { updateCarpshits as updateEnemyCarpshits, updateLowerCarpshits as updateEnemyLowerCarpshits, carpshits as enemyCarpshits, lowerCarpshits as enemyLowercarpshits } from './enemies/carpshits.js';
 import { checkBulletcarpshitCollisions, checkBulletLowercarpshitCollisions, checkPlayercarpshitCollisions } from './collision.js';
-import { handleBulletKill, handlePlayerHit } from './callbacks.js';
+import { handleBulletKill, handlePlayerHit, handleCarpetHit } from './callbacks.js';
 import * as state from './state.js';
 import { bgMusic, garageDoorSound, garageDoorCloseSound } from './sound.js';
 import levels from './levels/index.js';
@@ -179,7 +179,7 @@ export function updateGame(bullets, canvas) {
   if (state.getBlinkingOut()) {
     if (performance.now() - state.getBlinkingOutStartTime() > state.BLINK_OUT_DURATION) {
       enemyCarpshits.length = 0;
-      enemyLowerCarpshits.length = 0;
+      enemyLowercarpshits.length = 0;
       platforms.length = 0;
       bullets.length = 0;
       state.setBlinkingOut(false);
@@ -256,7 +256,13 @@ export function updateGame(bullets, canvas) {
   // Battle has started: allow player control and boss update
   updatePlayerInput();
   handlePhysics(player, platforms, canvas);
-  handleFiring(keys, player, bullets);
+  // Player firing uses projectiles manager
+  if ((keys['f'] || keys['F'] || keys['j'] || keys['J'] || keys['Enter']) && !player.firing) {
+    player.firing = true;
+    spawnPlayerBullet(player);
+  } else if (!(keys['f'] || keys['F'] || keys['j'] || keys['J'] || keys['Enter'])) {
+    player.firing = false;
+  }
   // Sprite state: firing overrides movement
   if (player.health <= 0) {
     player.sprite = 'dead';
@@ -279,17 +285,37 @@ export function updateGame(bullets, canvas) {
       player.sprite = 'idle';
     }
   }
-  updateBullets(bullets, canvas.width);
+  updateProjectiles(canvas.width);
+
+  // Check boss carpet projectile collisions with player
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    // Only check projectiles that expose getHitbox()
+    if (typeof p.getHitbox === 'function') {
+      const projHitbox = p.getHitbox();
+      const playerHitbox = getHitbox(player);
+      if (
+        projHitbox.x < playerHitbox.x + playerHitbox.width &&
+        projHitbox.x + projHitbox.width > playerHitbox.x &&
+        projHitbox.y < playerHitbox.y + playerHitbox.height &&
+        projHitbox.y + projHitbox.height > playerHitbox.y
+      ) {
+        handleCarpetHit(projectiles, i, p);
+      }
+    }
+  }
 
   // Update boss if present
   if (state.getCurrentBoss()) {
     const boss = state.getCurrentBoss();
     boss.update();
-    // Bullet-boss collision
-    for (let i = bullets.length - 1; i >= 0; i--) {
-      if (checkBossBulletCollision(bullets[i])) {
+    // Bullet-boss collision: only allow player bullets
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+      const bullet = projectiles[i];
+      const isBossProjectile = bullet.type === 'boss';
+      if (!isBossProjectile && checkBossBulletCollision(bullet)) {
         boss.hit(1);
-        bullets.splice(i, 1);
+        projectiles.splice(i, 1);
       }
     }
   }
@@ -297,10 +323,10 @@ export function updateGame(bullets, canvas) {
   // Update enemies after battle begins
   if (!state.getBossTransition() && !state.getBossActive() || state.getCarpshitsDuringBoss()) {
     updateEnemyCarpshits();
-    checkBulletcarpshitCollisions(bullets, enemyCarpshits, handleBulletKill);
+    checkBulletcarpshitCollisions(projectiles, enemyCarpshits, handleBulletKill);
     updateEnemyLowerCarpshits();
-    checkBulletLowercarpshitCollisions(bullets, enemyLowerCarpshits, handleBulletKill);
+    checkBulletLowercarpshitCollisions(projectiles, enemyLowercarpshits, handleBulletKill);
     checkPlayercarpshitCollisions(player, enemyCarpshits, handlePlayerHit);
-    checkPlayercarpshitCollisions(player, enemyLowerCarpshits, handlePlayerHit);
+    checkPlayercarpshitCollisions(player, enemyLowercarpshits, handlePlayerHit);
   }
 } 
