@@ -68,6 +68,9 @@ export function getCurrentLevelKey() { return currentLevelKey; }
 // Level boss control
 export let bossActive = false;
 export let currentBoss = null;
+// Fight banner control
+export let fightBannerActive = false;
+export let fightBannerStartTime = 0;
 // Boss transition control
 export let bossTransition = false;
 export let bossTransitionStartTime = 0;
@@ -196,4 +199,12 @@ export function getLaughPlayed() { return laughPlayed; }
 // Boss jump control after battle starts
 export let bossJumped = false;
 export function setBossJumped(val) { bossJumped = val; }
-export function getBossJumped() { return bossJumped; } 
+export function getBossJumped() { return bossJumped; }
+
+/**
+ * Show on-screen "FIGHT!" banner and record its start time.
+ */
+export function setFightBanner(val) { fightBannerActive = val; }
+export function getFightBanner() { return fightBannerActive; }
+export function setFightBannerStartTime(val) { fightBannerStartTime = val; }
+export function getFightBannerStartTime() { return fightBannerStartTime; } 

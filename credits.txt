@@ -10,6 +10,7 @@ Help from:
 
 All the chatbots
 GIMP
+Aseprite
 https://mp3cut.net/
 https://www.piskelapp.com/
 https://www.pixellab.ai

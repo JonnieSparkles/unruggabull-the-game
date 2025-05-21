@@ -7,6 +7,10 @@ export let DEBUG_HITBOXES = false;
 let prevGameState = null;
 
 import * as state from './state.js';
+import rugfatherBoss, { bossState } from './levels/rugcoAlley/rugfather.js';
+import { player } from './player.js';
+import { setCurrentBoss, setBossActive, setBossBattleStarted, setBossTransition, setBossHold, setBossPause, setBlinkingOut, setAutoRunLeft } from './state.js';
+import { skipToBattle } from './levels/rugcoAlley/rugfatherOrchestrator.js';
 
 /**
  * Draw the developer settings overlay.
@@ -73,6 +77,19 @@ export function drawDevSettings(ctx, canvas, difficultyLevel) {
   const kcPlusX = kcMinusX + kcBtnSize + 8;
   ctx.strokeRect(kcPlusX, kcY, kcBtnSize, kcBtnSize);
   ctx.fillText('+', kcPlusX + kcBtnSize/2, kcY + kcBtnSize/2 + 4);
+  // --- Boss Shortcuts ---
+  ctx.font = 'bold 20px Arial';
+  ctx.fillStyle = '#ffe066';
+  ctx.textAlign = 'center';
+  const bossIntroBtnY = canvas.height/2 + 170;
+  ctx.fillStyle = '#444';
+  ctx.fillRect(canvas.width/2 - 120, bossIntroBtnY, 110, 36);
+  ctx.fillStyle = '#ffe066';
+  ctx.fillText('Boss Intro', canvas.width/2 - 65, bossIntroBtnY + 25);
+  ctx.fillStyle = '#444';
+  ctx.fillRect(canvas.width/2 + 10, bossIntroBtnY, 110, 36);
+  ctx.fillStyle = '#ffe066';
+  ctx.fillText('Boss Battle', canvas.width/2 + 65, bossIntroBtnY + 25);
   // Close 'X' button
   const closeX = canvas.width/2 + 140;
   const closeY = canvas.height/2 - 70;
@@ -88,19 +105,33 @@ export function setupDevTools(canvas, draw, gameLoop, increaseDifficulty, decrea
   // Toggle dev settings with Ctrl+Shift+Q
   document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && e.shiftKey && (e.key === 'q' || e.key === 'Q')) {
-      const state = getGameState();
-      if (!showDevSettings && (state === 'playing' || state === 'dying')) {
-        prevGameState = state;
+      const gs = getGameState();
+      if (!showDevSettings && (gs === 'playing' || gs === 'dying')) {
+        prevGameState = gs;
         showDevSettings = true;
         setGameState('paused-dev');
         draw();
-      } else if (showDevSettings && state === 'paused-dev') {
+      } else if (showDevSettings && gs === 'paused-dev') {
         showDevSettings = false;
         setGameState(prevGameState || 'playing');
         prevGameState = null;
         gameLoop();
       } else {
+        // Toggle overlay from any other state (including 'start')
         showDevSettings = !showDevSettings;
+        // If on title screen, hide title UI and show canvas overlay
+        if (gs === 'start') {
+          const title = document.getElementById('title-container');
+          if (title) title.style.display = showDevSettings ? 'none' : '';
+          // Adjust canvas style
+          if (showDevSettings) {
+            canvas.style.opacity = '1';
+            canvas.style.zIndex = '999';
+          } else {
+            canvas.style.opacity = '0';
+            canvas.style.zIndex = '1';
+          }
+        }
         draw();
       }
     }
@@ -155,6 +186,38 @@ export function setupDevTools(canvas, draw, gameLoop, increaseDifficulty, decrea
     if (mx >= kcPlusX && mx <= kcPlusX + kcBtnSize && my >= kcY && my <= kcY + kcBtnSize) {
       state.setPhaseChangeKillCount(state.PHASE_CHANGE_KILL_COUNT + 1);
       draw();
+      return;
+    }
+    // --- Boss Shortcuts Clicks ---
+    const bossIntroBtnY = canvas.height/2 + 170;
+    // Boss Intro button
+    if (mx >= canvas.width/2 - 120 && mx <= canvas.width/2 - 10 && my >= bossIntroBtnY && my <= bossIntroBtnY + 36) {
+      // Initialize level as if starting game, then go straight to playing
+      showDevSettings = false;
+      window.startGame();
+      setGameState('playing');
+      // Set up boss intro
+      setCurrentBoss(rugfatherBoss);
+      setBossActive(true);
+      rugfatherBoss.spawn();
+      // Resume main game loop
+      gameLoop();
+      return;
+    }
+    // Boss Battle button
+    if (mx >= canvas.width/2 + 10 && mx <= canvas.width/2 + 120 && my >= bossIntroBtnY && my <= bossIntroBtnY + 36) {
+      // Initialize level and go straight to playing
+      showDevSettings = false;
+      window.startGame();
+      setGameState('playing');
+      setCurrentBoss(rugfatherBoss);
+      setBossActive(true);
+      // Spawn boss intro timeline
+      rugfatherBoss.spawn();
+      setAutoRunLeft(false);
+      skipToBattle();
+      // Resume main game loop in battle state
+      gameLoop();
       return;
     }
     // Close 'X' button

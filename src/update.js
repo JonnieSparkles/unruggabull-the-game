@@ -14,14 +14,21 @@ import rugfatherBoss, { checkBossBulletCollision } from './levels/rugcoAlley/rug
 import { setBossShockedStartTime, getBossShockedStartTime, setAutoRunLeft, getAutoRunLeft, getBossBattleStarted } from './state.js';
 import { FLASH_DURATION, BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './constants/timing.js';
 import { GAME_STATES } from './constants/gameStates.js';
+import { startBossIntro, updateBossIntro } from './levels/rugcoAlley/rugfatherOrchestrator.js';
 
 /**
  * Perform one update cycle: input, physics, firing, bullet & enemy updates, and collision checks.
  */
 export function updateGame(bullets, canvas) {
+  const now = performance.now();
+  const levelConfig = levels[getCurrentLevelKey()];
+  // If the boss intro timeline is running, advance it and skip normal updates
+  if (state.getBossTriggered() && !getBossBattleStarted()) {
+    updateBossIntro(now);
+    return;
+  }
   if (state.gameState === 'dying') {
     // Animate body falling to the floor
-    const levelConfig = levels[getCurrentLevelKey()];
     const floorY = levelConfig.floorY;
     if (player.feetY < floorY) {
       player.vy += 1.2; // gravity
@@ -49,7 +56,6 @@ export function updateGame(bullets, canvas) {
         return;
       } else {
         // End pause and snap to floor once
-        const levelConfig = levels[getCurrentLevelKey()];
         const floorY = levelConfig.floorY;
         player.feetY = floorY;
         state.setExitPause(false);
@@ -85,16 +91,17 @@ export function updateGame(bullets, canvas) {
   }
   // Only continue normal updates while playing
   if (state.gameState !== 'playing') return;
-  const now = performance.now();
   // Reset player invulnerability if expired
   if (player.invulnerable && player.invulnerableUntil != null && now > player.invulnerableUntil) {
     player.invulnerable = false;
     player.invulnerableUntil = null;
   }
-  // Boss hold: when reaching difficulty 6, start hold phase
-  if (!state.getBossHold() && !state.getBossTransition() && !state.getBossActive() && !state.getBossTriggered() && state.difficultyLevel >= 6) {
+  // Boss hold: when reaching the per-level difficulty trigger, start hold phase
+  if (!state.getBossHold() && !state.getBossTransition() && !state.getBossActive() && !state.getBossTriggered() && state.difficultyLevel >= levelConfig.bossTriggerDifficulty) {
     state.setBossHold(true);
     state.setBossTriggered(true);
+    // Start the boss intro timeline
+    startBossIntro();
     state.setBossHoldStartTime(now);
     // Stop music immediately
     bgMusic.pause();
@@ -110,7 +117,6 @@ export function updateGame(bullets, canvas) {
   // During hold, wait before starting transition
   if (state.getBossHold()) {
     // Simulate unruggabull falling to ground during hold
-    const levelConfig = levels[getCurrentLevelKey()];
     const floorY = levelConfig.floorY;
     if (player.feetY < floorY) {
       player.vy += 0.7;

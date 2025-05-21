@@ -9,4 +9,6 @@ export default {
   music: 'assets/audio/bgm/rugco_alley_theme.mp3',
   floorY: 520,
   wrapHorizontal: false,
+  bossTriggerDifficulty: 6,
+  phaseChangeKillCount: 15
 }; 

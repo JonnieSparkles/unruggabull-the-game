@@ -28,6 +28,9 @@ bossDeadSprite.src = 'assets/sprites/levels/rugcoAlley/rugfather-dead.png';
 const BOSS_WIDTH = 128;
 const BOSS_HEIGHT = 128;
 
+// Export sprite dimensions for external positioning
+export { BOSS_WIDTH, BOSS_HEIGHT };
+
 // Internal state
 const state = {
   x: 0,

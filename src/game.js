@@ -10,7 +10,7 @@ import {
 } from './enemy.js';
 import * as state from './state.js';
 import { setupRestartUI, restartButton, isRestartHover } from './uiController.js';
-import { setupDevTools } from './devtools.js';
+import { setupDevTools, showDevSettings } from './devtools.js';
 import { renderGame } from './render.js';
 import { startGame, gameLoop } from './controller.js';
 
@@ -58,4 +58,13 @@ setupDevTools(
 );
 
 // Expose startGame globally.
-window.startGame = () => startGame(canvas, ctx, bullets, restartButton, isRestartHover); 
+window.startGame = () => startGame(canvas, ctx, bullets, restartButton, isRestartHover);
+// Expose openDevTools globally
+window.openDevTools = () => {
+  if (!showDevSettings) {
+    // Simulate the same logic as Ctrl+Shift+Q
+    showDevSettings = true;
+    state.setGameState('paused-dev');
+    draw();
+  }
+}; 

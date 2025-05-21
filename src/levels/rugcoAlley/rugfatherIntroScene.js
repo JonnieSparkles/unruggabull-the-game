@@ -1,47 +1,66 @@
-import { evilLaughSfx, fireWindsSwoosh, helloUnruggabullSfx } from '../../sound.js';
-import { FLASH_DURATION, BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from '../../constants/timing.js';
-import { garageDoorSound } from '../../sound.js';
+/**
+ * 🎬 Rugfather Intro Timeline
+ *
+ * Triggered when difficultyLevel increases to 6.
+ * Plays a fully-scripted cinematic intro sequence:
+ * 
+ * - Flash + music stops
+ * - Player auto-walks to center and enters shocked pose
+ * - Garage door animates open (13s)
+ * - Boss blinks/laughs → spins → walks out to battlefield
+ * - Player runs left to battle position
+ * - Boss says "Hello Unruggabull"
+ * - Fight begins after "FIGHT!" flashes
+ */
 
-// Master cutscene timeline for Rugfather boss intro and transition
-export const introsceneTimeline = [
-  // Phase 1: Shock (0ms)
+import { evilLaughSfx, helloUnruggabullSfx, garageDoorSound, fireWindsSwoosh } from '../../sound.js';
+import { FLASH_DURATION } from '../../constants/timing.js';
+
+export const rugfatherIntroTimeline = [
+  // 1. Screen flicker + stop music
   { time: 0,    action: 'flashScreen',      data: FLASH_DURATION },
   { time: 0,    action: 'screenShake' },
+  { time: 0,    action: 'stopMusic' },
   { time: 0,    action: 'setPlayerControl', data: false },
-  { time: 0,    action: 'setPlayerSprite',  data: 'shocked' },
 
-  // Phase 2: Garage Door & Fade Out (2000ms)
-  { time: 2000, action: 'playSfx',          data: garageDoorSound },
-  { time: 2000, action: 'fadeOutPlatforms' },
-  { time: 2000, action: 'fadeOutEnemies' },
+  // 2. Ground + center the player
+  { time: 500,  action: 'movePlayerToFloor' },
+  { time: 1500, action: 'movePlayerTo', data: { x: 400 }, duration: 1200 },
 
-  // Phase 3: Clear Level (2700ms)
-  { time: 2700, action: 'removePlatforms' },
-  { time: 2700, action: 'removeEnemies' },
+  // 3. Garage door starts opening (~13s) + player shocked
+  { time: 3000, action: 'playSfx', data: garageDoorSound },
+  { time: 3000, action: 'startGarageDoorOpen' },
+  { time: 3500, action: 'setPlayerSprite', data: 'shocked' },
 
-  // Phase 4: Boss Entrance (2700ms)
-  { time: 2700, action: 'fadeInBoss',        duration: 1000 },
-  { time: 2700, action: 'tweenBossPosition', data: { x: 300, y: 'floor' }, duration: 1000 },
-  { time: 2700, action: 'tweenBossScale',    data: { scale: 2.0 },    duration: 1000 },
-  // Boss Blink & Spin
-  { time: 3200, action: 'setBossSprite',     data: 'blink' },
-  { time: 4700, action: 'setBossSprite',     data: 'spin' },
+  // 4. Boss appears at center after door opens
+  { time: 16000, action: 'spawnBoss' },
+  { time: 16000, action: 'setBossSprite',   data: 'blink' },
+  { time: 16000, action: 'setBossPosition', data: { x: 380, y: 420 } },
+  { time: 16000, action: 'playSfx',         data: evilLaughSfx },
 
-  // Phase 5: Player Reaction (5200ms)
-  { time: 5200, action: 'playSfx',           data: evilLaughSfx },
-  { time: 5200, action: 'setPlayerSprite',   data: 'idle' },
+  // 5. Boss exits garage spinning and grows
+  { time: 19000, action: 'setBossSprite',     data: 'spin' },
+  { time: 19000, action: 'playSfx',          data: fireWindsSwoosh, duration: 10000 },
+  { time: 19000, action: 'tweenBossPosition', data: { x: 550, y: 'floor' }, duration: 10000 },
+  { time: 19000, action: 'tweenBossScale',    data: { scale: 2.0 }, duration: 10000 },
 
-  // Phase 6: Dialogue & Move (5700ms)
-  { time: 5700, action: 'playSfx',           data: helloUnruggabullSfx },
-  { time: 5700, action: 'autoRunLeft',       data: true },
-  { time: 5700, action: 'setPlayerSprite',   data: 'walk' },
-  { time: 6700, action: 'movePlayerTo',      data: { x: 100 },       duration: 1000 },
+  // 6. Player runs left to battle position
+  { time: 20000, action: 'autoRunLeft',     data: true },
+  { time: 20000, action: 'setPlayerSprite', data: 'walk' },
+  { time: 20000, action: 'movePlayerTo',    data: { x: 200, y: 'floor' }, duration: 1000 },
+  { time: 21000, action: 'setPlayerFacing', data: 'right' },
+  { time: 21000, action: 'setPlayerSprite', data: 'idle' },
 
-  // Phase 7: Battle Start (7700ms)
-  { time: 7700, action: 'setPlayerFacing',   data: 'right' },
-  { time: 7700, action: 'startBattle' },
-  { time: 7700, action: 'setPlayerControl',  data: true },
-]; 
+  // 7. Both face off and hold
+  { time: 29000, action: 'setBossFacing',   data: 'left' },
+  { time: 29200, action: 'setBossSprite',   data: 'idle' },
 
+  // 8. Boss speaks
+  { time: 29500, action: 'playSfx', data: helloUnruggabullSfx },
 
-
+  // 9. Begin battle after dramatic pause
+  { time: 30500, action: 'showFightBanner' },
+  { time: 31000, action: 'startMusic' },
+  { time: 31000, action: 'startBattle' },
+  { time: 31000, action: 'setPlayerControl', data: true }
+];

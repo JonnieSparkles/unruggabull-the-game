@@ -22,6 +22,24 @@ import { PLAYER_WIDTH, PLAYER_HEIGHT } from './constants/player.js';
 export function renderGame(ctx, canvas, bullets, player, restartButton, isRestartHover) {
   // Screen shake wrapper
   const now = performance.now();
+  // FIGHT! banner overlay
+  if (state.getFightBanner && state.getFightBanner()) {
+    const elapsed = now - state.getFightBannerStartTime();
+    const DURATION = 1000; // ms to display banner
+    if (elapsed < DURATION) {
+      ctx.save();
+      ctx.font = 'bold 72px Arial';
+      ctx.fillStyle = '#ff0';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 12;
+      ctx.fillText('FIGHT!', canvas.width / 2, canvas.height / 2 - 50);
+      ctx.restore();
+      return; // skip other rendering while banner shows
+    } else {
+      state.setFightBanner(false);
+    }
+  }
   ctx.save();
   let shouldReturn = false;
   if (getScreenShake()) {

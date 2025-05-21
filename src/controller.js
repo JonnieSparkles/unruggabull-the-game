@@ -32,6 +32,8 @@ export function resetGame(canvas, bullets) {
   player.facing = 1;
   player.health = 3;
   state.resetKillCount();
+  // Configure how many kills until difficulty increases for this level
+  state.setPhaseChangeKillCount(levelConfig.phaseChangeKillCount);
   enemyCarpshits.forEach(carpshit => {
     carpshit.x = canvas.width + 48 + Math.random() * 200;
     carpshit.y = 80 + Math.random() * 180;
