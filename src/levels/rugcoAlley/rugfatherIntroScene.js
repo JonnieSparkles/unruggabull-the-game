@@ -17,6 +17,9 @@ import { evilLaughSfx, helloUnruggabullSfx, garageDoorSound, fireWindsSwoosh } f
 import { FLASH_DURATION } from '../../constants/timing.js';
 
 export const rugfatherIntroTimeline = [
+  // 0. Clear all bullets, platforms, and carpshits before intro
+  { time: 0, action: 'clearEntities' },
+
   // 1. Screen flicker + stop music
   { time: 0,    action: 'flashScreen',      data: FLASH_DURATION },
   { time: 0,    action: 'screenShake' },
@@ -24,8 +27,8 @@ export const rugfatherIntroTimeline = [
   { time: 0,    action: 'setPlayerControl', data: false },
 
   // 2. Ground + center the player
-  { time: 500,  action: 'movePlayerToFloor' },
-  { time: 1500, action: 'movePlayerTo', data: { x: 400 }, duration: 1200 },
+  { time: 500,  action: 'movePlayerToFloor' }, // TODO: Could be more elegant (e.g. tween to floor)
+  { time: 1500, action: 'movePlayerTo', data: { x: 400, walk: true }, duration: 1200 },
 
   // 3. Garage door starts opening (~13s) + player shocked
   { time: 3000, action: 'playSfx', data: garageDoorSound },
@@ -41,7 +44,7 @@ export const rugfatherIntroTimeline = [
   // 5. Boss exits garage spinning and grows
   { time: 19000, action: 'setBossSprite',     data: 'spin' },
   { time: 19000, action: 'playSfx',          data: fireWindsSwoosh, duration: 10000 },
-  { time: 19000, action: 'tweenBossPosition', data: { x: 550, y: 'floor' }, duration: 10000 },
+  { time: 19000, action: 'tweenBossPosition', data: { x: 500, y: 'floor' }, duration: 10000 },
   { time: 19000, action: 'tweenBossScale',    data: { scale: 2.0 }, duration: 10000 },
 
   // 6. Player runs left to battle position

@@ -7,7 +7,7 @@ import {
   lowerCarpshits as enemyLowerCarpshits,
   NUM_CARPSHITS,
   NUM_LOWER_CARPSHITS
-} from './enemy.js';
+} from './enemies/carpshits.js';
 import * as state from './state.js';
 import { setupRestartUI, restartButton, isRestartHover } from './uiController.js';
 import { setupDevTools, showDevSettings } from './devtools.js';

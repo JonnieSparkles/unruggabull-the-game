@@ -7,7 +7,7 @@ import levels from '../../levels/index.js';
 import { getCurrentLevelKey } from '../../state.js';
 import { bgMusic } from '../../sound.js';
 import { platforms } from '../../physics.js';
-import { carpshits, lowerCarpshits } from '../../enemy.js';
+import { carpshits, lowerCarpshits } from '../../enemies/carpshits.js';
 
 let timelineStart = 0;
 let timelineIndex = 0;
@@ -68,6 +68,13 @@ export function updateBossIntro(now) {
  */
 function handleEvent(event, now) {
   switch (event.action) {
+    case 'clearEntities':
+      // Clear all bullets, platforms, and carpshits at intro start
+      if (window.bullets) window.bullets.length = 0;
+      platforms.length = 0;
+      carpshits.length = 0;
+      lowerCarpshits.length = 0;
+      break;
     case 'spawnBoss':
       // Activate boss and its internal state for intro
       stateModule.setCurrentBoss(rugfatherBoss);
@@ -112,6 +119,12 @@ function handleEvent(event, now) {
     case 'movePlayerTo':
       if (event.duration) {
         startTween(player, { x: event.data.x, y: event.data.y }, event.duration, now);
+        // If walk is requested and player is on the floor, set walking sprite for the tween duration
+        if (event.data.walk && player.feetY === levels[getCurrentLevelKey()].floorY) {
+          player.sprite = 'walk';
+          // Schedule a callback to set sprite to idle at the end of the tween
+          setTimeout(() => { if (player.sprite === 'walk') player.sprite = 'idle'; }, event.duration);
+        }
       } else {
         if (event.data.x !== undefined) player.x = event.data.x;
         if (event.data.y !== undefined) player.y = event.data.y;
@@ -150,15 +163,7 @@ function handleEvent(event, now) {
           targetY = event.data.y;
           debugBottom = event.data.y + BOSS_HEIGHT * bossState.scale;
         }
-        console.log('[tweenBossPosition] START', {
-          fromX: bossState.x,
-          fromY: bossState.y,
-          fromScale: bossState.scale,
-          toX: event.data.x,
-          toY: targetY,
-          toScale: bossState.scale,
-          intendedBottom: debugBottom
-        });
+ 
         startTween(bossState, { x: event.data.x, y: targetY }, event.duration || 0, now);
       }
       break;
@@ -180,13 +185,6 @@ function handleEvent(event, now) {
         bossState.y = bottom - BOSS_HEIGHT * bossState.scale;
         debugBottom = bottom;
       }
-      console.log('[setBossPosition]', {
-        x: bossState.x,
-        y: bossState.y,
-        scale: bossState.scale,
-        intendedBottom: debugBottom,
-        actualBottom: bossState.y + BOSS_HEIGHT * bossState.scale
-      });
       break;
     case 'setPlayerFacing':
       player.facing = event.data === 'left' ? -1 : 1;

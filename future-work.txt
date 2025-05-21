@@ -1,6 +1,7 @@
 rugfather
 -unruggabull hit frames
 -add unruggabull hit sound
+-is there a invulnerability set when unruggabull is hit?
 -figure out the battle
 -level intro/story
 -level finish screen
@@ -14,6 +15,7 @@ rugfather
 -master unrugabull sprite
 -improve difficulty of carpshits
 -exit scene
+
 
 
 add changelog to version number 

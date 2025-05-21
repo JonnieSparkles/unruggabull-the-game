@@ -6,12 +6,12 @@ import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGa
 import { drawPlatforms, platforms } from './physics.js';
 import { walkingSprite, crouchSprite, deadSprite, jumpingSprite, shockedSprite, walkingForwardSprite, bossDeadImage } from './assets.js';
 import { drawBullets } from './bullets.js';
-import { drawCarpshits as drawEnemyCarpshits, drawLowerCarpshits as drawEnemyLowerCarpshits, carpshits, lowerCarpshits } from './enemy.js';
+import { drawCarpshits as drawEnemyCarpshits, drawLowerCarpshits as drawEnemyLowerCarpshits, carpshits, lowerCarpshits } from './enemies/carpshits.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 import { getHitbox } from './player.js';
-import { getCarpshitHitbox } from './enemy.js';
+import { getCarpshitHitbox } from './enemies/carpshits.js';
 import { getBossHold, getBossPause, getBossTransition, getBossActive, getCurrentBoss, getScreenShake, getScreenShakeStartTime, SCREEN_SHAKE_DURATION, getBlinkingOut, getBlinkingOutStartTime, getCarpshitsDuringBoss } from './state.js';
-import { BLINK_OUT_DURATION } from './constants/timing.js';
+import { BLINK_OUT_DURATION } from './levels/rugcoAlley/rugfatherConstants.js';
 import { bgSprite, FIRST_FLICKER_FRAMES, TRANSITION_FRAMES } from './levels/rugcoAlley/background.js';
 import { PLAYER_SPRITES } from './playerSprites.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT } from './constants/player.js';
@@ -163,11 +163,14 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     if (now < state.flashEndTime) {
       ctx.save();
       const alpha = 0.8 * ((state.flashEndTime - now) / state.FLASH_DURATION);
-      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      const color = state.flashColor || 'rgba(255,255,255,0.8)';
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 1.0;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.restore();
     } else {
       state.setFlashActive(false);
+      state.setFlashColor('rgba(255,255,255,0.8)');
     }
   }
 
@@ -206,14 +209,20 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     }
     {
       const img = spriteInfo.image;
-      const frameWidth = player.width;
-      const frameHeight = player.height;
-      const frameCount = spriteInfo.animated ? spriteInfo.frameCount : 1;
-      const duration = spriteInfo.animated ? spriteInfo.frameDuration : 0;
+      const frameWidth = spriteInfo.frameWidth || player.width;
+      const frameHeight = spriteInfo.frameHeight || player.height;
       const t = performance.now();
-      const frameIndex = spriteInfo.animated
-        ? Math.floor(t / duration) % frameCount
-        : (spriteInfo.frame || 0);
+      let frameData;
+      if (spriteInfo.frameSequence) {
+        frameData = spriteInfo.frameSequence[Math.floor(t / spriteInfo.frameDuration) % spriteInfo.frameSequence.length];
+        if (typeof frameData === 'number') {
+          frameData = { frame: frameData, mirror: false };
+        }
+      } else if (spriteInfo.animated) {
+        frameData = { frame: Math.floor(t / spriteInfo.frameDuration) % (spriteInfo.frameCount || 1), mirror: false };
+      } else {
+        frameData = { frame: spriteInfo.frame || 0, mirror: false };
+      }
       const offsetY = spriteInfo.offsetY || 0;
 
       let srcY = 0;
@@ -227,20 +236,49 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       }
 
       ctx.save();
-      if (player.facing < 0) {
-        ctx.translate(player.x + frameWidth, destY);
-        ctx.scale(-1, 1);
-        ctx.drawImage(
-          img,
-          frameIndex * frameWidth, srcY, frameWidth, srcH,
-          0, 0, frameWidth, frameHeight
-        );
+      // Invulnerability blink effect while player is invulnerable
+      if (player.invulnerable && performance.now() < player.invulnerableUntil) {
+        // blink every 150ms
+        if (Math.floor(performance.now() / 150) % 2 === 0) {
+          ctx.globalCompositeOperation = 'lighter';
+        }
+      }
+      // Special case: dead sprite, mirror if facing left
+      if (spriteState === 'dead') {
+        const deadMirror = player.facing < 0;
+        if (deadMirror) {
+          ctx.translate(player.x + frameWidth, destY);
+          ctx.scale(-1, 1);
+          ctx.drawImage(
+            img,
+            0, 0, frameWidth, frameHeight,
+            0, 0, frameWidth, frameHeight
+          );
+        } else {
+          ctx.drawImage(
+            img,
+            0, 0, frameWidth, frameHeight,
+            player.x, destY, frameWidth, frameHeight
+          );
+        }
       } else {
-        ctx.drawImage(
-          img,
-          frameIndex * frameWidth, srcY, frameWidth, srcH,
-          player.x, destY, frameWidth, frameHeight
-        );
+        // Mirror if frameData.mirror is true, or if player is facing left and not in walkForward (back view)
+        const shouldMirror = frameData.mirror || (player.facing < 0 && spriteState !== 'walkForward');
+        if (shouldMirror) {
+          ctx.translate(player.x + frameWidth, destY);
+          ctx.scale(-1, 1);
+          ctx.drawImage(
+            img,
+            frameData.frame * frameWidth, srcY, frameWidth, srcH,
+            0, 0, frameWidth, frameHeight
+          );
+        } else {
+          ctx.drawImage(
+            img,
+            frameData.frame * frameWidth, srcY, frameWidth, srcH,
+            player.x, destY, frameWidth, frameHeight
+          );
+        }
       }
       ctx.restore();
     }
@@ -255,7 +293,9 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       const muzzleOffsetX = direction === 1 ? player.width - 6 : -6;
       const muzzleOffsetY = player.crouching ? player.height / 2 : player.height / 2 + 5;
       const muzzleX = player.x + muzzleOffsetX;
-      const muzzleY = player.y + muzzleOffsetY;
+      const muzzleY = player.crouching
+        ? player.feetY - player.height + muzzleOffsetY
+        : player.y + muzzleOffsetY;
       ctx.beginPath();
       ctx.ellipse(muzzleX, muzzleY, 14, 7, 0, 0, 2 * Math.PI);
       ctx.fill();

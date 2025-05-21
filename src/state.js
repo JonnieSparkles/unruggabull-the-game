@@ -1,10 +1,10 @@
 // State module: centralize game state and settings
 
 import { difficultyIncreaseSounds } from './sound.js';
-import { FLASH_DURATION, INVULNERABLE_TIME, RESPAWN_DELAY, BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './constants/timing.js';
+import { FLASH_DURATION, INVULNERABLE_TIME, RESPAWN_DELAY } from './constants/timing.js';
 
 // Re-export timing constants for legacy references
-export { FLASH_DURATION, INVULNERABLE_TIME, RESPAWN_DELAY, BOSS_HOLD_DURATION, BLINK_OUT_DURATION };
+export { FLASH_DURATION, INVULNERABLE_TIME, RESPAWN_DELAY };
 
 export let gameState = 'start';
 export function setGameState(s) { gameState = s; }
@@ -27,14 +27,13 @@ export function getKillCount() { return killCount; }
 
 export let flashActive = false;
 export let flashEndTime = 0;
-/**
- * Set whether the flash overlay is active.
- */
+export let flashColor = 'rgba(255,255,255,0.8)';
 export function setFlashActive(val) { flashActive = val; }
 /**
  * Set the time at which the flash should end.
  */
 export function setFlashEndTime(val) { flashEndTime = val; }
+export function setFlashColor(color) { flashColor = color; }
 export let PHASE_CHANGE_KILL_COUNT = 15;
 
 export let difficultyLevel = 1;
@@ -207,4 +206,18 @@ export function getBossJumped() { return bossJumped; }
 export function setFightBanner(val) { fightBannerActive = val; }
 export function getFightBanner() { return fightBannerActive; }
 export function setFightBannerStartTime(val) { fightBannerStartTime = val; }
-export function getFightBannerStartTime() { return fightBannerStartTime; } 
+export function getFightBannerStartTime() { return fightBannerStartTime; }
+
+export function playPlayerHitSound() {
+  if (!playPlayerHitSound.audio) {
+    playPlayerHitSound.audio = new Audio('assets/audio/sfx/unruggabull/unruggabull-ow.mp3');
+  }
+  const audio = playPlayerHitSound.audio;
+  audio.currentTime = 0;
+  audio.play();
+}
+
+export let playerHitFlashActive = false;
+export let playerHitFlashEndTime = 0;
+export function setPlayerHitFlashActive(val) { playerHitFlashActive = val; }
+export function setPlayerHitFlashEndTime(val) { playerHitFlashEndTime = val; } 

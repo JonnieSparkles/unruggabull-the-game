@@ -7,10 +7,11 @@ import { updateGame } from './update.js';
 import { renderGame } from './render.js';
 import { walkingSprite, carpshitSprite } from './assets.js';
 import { player } from './player.js';
-import { carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits } from './enemy.js';
+import { carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits } from './enemies/carpshits.js';
 import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
 import { GAME_STATES } from './constants/gameStates.js';
+import { PLAYER_WIDTH, PLAYER_HEIGHT } from './constants/player.js';
 
 /**
  * Reset player, enemies, and bullets for a new game.
@@ -22,6 +23,9 @@ export function resetGame(canvas, bullets) {
   state.setBossExit(false);
   state.setBossExitDoorClosing(false);
   player.x = 50;
+  // Reset player dimensions
+  player.width = PLAYER_WIDTH;
+  player.height = PLAYER_HEIGHT;
   const levelConfig = levels[getCurrentLevelKey()];
   player.feetY = levelConfig.floorY;
   player.vx = 0;

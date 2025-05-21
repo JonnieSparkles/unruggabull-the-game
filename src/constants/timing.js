@@ -1,6 +1,4 @@
-// Timing and duration constants
-export const FLASH_DURATION = 400;
-export const INVULNERABLE_TIME = 1500;
-export const RESPAWN_DELAY = 3000;
-export const BOSS_HOLD_DURATION = 1000;
-export const BLINK_OUT_DURATION = 800; 
+// Timing and duration constants for game effects and animations
+export const FLASH_DURATION = 400;      // Duration of screen flash effect when player is hit
+export const INVULNERABLE_TIME = 1500;  // Time player is invulnerable after being hit
+export const RESPAWN_DELAY = 3000;      // Delay before player respawns after death

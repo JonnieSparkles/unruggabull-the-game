@@ -13,8 +13,8 @@ export const CARPSHIT_SPRITE_WIDTH = 64;
 export const CARPSHIT_SPRITE_HEIGHT = 50;
 
 // Define dynamic floor and spawn ranges
-import levels from './levels/index.js';
-import { getCurrentLevelKey } from './state.js';
+import levels from '../levels/index.js';
+import { getCurrentLevelKey } from '../state.js';
 const levelConfig = levels[getCurrentLevelKey()];
 const floorY = levelConfig.floorY;
 const upperSpawnMinY = canvas.height * 0.1;
@@ -22,7 +22,7 @@ const upperSpawnMaxY = canvas.height * 0.6;
 const lowerSpawnMinY = canvas.height * 0.6;
 const lowerSpawnMaxY = floorY - 48;
 
-import { difficultyLevel } from './state.js';
+import { difficultyLevel } from '../state.js';
 
 /**
  * Primary enemy: flying carpshits

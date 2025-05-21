@@ -111,6 +111,7 @@ export function getHitbox(player) {
     const topY = player.feetY - height;
     return { x: player.x, y: topY, width: player.width, height };
   } else {
-    return { x: player.x, y: player.y, width: player.width, height: player.height };
+    // Always align hitbox to feet, even when crouching
+    return { x: player.x, y: player.feetY - player.height, width: player.width, height: player.height };
   }
 } 

@@ -37,7 +37,7 @@ export function checkBulletLowercarpshitCollisions(bullets, carpshits, onKill) {
  * Calls onHit(carpshit) when the player collides with a carpshit.
  */
 import { getHitbox } from './player.js';
-import { getCarpshitHitbox } from './enemy.js';
+import { getCarpshitHitbox } from './enemies/carpshits.js';
 export function checkPlayercarpshitCollisions(player, carpshits, onHit) {
   if (!player || typeof onHit !== 'function') return;
   for (let j = carpshits.length - 1; j >= 0; j--) {

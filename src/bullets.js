@@ -62,7 +62,9 @@ export function fireBullet(player, bullets) {
     ? player.height / 2
     : player.height / 2 + 5;
   const bulletX = player.x + bulletOffsetX;
-  const bulletY = player.y + bulletOffsetY;
+  const bulletY = (player.crouching
+    ? player.feetY - player.height + bulletOffsetY
+    : player.y + bulletOffsetY);
 
   bullets.push({
     x: bulletX,

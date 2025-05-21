@@ -3,7 +3,7 @@ import { keys } from './input.js';
 import { player, updatePlayerInput } from './player.js';
 import { platforms, handlePhysics } from './physics.js';
 import { updateBullets, handleFiring } from './bullets.js';
-import { updateCarpshits as updateEnemyCarpshits, updateLowerCarpshits as updateEnemyLowerCarpshits, carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits } from './enemy.js';
+import { updateCarpshits as updateEnemyCarpshits, updateLowerCarpshits as updateEnemyLowerCarpshits, carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits } from './enemies/carpshits.js';
 import { checkBulletcarpshitCollisions, checkBulletLowercarpshitCollisions, checkPlayercarpshitCollisions } from './collision.js';
 import { handleBulletKill, handlePlayerHit } from './callbacks.js';
 import * as state from './state.js';
@@ -12,7 +12,8 @@ import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
 import rugfatherBoss, { checkBossBulletCollision } from './levels/rugcoAlley/rugfather.js';
 import { setBossShockedStartTime, getBossShockedStartTime, setAutoRunLeft, getAutoRunLeft, getBossBattleStarted } from './state.js';
-import { FLASH_DURATION, BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './constants/timing.js';
+import { FLASH_DURATION } from './constants/timing.js';
+import { BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './levels/rugcoAlley/rugfatherConstants.js';
 import { GAME_STATES } from './constants/gameStates.js';
 import { startBossIntro, updateBossIntro } from './levels/rugcoAlley/rugfatherOrchestrator.js';
 
@@ -257,16 +258,26 @@ export function updateGame(bullets, canvas) {
   handlePhysics(player, platforms, canvas);
   handleFiring(keys, player, bullets);
   // Sprite state: firing overrides movement
-  if (player.firing) {
-    player.sprite = 'fire';
-  } else if (!player.grounded && !player.crouching) {
-    player.sprite = 'jump';
-  } else if (player.crouching) {
-    player.sprite = 'crouch';
-  } else if (player.vx !== 0) {
-    player.sprite = 'walk';
+  if (player.health <= 0) {
+    player.sprite = 'dead';
+    player.width = 128;
   } else {
-    player.sprite = 'idle';
+    if (player.width !== 64) player.width = 64;
+    if (player.firing) {
+      player.sprite = 'fire';
+    } else if (!player.grounded && !player.crouching) {
+      player.sprite = 'jump';
+    } else if (player.crouching) {
+      if (player.vx !== 0) {
+        player.sprite = 'crouch'; // crouch-walking
+      } else {
+        player.sprite = 'crouchIdle'; // crouch idle
+      }
+    } else if (player.vx !== 0) {
+      player.sprite = 'walk';
+    } else {
+      player.sprite = 'idle';
+    }
   }
   updateBullets(bullets, canvas.width);
 

@@ -4,6 +4,7 @@ import * as state from './state.js';
 import { player } from './player.js';
 import { FLASH_DURATION, INVULNERABLE_TIME } from './constants/timing.js';
 import { GAME_STATES } from './constants/gameStates.js';
+import { playPlayerHitSound, setPlayerHitFlashActive, setPlayerHitFlashEndTime } from './state.js';
 
 /**
  * Handle when a bullet hits a carpshit: kill carpshit, play sound, update score and difficulty.
@@ -32,12 +33,24 @@ export function handlePlayerHit(carpshit) {
   player.health--;
   player.invulnerable = true;
   player.invulnerableUntil = performance.now() + 1500;
+  // If player died, set death sprite and width
+  if (player.health <= 0) {
+    player.sprite = 'dead';
+    player.width = 128;
+  }
   carpshit.alive = false;
   carpshit.frame = 3;
   carpshit.falling = true;
   carpshit.vy = 0;
   carpshitDeathSound.currentTime = 0;
   carpshitDeathSound.play();
+  // Red screen flash and hit sound
+  state.setFlashActive(true);
+  state.setFlashEndTime(performance.now() + 80); // quick flicker
+  state.setFlashColor('rgba(255,0,0,0.5)');
+  playPlayerHitSound();
+  setPlayerHitFlashActive(true);
+  setPlayerHitFlashEndTime(performance.now() + 80);
   if (player.health <= 0) {
     if (!state.gameState.includes('over') && state.gameState !== 'dying') {
       gameOverSound.currentTime = 0;

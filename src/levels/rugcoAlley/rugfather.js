@@ -2,14 +2,15 @@ import { setPlayerAutoRunLeft } from '../../state.js';
 import { player } from '../../player.js';
 import * as stateModule from '../../state.js';
 import { bgMusic, evilLaughSfx, fireWindsSwoosh, helloUnruggabullSfx } from '../../sound.js';
-import { carpshits, lowerCarpshits, NUM_CARPSHITS, NUM_LOWER_CARPSHITS } from '../../enemy.js';
+import { carpshits, lowerCarpshits, NUM_CARPSHITS, NUM_LOWER_CARPSHITS } from '../../enemies/carpshits.js';
 import { setAutoRunLeft } from '../../state.js';
 import { setBossBattleStarted, getBossBattleStarted } from '../../state.js';
 import { startBossIntro, updateBossIntro } from './rugfatherOrchestrator.js';
 import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
 import levels from '../../levels/index.js';
 import { getCurrentLevelKey } from '../../state.js';
-import { FLASH_DURATION, BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from '../../constants/timing.js';
+import { FLASH_DURATION } from '../../constants/timing.js';
+import { BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './rugfatherConstants.js';
 import { GAME_STATES } from '../../constants/gameStates.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT } from '../../constants/player.js';
 
@@ -43,7 +44,6 @@ const state = {
   blinkActualStartTime: 0,
   blinking: false,
   laughPlayed: false,
-  walkingForward: false,
   bossInPosition: false,
   jumpDone: false,
   scale: 1.0,
@@ -79,7 +79,6 @@ function spawn() {
   state.entering = true;
   state.blinking = false;
   state.laughPlayed = false;
-  state.walkingForward = false;
   state.bossInPosition = false;
   state.spinEndTime = 0;
   state.jumpDone = false;
@@ -164,23 +163,37 @@ function draw() {
       spriteInfo = RUGFATHER_SPRITES['idle'];
     }
     const t = performance.now();
-    let frameNumber;
+    let frameData;
     if (spriteInfo.frameSequence) {
-      frameNumber = spriteInfo.frameSequence[Math.floor(t / spriteInfo.frameDuration) % spriteInfo.frameSequence.length];
+      frameData = spriteInfo.frameSequence[Math.floor(t / spriteInfo.frameDuration) % spriteInfo.frameSequence.length];
+      // If frameData is a number, convert to object for uniformity
+      if (typeof frameData === 'number') {
+        frameData = { frame: frameData, mirror: false };
+      }
     } else if (spriteInfo.animated) {
-      frameNumber = Math.floor(t / spriteInfo.frameDuration) % spriteInfo.frameCount;
+      frameData = { frame: Math.floor(t / spriteInfo.frameDuration) % spriteInfo.frameCount, mirror: false };
     } else {
-      frameNumber = spriteInfo.frame;
+      frameData = { frame: spriteInfo.frame, mirror: false };
     }
     const FRAME_W = BOSS_WIDTH;
     const FRAME_H = BOSS_HEIGHT;
     ctx.save();
     ctx.globalAlpha = state.opacity;
-    ctx.drawImage(
-      spriteInfo.image,
-      frameNumber * FRAME_W, 0, FRAME_W, FRAME_H,
-      state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
-    );
+    if (frameData.mirror) {
+      ctx.translate(state.x + FRAME_W * state.scale, state.y);
+      ctx.scale(-1, 1);
+      ctx.drawImage(
+        spriteInfo.image,
+        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
+        0, 0, FRAME_W * state.scale, FRAME_H * state.scale
+      );
+    } else {
+      ctx.drawImage(
+        spriteInfo.image,
+        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
+        state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
+      );
+    }
     ctx.globalAlpha = 1.0;
     ctx.restore();
     return;
@@ -214,25 +227,34 @@ function draw() {
     ctx.globalAlpha = 1.0;
     ctx.restore();
     return;
-  } else if (state.walkingForward) {
-    // Spin/twirl frames 2-6 then reverse (mirror) for cinematic spin
-    const spinFrames = [2,3,4,5,6,6,5,4,3,2];
-    const spinCount = spinFrames.length;
-    const spinDuration = 3200; // ms per rotation
-    const totalRotations = 2;
-    const t = performance.now() - stateModule.getBossTransitionStartTime();
-    // progress over totalRotations
-    const totalTime = spinDuration * totalRotations;
-    const progress = Math.min(t / totalTime, 1);
-    // Which frame in current spin
-    let frameIdx = Math.floor((t / spinDuration) * spinCount) % spinCount;
-    if (progress >= 1) frameIdx = spinCount - 1;
-    const frameNumber = spinFrames[frameIdx];
-    ctx.drawImage(
-      bossSpriteSheet,
-      frameNumber * FRAME_W, 0, FRAME_W, FRAME_H,
-      state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
-    );
+  } else if (state.sprite === 'spin') {
+    // Use the sprite map for spin animation with mirroring support
+    const spriteInfo = RUGFATHER_SPRITES['spin'];
+    const t = performance.now();
+    const frameSequence = spriteInfo.frameSequence;
+    const frameDuration = spriteInfo.frameDuration;
+    const frameIdx = Math.floor(t / frameDuration) % frameSequence.length;
+    const frameData = frameSequence[frameIdx];
+    ctx.save();
+    ctx.globalAlpha = state.opacity;
+    if (frameData.mirror) {
+      ctx.translate(state.x + FRAME_W * state.scale, state.y);
+      ctx.scale(-1, 1);
+      ctx.drawImage(
+        spriteInfo.image,
+        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
+        0, 0, FRAME_W * state.scale, FRAME_H * state.scale
+      );
+    } else {
+      ctx.drawImage(
+        spriteInfo.image,
+        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
+        state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
+      );
+    }
+    ctx.globalAlpha = 1.0;
+    ctx.restore();
+    return;
   } else {
     // After spin/scale and before battle, hold frame 9 then frame 10
     if (state.bossInPosition && !getBossBattleStarted()) {
@@ -302,6 +324,7 @@ function hit(damage = 1) {
     // Respawn carpshits and lowerCarpshits
     carpshits.length = 0;
     lowerCarpshits.length = 0;
+    const levelConfig = levels[getCurrentLevelKey()];
     for (let i = 0; i < NUM_CARPSHITS; i++) {
       carpshits.push({
         x: canvas.width + 48 + Math.random() * 200,
