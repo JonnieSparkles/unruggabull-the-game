@@ -16,8 +16,8 @@ export const fireSound = new Audio('assets/audio/sfx/blaster-fire.mp3');
  * Unruggabull reactions.
  */
 export const difficultyIncreaseSounds = [
-  new Audio('assets/audio/sfx/unruggabull/oh-yeaaaa.mp3'),
-  new Audio('assets/audio/sfx/unruggabull/permanence.mp3'),
+  new Audio('assets/audio/sfx/unruggabull/unruggabull-oh-yeaaaa.mp3'),
+  new Audio('assets/audio/sfx/unruggabull/unruggabull-upermanence.mp3'),
   // Add more as needed
 ];
 
@@ -29,7 +29,7 @@ export const carpshitDeathSound = new Audio('assets/audio/sfx/carpshit/carpshit-
 /**
  * Game over sound.
  */
-export const gameOverSound = new Audio('assets/audio/sfx/unruggabull/game-over.mp3');
+export const gameOverSound = new Audio('assets/audio/sfx/unruggabull/unruggabull-game-over.mp3');
 gameOverSound.volume = 1.0;
 
 /**
@@ -44,6 +44,6 @@ export const garageDoorCloseSound = new Audio('assets/audio/sfx/garage-door-clos
 garageDoorCloseSound.volume = 1.0;
 
 // Entrance sound effects
-export const evilLaughSfx = new Audio('assets/audio/sfx/rugfather/ha-ha-evil-echo-laugh.mp3');
+export const evilLaughSfx = new Audio('assets/audio/sfx/rugfather/rugfather-ha-ha-evil-echo-laugh.mp3');
 export const fireWindsSwoosh = new Audio('assets/audio/sfx/fire-winds-swoosh.mp3');
-export const helloUnruggabullSfx = new Audio('assets/audio/sfx/rugfather/hello-unruggabull.mp3'); 
+export const helloUnruggabullSfx = new Audio('assets/audio/sfx/rugfather/ruggfather-hello-unruggabull.mp3'); 

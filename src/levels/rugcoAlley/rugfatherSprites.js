@@ -18,6 +18,7 @@ export const RUGFATHER_SPRITES = {
     {frame:3, mirror:true}
   ], frameDuration: 200, frameWidth: 128, frameHeight: 128 },
   blink:       { image: bossSpriteSheet, animated: false, frame: 0, frameWidth: 128, frameHeight: 128 },
-  attack:      { image: bossSpriteSheet, animated: true,  frameSequence: [7,8,9], frameDuration: 300, frameWidth: 128, frameHeight: 128 },
-  dead:        { image: bossDeadSprite,  animated: false, frameSequence: [0,1,2,3], frameDuration: 200, frameWidth: 192, frameHeight: 192 }
+  attack:      { image: bossSpriteSheet, animated: true,  frameSequence: [7,8,9,10,11], frameDuration: 300, frameWidth: 128, frameHeight: 128 },
+  hit:       { image: bossSpriteSheet, animated: false, frame: 12, frameWidth: 128, frameHeight: 128 },
+  dead:        { image: bossDeadSprite,  animated: true, frameSequence: [0,1,2,3], frameDuration: 200, frameWidth: 192, frameHeight: 192 }
 }; 
