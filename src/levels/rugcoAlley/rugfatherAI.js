@@ -52,7 +52,7 @@ export function updateBossAI(now) {
 
 function spawnProjectile() {
   // Fire horizontally from boss's mouth/hands (scale is always 1)
-  const x = state.x + BOSS_WIDTH / 3;
+  const x = state.x + BOSS_WIDTH * 0.2;
   const y = state.y + BOSS_HEIGHT * 0.65;
   spawnRugfatherCarpet(x, y);
 }

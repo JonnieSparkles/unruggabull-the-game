@@ -75,13 +75,14 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
 
   // Flash overlay
   if (state.flashActive) {
-    const now = performance.now();
-    if (now < state.flashEndTime) {
-      ctx.save();
-      const alpha = 0.8 * ((state.flashEndTime - now) / state.FLASH_DURATION);
+    const flashNow = performance.now();
+    const timeLeft = state.flashEndTime - flashNow;
+    if (timeLeft > 0) {
+      const alpha = timeLeft / state.FLASH_DURATION;
       const color = state.flashColor || 'rgba(255,255,255,0.8)';
+      ctx.save();
+      ctx.globalAlpha = alpha;
       ctx.fillStyle = color;
-      ctx.globalAlpha = 1.0;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.restore();
     } else {
@@ -152,13 +153,11 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       }
 
       ctx.save();
-      // Player hit flash: brighten sprite for a brief moment
-      if (state.playerHitFlashActive) {
-        ctx.globalAlpha = 1.0;
-        ctx.globalCompositeOperation = 'lighter';
-        if (performance.now() > state.playerHitFlashEndTime) {
-          state.setPlayerHitFlashActive(false);
-        }
+      // Player invulnerability blink
+      if (player.invulnerable) {
+        const blinkInterval = 200; // ms between alpha toggles
+        const blinkOn = Math.floor(now / blinkInterval) % 2 === 0;
+        ctx.globalAlpha = blinkOn ? 0.5 : 1.0;
       }
       // Special case: dead sprite is always unmirrored and uses full width
       if (spriteState === 'dead') {
