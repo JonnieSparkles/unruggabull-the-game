@@ -23,6 +23,8 @@ export default class RugfatherCarpet {
     // Summoning animation
     this.spawnTime = performance.now();
     this.scaleDuration = SUMMON_GROW_DURATION;
+    // Trail effect
+    this.trail = [{ x: x, y: y, time: performance.now() }];
 
     // Play fire swoosh sound
     const fireSwooshSfx = new Audio('assets/audio/sfx/fire-swoosh-whoosh-short.mp3');
@@ -41,6 +43,9 @@ export default class RugfatherCarpet {
     // Move after growth complete
     this.x += this.vx;
     this.y += this.vy;
+    // Trail effect: add new position and keep only recent
+    this.trail.push({ x: this.x, y: this.y, time: now });
+    this.trail = this.trail.filter(point => now - point.time < 300);
   }
 
   /**
@@ -80,6 +85,50 @@ export default class RugfatherCarpet {
     } else {
       this.frameTimer++;
       frame = Math.floor(this.frameTimer / 6) % 3;
+    }
+    // Draw fire-like trail
+    const now = performance.now();
+    for (const point of this.trail) {
+      const age = now - point.time;
+      const fade = 1 - age / 300;
+      // Flicker: random offset for fire effect
+      const flickerX = (Math.random() - 0.5) * 6 * fade;
+      const flickerY = (Math.random() - 0.5) * 6 * fade;
+      // Color and size based on age
+      let color, radius, alpha;
+      if (fade > 0.7) {
+        color = 'rgba(255,255,180,1)'; // white-yellow, hottest
+        radius = 13 * fade;
+        alpha = 0.25 * fade;
+      } else if (fade > 0.4) {
+        color = 'rgba(255,180,40,1)'; // orange-yellow
+        radius = 10 * fade;
+        alpha = 0.18 * fade;
+      } else {
+        color = 'rgba(255,60,0,1)'; // red-orange, coolest
+        radius = 7 * fade;
+        alpha = 0.10 * fade;
+      }
+      // Outer glow
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(point.x + flickerX, point.y + flickerY, Math.max(radius * 1.5, 1), 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 16;
+      ctx.fill();
+      ctx.restore();
+      // Inner core
+      ctx.save();
+      ctx.globalAlpha = alpha * 1.5;
+      ctx.beginPath();
+      ctx.arc(point.x + flickerX, point.y + flickerY, Math.max(radius * 0.7, 1), 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 4;
+      ctx.fill();
+      ctx.restore();
     }
     // Draw with scaling around center
     ctx.save();
