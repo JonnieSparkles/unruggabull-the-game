@@ -3,6 +3,7 @@ rugfather
 -figure out the battle
 --randomize carpet projectiles vertically
 --jitter the boss 
+-blaster cool down?
 -level intro/story
 -level finish screen
 -whats gameover during boss?
@@ -13,6 +14,7 @@ rugfather
 -exit scene
 -master unrugabull sprite
 -fix intro screen to 960x540
+
 
 
 add changelog to version number 
