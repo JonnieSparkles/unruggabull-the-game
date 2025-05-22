@@ -1,3 +1,26 @@
 // Boss-specific timing constants for the Rugfather fight
 export const BOSS_HOLD_DURATION = 1000; // ms to pause before boss transition
-export const BLINK_OUT_DURATION = 800;  // ms for blink-out effect before platforms disappear 
+export const BLINK_OUT_DURATION = 800;  // ms for blink-out effect before platforms disappear
+
+// Boss HP and phase constants
+export const MAX_HP = 100;
+export const NUM_PHASES = 5;
+
+// Phase configurations: attack cooldown in ms per phase
+export const PHASE_ATTACK_COOLDOWNS = {
+  5: 3000, // 100%
+  4: 2500, // 80%
+  3: 2000, // 60%
+  2: 1500, // 40%
+  1: 1000  // 20%
+};
+
+// Phase 1 movement constants
+export const PHASE1_MOVE_AMPLITUDE = 80;        // px left/right
+export const PHASE1_MOVE_PERIOD = 5000;         // ms for full cycle
+export const PHASE1_JUMP_HEIGHT = 40;           // px jump bob
+export const PHASE1_JUMP_PERIOD = 8000;         // ms for jump cycle
+
+// Blink pattern and total duration
+export const BLINK_PATTERN = [600, 300, 900, 200, 1200, 150, 1500, 100, 1800]; // ms on/off
+export const BLINK_TOTAL_DURATION = BLINK_PATTERN.reduce((a, b) => a + b, 0); 

@@ -3,7 +3,8 @@ rugfather
 -figure out the battle
 --randomize carpet projectiles vertically
 --jitter the boss 
--blaster cool down?
+-blaster cool down? temp-blaster-energy.md
+-animate idle sprites
 -level intro/story
 -level finish screen
 -whats gameover during boss?

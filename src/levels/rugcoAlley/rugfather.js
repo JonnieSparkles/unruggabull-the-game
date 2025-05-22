@@ -9,7 +9,19 @@ import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
 import levels from '../../levels/index.js';
 import { getCurrentLevelKey } from '../../state.js';
 import { FLASH_DURATION } from '../../constants/timing.js';
-import { BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './rugfatherConstants.js';
+import {
+  BOSS_HOLD_DURATION,
+  BLINK_OUT_DURATION,
+  MAX_HP,
+  NUM_PHASES,
+  PHASE_ATTACK_COOLDOWNS,
+  PHASE1_MOVE_AMPLITUDE,
+  PHASE1_MOVE_PERIOD,
+  PHASE1_JUMP_HEIGHT,
+  PHASE1_JUMP_PERIOD,
+  BLINK_PATTERN,
+  BLINK_TOTAL_DURATION
+} from './rugfatherConstants.js';
 import { GAME_STATES } from '../../constants/gameStates.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT } from '../../constants/player.js';
 import { updateBossAI } from './rugfatherAI.js';
@@ -33,23 +45,6 @@ const BOSS_HEIGHT = 256;
 // Export sprite dimensions for external positioning
 export { BOSS_WIDTH, BOSS_HEIGHT };
 
-// Maximum HP for phase calculations
-const MAX_HP = 100;
-// Phase configurations: attack cooldown in ms per phase
-const PHASE_ATTACK_COOLDOWNS = {
-  5: 3000, // 100%
-  4: 2500, // 80%
-  3: 2000, // 60%
-  2: 1500, // 40%
-  1: 1000  // 20%
-};
-
-// Phase 1 movement constants
-const PHASE1_MOVE_AMPLITUDE = 80;        // px left/right
-const PHASE1_MOVE_PERIOD = 5000;         // ms for full cycle
-const PHASE1_JUMP_HEIGHT = 40;           // px jump bob
-const PHASE1_JUMP_PERIOD = 8000;         // ms for jump cycle
-
 // Internal state
 const state = {
   x: 0,
@@ -60,7 +55,7 @@ const state = {
   hasCapturedBaseX: false,
   lastPhase1LogTime: 0,
   hp: MAX_HP,
-  phase: 5,
+  phase: NUM_PHASES,
   active: false,
   opacity: 1,
   entering: true,
@@ -80,7 +75,7 @@ const state = {
   fadeInDuration: 0,
   sprite: 'idle',
   lastAttackTime: 0,
-  attackCooldown: PHASE_ATTACK_COOLDOWNS[5],
+  attackCooldown: PHASE_ATTACK_COOLDOWNS[NUM_PHASES],
   attackAnimationStartTime: null,
   hasSpawnedProjectile: false
 };
@@ -89,19 +84,12 @@ const bossCenterX = () => canvas.width / 2 - BOSS_WIDTH / 2;
 const bossFinalX = () => bossCenterX() + (canvas.width - BOSS_WIDTH * 1.2 - bossCenterX()) * 0.5;
 const bossStartX = () => bossCenterX();
 
-// Blink pattern and total duration
-const blinkPattern = [600, 300, 900, 200, 1200, 150, 1500, 100, 1800]; // ms on/off
-const blinkTotalDuration = blinkPattern.reduce((a, b) => a + b, 0);
-
-/**
- * Recalculate boss phase based on current HP and adjust parameters.
- */
+// Recalculate boss phase based on current HP and adjust parameters.
 function updatePhase() {
   const ratio = state.hp / MAX_HP;
-  const newPhase = Math.ceil(ratio * MAX_HP);
+  const newPhase = Math.ceil(ratio * NUM_PHASES);
   if (newPhase !== state.phase) {
     state.phase = newPhase;
-    // Adjust attack cooldown for this phase
     const cd = PHASE_ATTACK_COOLDOWNS[newPhase] || state.attackCooldown;
     state.attackCooldown = cd;
     console.log(`Rugfather phase changed to ${newPhase}, attackCooldown=${cd}`);
@@ -112,7 +100,7 @@ function updatePhase() {
 function spawn() {
   state.active = true;
   state.hp = MAX_HP;
-  state.phase = MAX_HP;
+  state.phase = NUM_PHASES;
   state.scale = 0.5;
   state.x = bossStartX();
   const finalScale = 1.0;
@@ -184,8 +172,8 @@ function update() {
   // Post-intro and battle logic are now fully controlled by timeline and combat handlers.
   updateBossAI(now);
 
-  // Phase 1 boss movement: horizontal oscillation and vertical bob (after battle starts)
-  if (getBossBattleStarted() && state.active && !state.dying && state.phase === MAX_HP) {
+  // Initial-phase boss movement: horizontal oscillation and vertical bob (phase === NUM_PHASES)
+  if (getBossBattleStarted() && state.active && !state.dying && state.phase === NUM_PHASES) {
     // Capture baseY/baseX first time battle starts
     if (!state.hasCapturedBaseY) {
       state.baseY = state.y;
@@ -280,8 +268,8 @@ function draw() {
     let t = performance.now() - state.blinkActualStartTime;
     let total = 0;
     let on = true;
-    for (let i = 0; i < blinkPattern.length; i++) {
-      total += blinkPattern[i];
+    for (let i = 0; i < BLINK_PATTERN.length; i++) {
+      total += BLINK_PATTERN[i];
       if (t < total) {
         on = i % 2 === 0;
         break;
