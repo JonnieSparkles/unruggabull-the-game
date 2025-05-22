@@ -107,9 +107,9 @@ function update() {
   if (!state.active) return;
   const now = performance.now();
 
-  updateBossAI(now);
+  updateBossAI(now, state);
   // Phase 1 movement
-  updatePhase1Movement(now);
+  updatePhase1Movement(now, state);
 }
 
 // Draw the boss and its HP bar
@@ -175,74 +175,53 @@ function draw() {
   ctx.globalAlpha = state.opacity;
 
   // Determine which sprite frame to draw
-  const FRAME_W = BOSS_WIDTH;
-  const FRAME_H = BOSS_HEIGHT;
-  if (state.sprite === 'spin') {
-    // Use the sprite map for spin animation with mirroring support
-    const spriteInfo = RUGFATHER_SPRITES['spin'];
+  const spriteState = state.sprite || 'idle';
+  let spriteInfo = RUGFATHER_SPRITES[spriteState] || RUGFATHER_SPRITES.idle;
+  const fw = spriteInfo.frameWidth;
+  const fh = spriteInfo.frameHeight;
+  if (spriteInfo.animated && spriteInfo.frameSequence) {
     const t = performance.now();
     const frameSequence = spriteInfo.frameSequence;
     const frameDuration = spriteInfo.frameDuration;
     const frameIdx = Math.floor(t / frameDuration) % frameSequence.length;
-    const frameData = frameSequence[frameIdx];
-    ctx.save();
-    ctx.globalAlpha = state.opacity;
-    if (frameData.mirror) {
-      ctx.translate(state.x + FRAME_W * state.scale, state.y);
-      ctx.scale(-1, 1);
-      ctx.drawImage(
-        spriteInfo.image,
-        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
-        0, 0, FRAME_W * state.scale, FRAME_H * state.scale
-      );
-    } else {
-      ctx.drawImage(
-        spriteInfo.image,
-        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
-        state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
-      );
-    }
-    ctx.globalAlpha = 1.0;
-    ctx.restore();
-    return;
-  } else if (state.sprite === 'attack') {
-    // Draw attack animation
-    const spriteInfo = RUGFATHER_SPRITES.attack;
-    const elapsed = performance.now() - (state.attackAnimationStartTime || performance.now());
-    const idx = Math.floor(elapsed / spriteInfo.frameDuration) % spriteInfo.frameSequence.length;
-    let frameData = spriteInfo.frameSequence[idx];
+    let frameData = frameSequence[frameIdx];
     if (typeof frameData === 'number') frameData = { frame: frameData, mirror: false };
     ctx.save();
     ctx.globalAlpha = state.opacity;
     if (frameData.mirror) {
-      ctx.translate(state.x + FRAME_W * state.scale, state.y);
+      ctx.translate(state.x + fw * state.scale, state.y);
       ctx.scale(-1, 1);
       ctx.drawImage(
         spriteInfo.image,
-        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
-        0, 0, FRAME_W * state.scale, FRAME_H * state.scale
+        frameData.frame * fw, 0, fw, fh,
+        0, 0, fw * state.scale, fh * state.scale
       );
     } else {
       ctx.drawImage(
         spriteInfo.image,
-        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
-        state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
+        frameData.frame * fw, 0, fw, fh,
+        state.x, state.y, fw * state.scale, fh * state.scale
       );
     }
     ctx.globalAlpha = 1.0;
     ctx.restore();
+    ctx.globalAlpha = 1.0;
+    ctx.restore();
+    // Health bar
+    const barWidth = 200;
+    const hpRatio = Math.max(0, state.hp) / 5;
+    ctx.fillStyle = 'red';
+    ctx.fillRect(canvas.width / 2 - barWidth / 2, 20, barWidth * hpRatio, 10);
+    ctx.strokeStyle = 'white';
+    ctx.strokeRect(canvas.width / 2 - barWidth / 2, 20, barWidth, 10);
     return;
-  } else {
-    // Battle-ready: frame 8 (then 7 if needed)
-    const readyFrame = 8;
-    // Boss start battle on frame 7
-    const battleFrame = 7;
-    ctx.drawImage(
-      bossSpriteSheet,
-      battleFrame * FRAME_W, 0, FRAME_W, FRAME_H,
-      state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
-    );
   }
+  // Static frame (idle, etc.)
+  ctx.drawImage(
+    spriteInfo.image,
+    (spriteInfo.frame || 0) * fw, 0, fw, fh,
+    state.x, state.y, fw * state.scale, fh * state.scale
+  );
   ctx.globalAlpha = 1.0;
   ctx.restore();
   // Health bar
@@ -259,7 +238,7 @@ function hit(damage = 1) {
   if (!state.active) return;
   state.hp -= damage;
   // Update phase based on new HP
-  updatePhaseLogic();
+  updatePhaseLogic(state);
   if (state.hp < 0) state.hp = 0;
   // Shake the screen
   stateModule.setScreenShake(true);
@@ -325,14 +304,39 @@ function getHitbox() {
   };
 }
 
-// Export boss interface
-const rugfatherBoss = { spawn, update, draw, hit, getHitbox, phase: () => state.phase };
+// Add public methods for orchestrator-driven visual control
+function setSprite(name) {
+  state.sprite = name;
+}
+function setPosition(x, y) {
+  state.x = x;
+  state.y = y;
+}
+function setOpacity(alpha) {
+  state.opacity = alpha;
+}
+function setScale(scale) {
+  state.scale = scale;
+}
+
+// Export boss interface (spawn, update, draw, hit, getHitbox, setSprite, setPosition, setOpacity, setScale)
+const rugfatherBoss = {
+  spawn,
+  update,
+  draw,
+  hit,
+  getHitbox,
+  setSprite,
+  setPosition,
+  setOpacity,
+  setScale
+};
 export default rugfatherBoss;
 
-// Expose internal boss state for orchestrator
-export const bossState = state;
+// Internal state export for orchestrator tweening (DO NOT use externally)
+export const __bossState = state;
 
-// Helper for bullet collision
+// Helper for bullet collision: checks if a player bullet hit the boss
 export function checkBossBulletCollision(bullet) {
   if (!state.active) return false;
   const hitbox = getHitbox();
@@ -342,4 +346,5 @@ export function checkBossBulletCollision(bullet) {
   );
 }
 
-export function getBossInPosition() { return state.bossInPosition; } 
+// NOTE: Internal boss state is encapsulated; avoid direct access.
+// (getBossInPosition removed) 

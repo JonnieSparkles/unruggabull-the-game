@@ -23,4 +23,8 @@ export const PHASE1_JUMP_PERIOD = 8000;         // ms for jump cycle
 
 // Blink pattern and total duration
 export const BLINK_PATTERN = [600, 300, 900, 200, 1200, 150, 1500, 100, 1800]; // ms on/off
-export const BLINK_TOTAL_DURATION = BLINK_PATTERN.reduce((a, b) => a + b, 0); 
+export const BLINK_TOTAL_DURATION = BLINK_PATTERN.reduce((a, b) => a + b, 0);
+
+// Boss sprite dimensions
+export const BOSS_WIDTH = 256;
+export const BOSS_HEIGHT = 256; 

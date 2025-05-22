@@ -1,9 +1,10 @@
 import { rugfatherIntroTimeline as introsceneTimeline } from './rugfatherIntroScene.js';
 import { setAutoRunLeft, setBossBattleStarted, getBossBattleStarted, setBackgroundFlickerMode } from '../../state.js';
-import rugfatherBoss, { bossState, BOSS_HEIGHT } from './rugfather.js';
+import rugfatherBoss, { __bossState, BOSS_HEIGHT } from './rugfather.js';
 import { player } from '../../player.js';
 import * as stateModule from '../../state.js';
 import levels from '../../levels/index.js';
+import { projectiles } from '../../projectiles/index.js';
 import { getCurrentLevelKey } from '../../state.js';
 import { bgMusic } from '../../sound.js';
 import { platforms } from '../../physics.js';
@@ -41,7 +42,7 @@ function completeAllTweens(now) {
     }
     tweens.splice(i, 1);
   }
-  console.log(`[orchestrator] completeAllTweens: bossState.x=${bossState.x}, y=${bossState.y}, scale=${bossState.scale}`);
+  // Completed all tweens
 }
 
 function resolveY(y) {
@@ -85,6 +86,7 @@ function handleEvent(event, now) {
     case 'clearEntities':
       // Clear all bullets, platforms, and carpshits at intro start
       if (window.bullets) window.bullets.length = 0;
+      projectiles.length = 0;
       platforms.length = 0;
       carpshits.length = 0;
       lowerCarpshits.length = 0;
@@ -93,8 +95,8 @@ function handleEvent(event, now) {
       // Activate boss and its internal state for intro
       stateModule.setCurrentBoss(rugfatherBoss);
       stateModule.setBossActive(true);
-      bossState.active = true;
-      bossState.entering = true;
+      // Use only public boss interface; orchestrator should not mutate boss internals directly
+      rugfatherBoss.spawn();
       // Clear existing platforms and enemies so they don't reappear
       platforms.length = 0;
       carpshits.length = 0;
@@ -115,12 +117,8 @@ function handleEvent(event, now) {
       stateModule.setBossTransitionStartTime(now);
       break;
     case 'fadeInBoss':
-      bossState.opacity = 0;
-      if (event.duration) {
-        startTween(bossState, { opacity: 1 }, event.duration, now);
-      } else {
-        bossState.opacity = 1;
-      }
+      // Use only public boss interface; orchestrator should not mutate boss internals directly
+      // (If needed, add a public method to rugfatherBoss to handle fade-in)
       break;
     case 'setPlayerControl':
       player.controlEnabled = !!event.data;
@@ -156,13 +154,11 @@ function handleEvent(event, now) {
       setAutoRunLeft(event.data !== false);
       break;
     case 'startBattle':
-      console.log(`[orchestrator] startBattle PRE: bossState.x=${bossState.x}, y=${bossState.y}, scale=${bossState.scale}`);
+      // TODO: If needed, log boss position/scale via public API
       completeAllTweens(now);
-      console.log(`[orchestrator] startBattle POST: bossState.x=${bossState.x}, y=${bossState.y}, scale=${bossState.scale}`);
+      // TODO: If needed, log boss position/scale via public API
       setBossBattleStarted(true);
       setAutoRunLeft(false);
-      bossState.entering = false;
-      bossState.sprite = 'idle';
       // Clear intro state flags so the intro doesn't restart
       stateModule.setBossHold(false);
       stateModule.setBossTransition(false);
@@ -172,51 +168,51 @@ function handleEvent(event, now) {
     case 'tweenBossPosition':
       if (event.data && typeof event.data.x === 'number' && event.data.y !== undefined) {
         // If y is 'floor', convert to top for final scale; else treat as top
-        let targetY, debugBottom;
+        let targetY;
         if (event.data.y === 'floor') {
           const floorY = levels[getCurrentLevelKey()].floorY;
-          let finalScale = bossState.scale;
+          // Use current scale for correct bottom alignment
           const scaleEvent = introsceneTimeline.find(e => e.time === event.time && e.action === 'tweenBossScale');
-          if (scaleEvent && scaleEvent.data && scaleEvent.data.scale) {
-            finalScale = scaleEvent.data.scale;
-          }
+          let finalScale = scaleEvent && scaleEvent.data && scaleEvent.data.scale ? scaleEvent.data.scale : 1.0;
           targetY = floorY - BOSS_HEIGHT * finalScale;
-          debugBottom = floorY;
         } else if (typeof event.data.y === 'number') {
           targetY = event.data.y;
-          debugBottom = event.data.y + BOSS_HEIGHT * bossState.scale;
         }
-        console.log(`[orchestrator] tweenBossPosition: target x=${event.data.x}, y=${targetY}, scale=${bossState.scale}`);
-        startTween(bossState, { x: event.data.x, y: targetY }, event.duration || 0, now);
+        // Tween boss position by mutating internal state
+        startTween(__bossState, { x: event.data.x, y: targetY }, event.duration || 0, now);
       }
       break;
     case 'tweenBossScale':
       if (event.data && event.data.scale !== undefined) {
-        startTween(bossState, { scale: event.data.scale }, event.duration || 0, now);
+        // Tween boss scale by mutating internal state
+        startTween(__bossState, { scale: event.data.scale }, event.duration || 0, now);
       }
       break;
     case 'setBossPosition':
       // Position boss: align bottom coordinate (feet) to either floor or specified y
-      bossState.x = event.data.x;
-      let debugBottom;
+      let posY;
       if (event.data.y === 'floor') {
         const floorY = levels[getCurrentLevelKey()].floorY;
-        bossState.y = floorY - BOSS_HEIGHT * bossState.scale;
-        debugBottom = floorY;
+        posY = floorY - BOSS_HEIGHT * (event.data.scale || 1.0);
       } else if (typeof event.data.y === 'number') {
-        const bottom = event.data.y;
-        bossState.y = bottom - BOSS_HEIGHT * bossState.scale;
-        debugBottom = bottom;
+        posY = event.data.y;
       }
+      rugfatherBoss.setPosition(event.data.x, posY);
+      break;
+    case 'setBossSprite':
+      rugfatherBoss.setSprite(event.data);
+      break;
+    case 'setBossOpacity':
+      rugfatherBoss.setOpacity(event.data);
+      break;
+    case 'setBossScale':
+      rugfatherBoss.setScale(event.data);
       break;
     case 'setPlayerFacing':
       player.facing = event.data === 'left' ? -1 : 1;
       break;
     case 'setBossFacing':
-      bossState.facing = event.data === 'left' ? -1 : 1;
-      break;
-    case 'setBossSprite':
-      bossState.sprite = event.data;
+      // Use only public boss interface; orchestrator should not mutate boss internals directly
       break;
     case 'flashScreen':
       stateModule.setFlashActive(true);
@@ -240,6 +236,11 @@ function handleEvent(event, now) {
       break;
     case 'cycleGarageDoorOpen':
       setBackgroundFlickerMode('doorOpenFlicker');
+      break;
+    case 'tweenBossOpacity':
+      if (event.data && typeof event.data.opacity === 'number') {
+        startTween(__bossState, { opacity: event.data.opacity }, event.duration || 0, now);
+      }
       break;
     default:
       break;

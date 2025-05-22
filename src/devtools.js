@@ -7,7 +7,7 @@ export let DEBUG_HITBOXES = false;
 let prevGameState = null;
 
 import * as state from './state.js';
-import rugfatherBoss, { bossState, BOSS_WIDTH, BOSS_HEIGHT } from './levels/rugcoAlley/rugfather.js';
+import rugfatherBoss, { BOSS_WIDTH, BOSS_HEIGHT } from './levels/rugcoAlley/rugfather.js';
 import { player } from './player.js';
 import { setCurrentBoss, setBossActive, setBossBattleStarted, setBossTransition, setBossHold, setBossPause, setBlinkingOut, setAutoRunLeft, setBossTriggered, getCurrentLevelKey } from './state.js';
 import { skipToBattle, startBossIntro } from './levels/rugcoAlley/rugfatherOrchestrator.js';

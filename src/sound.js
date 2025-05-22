@@ -31,6 +31,8 @@ export const unruggabullVoiceSounds = [
   new Audio('assets/audio/sfx/unruggabull/unruggabull-oh-yeaaaa.mp3'),
   new Audio('assets/audio/sfx/unruggabull/unruggabull-ow.mp3'),
   new Audio('assets/audio/sfx/unruggabull/unruggabull-permanence.mp3'),
+  new Audio('assets/audio/sfx/unruggabull/unrugabull-do-do-do.mp3'),
+  new Audio('assets/audio/sfx/unruggabull/unruggabull-oh-shit.mp3'),
   // Add more as needed
 ];
 

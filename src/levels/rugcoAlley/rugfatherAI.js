@@ -1,7 +1,6 @@
-import { bossState as state, BOSS_WIDTH, BOSS_HEIGHT } from './rugfather.js';
-import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
-import { spawnRugfatherCarpet } from '../../projectiles/index.js';
 import {
+  BOSS_WIDTH,
+  BOSS_HEIGHT,
   NUM_PHASES,
   MAX_HP,
   PHASE_ATTACK_COOLDOWNS,
@@ -11,6 +10,8 @@ import {
   PHASE1_JUMP_PERIOD
 } from './rugfatherConstants.js';
 import { getBossBattleStarted } from '../../state.js';
+import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
+import { spawnRugfatherCarpet } from '../../projectiles/index.js';
 
 // Projectile image
 const flameCarpetImg = new Image();
@@ -24,7 +25,7 @@ const FRAME_DURATION = RUGFATHER_SPRITES.attack.frameDuration;
 const ATTACK_ANIM_DURATION = ATTACK_FRAMES * FRAME_DURATION;
 
 // Basic attack behavior shared across phases
-function basicAttack(now) {
+function basicAttack(now, state) {
   if (state.sprite === 'attack') {
     if (state.attackAnimationStartTime == null) {
       state.attackAnimationStartTime = now;
@@ -33,7 +34,7 @@ function basicAttack(now) {
     const elapsed = now - state.attackAnimationStartTime;
     const frameIndex = Math.floor(elapsed / FRAME_DURATION);
     if (frameIndex >= 3 && !state.hasSpawnedProjectile) {
-      spawnProjectile();
+      spawnProjectile(state);
       state.hasSpawnedProjectile = true;
     }
     if (elapsed >= ATTACK_ANIM_DURATION) {
@@ -53,24 +54,21 @@ function basicAttack(now) {
 }
 
 // Map boss AI behavior functions to phases
-const PHASE_BEHAVIORS = {
-  [NUM_PHASES]: basicAttack,
-  [NUM_PHASES - 1]: basicAttack,
-  [NUM_PHASES - 2]: basicAttack,
-  [NUM_PHASES - 3]: basicAttack,
-  1: basicAttack
-};
+function getPhaseBehavior(phase) {
+  // For now, all phases use basicAttack
+  return basicAttack;
+}
 
-export function updateBossAI(now) {
+export function updateBossAI(now, state) {
   if (!state.active) return;
-  const behavior = PHASE_BEHAVIORS[state.phase] || basicAttack;
-  behavior(now);
+  const behavior = getPhaseBehavior(state.phase);
+  behavior(now, state);
 }
 
 /**
  * Recalculate boss phase based on current HP and adjust parameters.
  */
-export function updatePhaseLogic() {
+export function updatePhaseLogic(state) {
   const ratio = state.hp / MAX_HP;
   const newPhase = Math.ceil(ratio * NUM_PHASES);
   if (newPhase !== state.phase) {
@@ -84,7 +82,7 @@ export function updatePhaseLogic() {
 /**
  * Handle phase 1 movement (oscillation and bob) in initial phase.
  */
-export function updatePhase1Movement(now) {
+export function updatePhase1Movement(now, state) {
   if (!getBossBattleStarted() || !state.active || state.dying || state.phase !== NUM_PHASES) return;
   // Capture base positions once
   if (!state.hasCapturedBaseY) {
@@ -103,7 +101,7 @@ export function updatePhase1Movement(now) {
   state.y = state.baseY - jumpOffset;
 }
 
-function spawnProjectile() {
+function spawnProjectile(state) {
   // Fire horizontally from boss's mouth/hands (scale is always 1)
   const x = state.x + BOSS_WIDTH * 0.2;
   const y = state.y + BOSS_HEIGHT * 0.65;
