@@ -1,7 +1,16 @@
 import { bossState as state, BOSS_WIDTH, BOSS_HEIGHT } from './rugfather.js';
 import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
 import { spawnRugfatherCarpet } from '../../projectiles/index.js';
-import { NUM_PHASES } from './rugfatherConstants.js';
+import {
+  NUM_PHASES,
+  MAX_HP,
+  PHASE_ATTACK_COOLDOWNS,
+  PHASE1_MOVE_AMPLITUDE,
+  PHASE1_MOVE_PERIOD,
+  PHASE1_JUMP_HEIGHT,
+  PHASE1_JUMP_PERIOD
+} from './rugfatherConstants.js';
+import { getBossBattleStarted } from '../../state.js';
 
 // Projectile image
 const flameCarpetImg = new Image();
@@ -56,6 +65,42 @@ export function updateBossAI(now) {
   if (!state.active) return;
   const behavior = PHASE_BEHAVIORS[state.phase] || basicAttack;
   behavior(now);
+}
+
+/**
+ * Recalculate boss phase based on current HP and adjust parameters.
+ */
+export function updatePhaseLogic() {
+  const ratio = state.hp / MAX_HP;
+  const newPhase = Math.ceil(ratio * NUM_PHASES);
+  if (newPhase !== state.phase) {
+    state.phase = newPhase;
+    const cd = PHASE_ATTACK_COOLDOWNS[newPhase] || state.attackCooldown;
+    state.attackCooldown = cd;
+    console.log(`Rugfather phase changed to ${newPhase}, attackCooldown=${cd}`);
+  }
+}
+
+/**
+ * Handle phase 1 movement (oscillation and bob) in initial phase.
+ */
+export function updatePhase1Movement(now) {
+  if (!getBossBattleStarted() || !state.active || state.dying || state.phase !== NUM_PHASES) return;
+  // Capture base positions once
+  if (!state.hasCapturedBaseY) {
+    state.baseY = state.y;
+    state.hasCapturedBaseY = true;
+  }
+  if (!state.hasCapturedBaseX) {
+    state.baseX = state.x;
+    state.hasCapturedBaseX = true;
+  }
+  // Horizontal oscillation
+  const offsetX = PHASE1_MOVE_AMPLITUDE * Math.sin((now / PHASE1_MOVE_PERIOD) * 2 * Math.PI);
+  state.x = state.baseX + offsetX;
+  // Vertical bob/jump effect
+  const jumpOffset = Math.abs(Math.sin((now / PHASE1_JUMP_PERIOD) * 2 * Math.PI)) * PHASE1_JUMP_HEIGHT;
+  state.y = state.baseY - jumpOffset;
 }
 
 function spawnProjectile() {

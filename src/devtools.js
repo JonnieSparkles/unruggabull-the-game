@@ -10,7 +10,7 @@ import * as state from './state.js';
 import rugfatherBoss, { bossState, BOSS_WIDTH, BOSS_HEIGHT } from './levels/rugcoAlley/rugfather.js';
 import { player } from './player.js';
 import { setCurrentBoss, setBossActive, setBossBattleStarted, setBossTransition, setBossHold, setBossPause, setBlinkingOut, setAutoRunLeft, setBossTriggered, getCurrentLevelKey } from './state.js';
-import { skipToBattle } from './levels/rugcoAlley/rugfatherOrchestrator.js';
+import { skipToBattle, startBossIntro } from './levels/rugcoAlley/rugfatherOrchestrator.js';
 import levels from './levels/index.js';
 
 /**
@@ -181,9 +181,8 @@ export function setupDevTools(canvas, draw, gameLoop, increaseDifficulty, decrea
       window.startGame();
       setBossTriggered(true);
       setGameState('playing');
-      setCurrentBoss(rugfatherBoss);
-      setBossActive(true);
-      rugfatherBoss.spawn();
+      // Kick off the orchestrator-driven intro timeline
+      startBossIntro();
       // Resume main game loop
       gameLoop();
       return;
@@ -195,20 +194,9 @@ export function setupDevTools(canvas, draw, gameLoop, increaseDifficulty, decrea
       window.startGame();
       setBossTriggered(true);
       setGameState('playing');
-      setCurrentBoss(rugfatherBoss);
-      setBossActive(true);
-      // Spawn boss intro timeline
-      rugfatherBoss.spawn();
-      setAutoRunLeft(false);
+      // Kick off orchestrator to fast-forward intro to battle
+      startBossIntro();
       skipToBattle();
-      // Manually finalize position and scale to match normal battle
-      const floorY = levels[getCurrentLevelKey()].floorY;
-      bossState.scale = 1.0;
-      bossState.x = Math.round(canvas.width * 0.75 - (BOSS_WIDTH * bossState.scale) / 2);
-      bossState.y = floorY - (BOSS_HEIGHT * bossState.scale);
-      // Position player
-      player.x = Math.round(canvas.width * 0.25 - player.width / 2);
-      player.facing = 1;
       // Resume main game loop in battle state
       gameLoop();
       return;

@@ -134,10 +134,13 @@ function handleEvent(event, now) {
       player.y = player.feetY - player.height;
       break;
     case 'movePlayerTo':
+      // Normalize target positions
+      const targetX = event.data.x !== undefined ? event.data.x : player.x;
+      const targetY = event.data.y !== undefined ? resolveY(event.data.y) : player.y;
       if (event.duration) {
         // Preserve current sprite so we can restore it after moving
         const prevSprite = player.sprite;
-        startTween(player, { x: event.data.x, y: event.data.y }, event.duration, now);
+        startTween(player, { x: targetX, y: targetY }, event.duration, now);
         // If walk is requested and player is on the floor, use walking animation
         if (event.data.walk && player.feetY === levels[getCurrentLevelKey()].floorY) {
           player.sprite = 'walk';
@@ -145,8 +148,8 @@ function handleEvent(event, now) {
           setTimeout(() => { if (player.sprite === 'walk') player.sprite = prevSprite; }, event.duration);
         }
       } else {
-        if (event.data.x !== undefined) player.x = event.data.x;
-        if (event.data.y !== undefined) player.y = event.data.y;
+        player.x = targetX;
+        player.y = targetY;
       }
       break;
     case 'autoRunLeft':

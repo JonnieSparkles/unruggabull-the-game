@@ -22,7 +22,7 @@ import {
 } from './rugfatherConstants.js';
 import { GAME_STATES } from '../../constants/gameStates.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT } from '../../constants/player.js';
-import { updateBossAI } from './rugfatherAI.js';
+import { updateBossAI, updatePhaseLogic, updatePhase1Movement } from './rugfatherAI.js';
 import { setScreenShake, setScreenShakeStartTime, setCarpshitsDuringBoss, setCurrentBoss, setBossActive, setGameState, setCongratsStartTime } from '../../state.js';
 
 // Level 1 Boss: Rugfather
@@ -70,18 +70,6 @@ const bossCenterX = () => canvas.width / 2 - BOSS_WIDTH / 2;
 const bossFinalX = () => bossCenterX() + (canvas.width - BOSS_WIDTH * 1.2 - bossCenterX()) * 0.5;
 const bossStartX = () => bossCenterX();
 
-// Recalculate boss phase based on current HP and adjust parameters.
-function updatePhase() {
-  const ratio = state.hp / MAX_HP;
-  const newPhase = Math.ceil(ratio * NUM_PHASES);
-  if (newPhase !== state.phase) {
-    state.phase = newPhase;
-    const cd = PHASE_ATTACK_COOLDOWNS[newPhase] || state.attackCooldown;
-    state.attackCooldown = cd;
-    console.log(`Rugfather phase changed to ${newPhase}, attackCooldown=${cd}`);
-  }
-}
-
 // Spawn the boss at center-top of the screen
 function spawn() {
   state.active = true;
@@ -115,52 +103,15 @@ function spawn() {
 
 // Basic oscillation movement
 function update() {
-  if (state.dying) {
-    // During dying, hold full opacity and static position until pause ends
-    const elapsed = performance.now() - state.deathStart;
-    if (elapsed < 1200) {
-      state.opacity = 1;  // keep full brightness
-    } else {
-      state.dying = false;
-      // Record exit boss position & scale for static corpse
-      stateModule.setExitBossX(state.x);
-      stateModule.setExitBossY(state.y);
-      stateModule.setExitBossScale(state.scale);
-      // Remove boss from active state
-      stateModule.setBossActive(false);
-      stateModule.setCarpshitsDuringBoss(false);
-      stateModule.setCurrentBoss(null);
-      // Immediately begin exit sequence with dramatic pause
-      stateModule.setGameState('bossExit');
-      stateModule.setExitPause(true);
-      stateModule.setExitPauseStartTime(performance.now());
-    }
-    return;
-  }
+  if (state.dying) return;
   if (!state.active) return;
   const now = performance.now();
 
-  // Post-intro and battle logic are now fully controlled by timeline and combat handlers.
   updateBossAI(now);
-
-  // Initial-phase boss movement: horizontal oscillation and vertical bob (phase === NUM_PHASES)
-  if (getBossBattleStarted() && state.active && !state.dying && state.phase === NUM_PHASES) {
-    // Capture baseY/baseX first time battle starts
-    if (!state.hasCapturedBaseY) {
-      state.baseY = state.y;
-      state.hasCapturedBaseY = true;
-    }
-    if (!state.hasCapturedBaseX) {
-      state.baseX = state.x;
-      state.hasCapturedBaseX = true;
-    }
-    // Horizontal oscillation
-    const offsetX = PHASE1_MOVE_AMPLITUDE * Math.sin((now / PHASE1_MOVE_PERIOD) * 2 * Math.PI);
-    state.x = state.baseX + offsetX;
-    // Vertical bob/jump effect
-    const jumpOffset = Math.abs(Math.sin((now / PHASE1_JUMP_PERIOD) * 2 * Math.PI)) * PHASE1_JUMP_HEIGHT;
-    state.y = state.baseY - jumpOffset;
-  }
+  // Phase logic
+  updatePhaseLogic();
+  // Phase 1 movement
+  updatePhase1Movement(now);
 }
 
 // Draw the boss and its HP bar
@@ -310,7 +261,7 @@ function hit(damage = 1) {
   if (!state.active) return;
   state.hp -= damage;
   // Update phase based on new HP
-  updatePhase();
+  updatePhaseLogic();
   if (state.hp < 0) state.hp = 0;
   // Shake the screen
   stateModule.setScreenShake(true);
