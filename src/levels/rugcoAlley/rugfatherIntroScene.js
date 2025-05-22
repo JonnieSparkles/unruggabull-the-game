@@ -28,7 +28,9 @@ export const rugfatherIntroTimeline = [
 
   // 2. Ground + center the player
   { time: 500,  action: 'movePlayerToFloor' }, // TODO: Could be more elegant (e.g. tween to floor)
-  { time: 1500, action: 'movePlayerTo', data: { x: 380, walk: true }, duration: 1200 },
+  { time: 1500, action: 'setPlayerSprite', data: 'walk' },
+  { time: 1500, action: 'movePlayerTo', data: { x: 380 }, duration: 1200 },
+  { time: 2700, action: 'setPlayerSprite', data: 'idle' },
 
   // 3. Garage door starts opening (~13s) + player shocked
   { time: 3000, action: 'playSfx', data: garageDoorSound },
@@ -53,8 +55,8 @@ export const rugfatherIntroTimeline = [
   { time: 20000, action: 'autoRunLeft',     data: true },
   { time: 20000, action: 'setPlayerSprite', data: 'walk' },
   { time: 20000, action: 'movePlayerTo',    data: { x: 200, y: 'floor' }, duration: 4000 },
-  { time: 21000, action: 'setPlayerFacing', data: 'right' },
-  { time: 21000, action: 'setPlayerSprite', data: 'idle' },
+  { time: 24000, action: 'setPlayerFacing', data: 'right' },
+  { time: 24000, action: 'setPlayerSprite', data: 'idle' },
 
   // 7. Both face off and hold
   { time: 29000, action: 'setBossFacing',   data: 'left' },

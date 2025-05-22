@@ -3,12 +3,10 @@ import { player } from '../../player.js';
 import * as stateModule from '../../state.js';
 import { bgMusic, evilLaughSfx, fireWindsSwoosh, helloUnruggabullSfx } from '../../sound.js';
 import { carpshits, lowerCarpshits, NUM_CARPSHITS, NUM_LOWER_CARPSHITS } from '../../enemies/carpshits.js';
-import { setAutoRunLeft, setBossBattleStarted, getBossBattleStarted, setBackgroundFlickerMode } from '../../state.js';
-import { startBossIntro, updateBossIntro } from './rugfatherOrchestrator.js';
+import { setAutoRunLeft, setBossBattleStarted, getBossBattleStarted } from '../../state.js';
 import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
 import levels from '../../levels/index.js';
 import { getCurrentLevelKey } from '../../state.js';
-import { FLASH_DURATION } from '../../constants/timing.js';
 import {
   BOSS_HOLD_DURATION,
   BLINK_OUT_DURATION,
@@ -108,7 +106,6 @@ function spawn() {
   // reset battle flag too
   setBossBattleStarted(false);
   // start the intro sequence
-  startBossIntro();
   // Reset baseY capture for phase 1 movement
   state.baseY = null;
   state.hasCapturedBaseY = false;
@@ -142,20 +139,6 @@ function update() {
   }
   if (!state.active) return;
   const now = performance.now();
-
-  // handle fade-in transition
-  if (state.fadeInStartTime != null) {
-    const t = now - state.fadeInStartTime;
-    state.opacity = Math.min(1, t / state.fadeInDuration);
-    if (t >= state.fadeInDuration) {
-      state.fadeInStartTime = null;
-    }
-  }
-
-  if (state.entering) {
-    updateBossIntro(now);
-    return;
-  }
 
   // Post-intro and battle logic are now fully controlled by timeline and combat handlers.
   updateBossAI(now);
@@ -201,47 +184,41 @@ function draw() {
   if (!isFinite(state.x) || !isFinite(state.y) || !isFinite(state.scale) || !bossSpriteSheet.complete || bossSpriteSheet.naturalWidth === 0) {
     return;
   }
+  // Intro rendering: respect orchestrator-driven sprite states
   if (state.entering) {
-    // Timeline-driven boss sprite override during intro
     const spriteState = state.sprite || 'idle';
     let spriteInfo = RUGFATHER_SPRITES[spriteState];
     if (!spriteInfo) {
       console.warn(`Unknown boss sprite state: "${spriteState}"; defaulting to idle.`);
-      spriteInfo = RUGFATHER_SPRITES['idle'];
+      spriteInfo = RUGFATHER_SPRITES.idle;
     }
     const t = performance.now();
     let frameData;
     if (spriteInfo.frameSequence) {
       frameData = spriteInfo.frameSequence[Math.floor(t / spriteInfo.frameDuration) % spriteInfo.frameSequence.length];
-      // If frameData is a number, convert to object for uniformity
-      if (typeof frameData === 'number') {
-        frameData = { frame: frameData, mirror: false };
-      }
-    } else if (spriteInfo.animated) {
-      frameData = { frame: Math.floor(t / spriteInfo.frameDuration) % spriteInfo.frameCount, mirror: false };
+      if (typeof frameData === 'number') frameData = { frame: frameData, mirror: false };
     } else {
-      frameData = { frame: spriteInfo.frame, mirror: false };
+      frameData = { frame: spriteInfo.frame || 0, mirror: false };
     }
-    const FRAME_W = BOSS_WIDTH;
-    const FRAME_H = BOSS_HEIGHT;
+    const fw = spriteInfo.frameWidth;
+    const fh = spriteInfo.frameHeight;
     ctx.save();
     ctx.globalAlpha = state.opacity;
     if (frameData.mirror) {
-      ctx.translate(state.x + FRAME_W * state.scale, state.y);
+      ctx.translate(state.x + fw * state.scale, state.y);
       ctx.scale(-1, 1);
       ctx.drawImage(
         spriteInfo.image,
-        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
-        0, 0, FRAME_W * state.scale, FRAME_H * state.scale
+        frameData.frame * fw, 0, fw, fh,
+        0, 0, fw * state.scale, fh * state.scale
       );
     } else {
       ctx.drawImage(
         spriteInfo.image,
-        frameData.frame * FRAME_W, 0, FRAME_W, FRAME_H,
-        state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
+        frameData.frame * fw, 0, fw, fh,
+        state.x, state.y, fw * state.scale, fh * state.scale
       );
     }
-    ctx.globalAlpha = 1.0;
     ctx.restore();
     return;
   }
@@ -251,30 +228,7 @@ function draw() {
   // Determine which sprite frame to draw
   const FRAME_W = BOSS_WIDTH;
   const FRAME_H = BOSS_HEIGHT;
-  if (state.blinking) {
-    // Dramatic eye blink: longer, slower, and more random
-    let t = performance.now() - state.blinkActualStartTime;
-    let total = 0;
-    let on = true;
-    for (let i = 0; i < BLINK_PATTERN.length; i++) {
-      total += BLINK_PATTERN[i];
-      if (t < total) {
-        on = i % 2 === 0;
-        break;
-      }
-    }
-    if (on) {
-      // Show frame index 0 (eyes open)
-      ctx.drawImage(
-        bossSpriteSheet,
-        0, 0, FRAME_W, FRAME_H,
-        state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
-      );
-    }
-    ctx.globalAlpha = 1.0;
-    ctx.restore();
-    return;
-  } else if (state.sprite === 'spin') {
+  if (state.sprite === 'spin') {
     // Use the sprite map for spin animation with mirroring support
     const spriteInfo = RUGFATHER_SPRITES['spin'];
     const t = performance.now();
@@ -330,39 +284,6 @@ function draw() {
     ctx.restore();
     return;
   } else {
-    // After spin/scale and before battle, hold frame 9 then frame 10
-    if (state.bossInPosition && !getBossBattleStarted()) {
-      const now = performance.now();
-      const holdDuration = 3000;
-      const frameIndex = now < state.spinEndTime + holdDuration ? 9 : 7; // after hold, start battle on frame 7
-      ctx.save();
-      ctx.globalAlpha = state.opacity;
-      ctx.drawImage(
-        bossSpriteSheet,
-        frameIndex * FRAME_W, 0, FRAME_W, FRAME_H,
-        state.x, state.y, FRAME_W * state.scale, FRAME_H * state.scale
-      );
-      ctx.globalAlpha = 1.0;
-      ctx.restore();
-      // After holding the second frame, start battle
-      if (now >= state.spinEndTime + holdDuration) {
-        // Play hello-unruggabull.mp3 once
-        if (!state.helloPlayed) {
-          helloUnruggabullSfx.currentTime = 0;
-          helloUnruggabullSfx.play();
-          state.helloPlayed = true;
-        }
-        // Position boss and player for battle
-        // Boss at 25% from right
-        state.x = Math.round(canvas.width * 0.75 - (BOSS_WIDTH * state.scale) / 2);
-        // Player at 25% from left
-        player.x = Math.round(canvas.width * 0.25 - player.width / 2);
-        player.facing = 1;
-        stateModule.setBossActive(true);
-        setBossBattleStarted(true);
-      }
-      return;
-    }
     // Battle-ready: frame 8 (then 7 if needed)
     const readyFrame = 8;
     // Boss start battle on frame 7

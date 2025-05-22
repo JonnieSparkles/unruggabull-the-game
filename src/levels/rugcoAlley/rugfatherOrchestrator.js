@@ -116,8 +116,11 @@ function handleEvent(event, now) {
       break;
     case 'fadeInBoss':
       bossState.opacity = 0;
-      bossState.fadeInStartTime = now;
-      bossState.fadeInDuration = event.duration || 0;
+      if (event.duration) {
+        startTween(bossState, { opacity: 1 }, event.duration, now);
+      } else {
+        bossState.opacity = 1;
+      }
       break;
     case 'setPlayerControl':
       player.controlEnabled = !!event.data;
@@ -132,12 +135,14 @@ function handleEvent(event, now) {
       break;
     case 'movePlayerTo':
       if (event.duration) {
+        // Preserve current sprite so we can restore it after moving
+        const prevSprite = player.sprite;
         startTween(player, { x: event.data.x, y: event.data.y }, event.duration, now);
-        // If walk is requested and player is on the floor, set walking sprite for the tween duration
+        // If walk is requested and player is on the floor, use walking animation
         if (event.data.walk && player.feetY === levels[getCurrentLevelKey()].floorY) {
           player.sprite = 'walk';
-          // Schedule a callback to set sprite to idle at the end of the tween
-          setTimeout(() => { if (player.sprite === 'walk') player.sprite = 'idle'; }, event.duration);
+          // Restore previous sprite after the tween completes
+          setTimeout(() => { if (player.sprite === 'walk') player.sprite = prevSprite; }, event.duration);
         }
       } else {
         if (event.data.x !== undefined) player.x = event.data.x;
