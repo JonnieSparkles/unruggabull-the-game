@@ -190,12 +190,10 @@ function update() {
     if (!state.hasCapturedBaseY) {
       state.baseY = state.y;
       state.hasCapturedBaseY = true;
-      console.log(`Phase1 start: captured baseY=${state.baseY.toFixed(1)}`);
     }
     if (!state.hasCapturedBaseX) {
       state.baseX = state.x;
       state.hasCapturedBaseX = true;
-      console.log(`Phase1 start: captured baseX=${state.baseX.toFixed(1)}`);
     }
     // Horizontal oscillation
     const offsetX = PHASE1_MOVE_AMPLITUDE * Math.sin((now / PHASE1_MOVE_PERIOD) * 2 * Math.PI);
@@ -203,11 +201,6 @@ function update() {
     // Vertical bob/jump effect
     const jumpOffset = Math.abs(Math.sin((now / PHASE1_JUMP_PERIOD) * 2 * Math.PI)) * PHASE1_JUMP_HEIGHT;
     state.y = state.baseY - jumpOffset;
-    // Periodic debug log
-    if (now - state.lastPhase1LogTime > 2000) {
-      console.log(`Phase1 move: t=${now.toFixed(0)}, x=${state.x.toFixed(1)}, y=${state.y.toFixed(1)}, baseX=${state.baseX.toFixed(1)}, baseY=${state.baseY.toFixed(1)}, offsetX=${offsetX.toFixed(1)}, jumpOffset=${jumpOffset.toFixed(1)}`);
-      state.lastPhase1LogTime = now;
-    }
   }
 }
 

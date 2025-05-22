@@ -45,7 +45,7 @@ export const rugfatherIntroTimeline = [
   // 5. Boss exits garage spinning and grows
   { time: 19000, action: 'setBossSprite',     data: 'spin' },
   { time: 19000, action: 'playSfx',          data: fireWindsSwoosh, duration: 10000 },
-  { time: 19000, action: 'tweenBossPosition', data: { x: 500, y: 'floor' }, duration: 10000 },
+  { time: 19000, action: 'tweenBossPosition', data: { x: 450, y: 'floor' }, duration: 10000 },
   { time: 19000, action: 'tweenBossScale',    data: { scale: 1.0 }, duration: 10000 },
 
   // 6. Player runs left to battle position
