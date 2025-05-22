@@ -1,83 +1,105 @@
 # Unruggabull: RugCo Alley
 
-A browser-based 2D platformer game featuring a jumpy, gun-toting bull! Built with vanilla JavaScript and HTML5 Canvas.
+A browser-based 2D platformer featuring a jumpy, gun-toting bull and a dramatic boss fight in a seedy alley. Built with vanilla JavaScript and HTML5 Canvas.
 
-## Features
-- Title screen with music, smooth fade-in transition, and version number
-- Responsive controls: walk, jump, and fire
-- Animated character with directional movement and firing pose
-- Dramatic death animation: Unruggabull falls and displays a unique dead sprite
-- Game over sequence with sound, message, and a restart button (with hover effect)
-- Bullets with sound effects and new muzzle flash effect
-- Flying carpshit enemies with falling death animation
-- Kill counter and health display
-- **Modular codebase:** All game logic is split into clear modules for input, player, physics, enemy, UI, sound, bullets, collision, devtools, assets, state, update, render, controller, and UI controller
-- **DevTools overlay:** Toggle hitboxes, adjust difficulty, and set kill count per phase live in-game
-- Animated crouch with correct hitbox logic and smooth alignment
-- Restart/game over UI with fade/dim effect and improved button styling
-- Credits modal: click the version number on the title screen to view full attributions (loads `credits.txt` in a modal)
-- Background music and sound effects for all actions
-- Organized asset structure for easy expansion
-- **Mobile-friendly:** On mobile devices, users see a fullscreen Unruggabull gallery with music and swipe/tap navigation
-- **Truly Unruggabull:** The game and its assets are saved on Arweave for permanent, censorship-resistant hosting
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Directory Structure](#directory-structure)
+- [Setup & Running](#setup--running)
+- [Controls](#controls)
+- [Development Workflow](#development-workflow)
+- [Asset Organization](#asset-organization)
+- [Credits & License](#credits--license)
+- [Mobile Gallery](#mobile-gallery)
 
-## Controls
-- **A/D**: Move
-- **Space**: Jump
-- **F, J, or Enter**: Fire
-- **Start Game**: Click the button on the title screen
-- **Restart**: Click the restart button after game over
+## Project Overview
+Unruggabull is a fast-paced platformer where you control an armored bull, navigate levels, face flying enemies, and battle the formidable Rugfather boss. Key features:
+- Responsive movement, jumping, and firing mechanics
+- Animated sprites with state-driven frame sequences
+- Dynamic enemy behaviors and collision logic
+- Dramatic boss intro, multi-phase combat, and exit sequences
+- DevTools overlay for live debugging and difficulty adjustments
+- Organized, modular codebase for easy expansion
 
-## Asset Organization
+## Directory Structure
+```text
+unruggabull-the-game/
+├── .gitignore
+├── LICENSE.txt
+├── README.md
+├── changelog.txt
+├── credits.txt
+├── future-work.txt
+├── index.html
+├── main.js
+├── assets/
+│   ├── audio/
+│   │   ├── bgm/            # Background music tracks
+│   │   └── sfx/            # Sound effects (jump, fire, boss, etc.)
+│   ├── gallery/            # Mobile-only gallery assets
+│   ├── icons/              # UI icons
+│   ├── images/             # Static images (title screen, backgrounds)
+│   └── sprites/
+│       └── levels/
+│           └── rugcoAlley/ # Level-specific sprite sheets
+└── src/
+    ├── assets.js           # Preloaded images and sprites
+    ├── constants/          # Game constants (player, timing, states)
+    ├── collision.js        # Collision detection logic
+    ├── controller.js       # Game loop orchestration
+    ├── devtools.js         # DevTools overlay logic
+    ├── input.js            # Keyboard input handling
+    ├── levels/             # Level configurations and boss logic
+    │   └── rugcoAlley/
+    ├── mobile-gallery.js   # Mobile gallery logic
+    ├── physics.js          # Platform and gravity logic
+    ├── player.js           # Player state and input handling
+    ├── projectiles/        # Bullet and carpet projectile modules
+    ├── render.js           # Canvas rendering of game state
+    ├── scripts/            # Additional scripts (if any)
+    ├── state.js            # Centralized game state management
+    ├── update.js           # Game update cycle (logic and AI)
+    └── ui.js               # HUD and UI drawing functions
 ```
-assets/
-  audio/
-    bgm/
-      platform-shoes-8-bit-chiptune-instrumental-336417.mp3
-      energetic-action-rock-music-336531.mp3
-    sfx/
-      unruggabull-jump.mp3
-      blaster-fire.mp3
-      lets-go.mp3
-      carpshit-death.mp3
-      game-over.mp3
-  images/
-    title-screen.png
-    level-rugco-alley.png
-  sprites/
-    unruggabull-walking.png
-    unruggabull-dead.png
-    enemy-carpshit.png
-```
-
-- **audio/bgm/**: Background music
-- **audio/sfx/**: Sound effects (jump, fire, death, game over, etc.)
-- **images/**: Backgrounds, title screens, UI images
-- **sprites/**: Sprite sheets and character images
 
 ## Setup & Running
-1. Clone or download this repository.
-2. Ensure all assets are in the correct folders as shown above.
-3. Open `index.html` in your browser.
-4. On the title screen, press any key to enable music, then click "Start Game" to play!
-5. Click the version number at the bottom of the title screen to view credits.
+1. **Clone or Download** this repository.
+2. Ensure assets are in the correct folders as shown above.
+3. Open `index.html` in a modern browser (Chrome, Firefox, Edge).
+4. On the title screen, press any key to enable audio, then click **Start Game**.
+5. Use the in-game DevTools (`Ctrl+Shift+Q`) to toggle hitboxes and adjust difficulty.
 
-> **Note:** Gameplay is only available on desktop browsers. On mobile, you can view the Unruggabull gallery and listen to the theme song.
+## Controls
+- **A / D**: Move left / right
+- **Space**: Jump
+- **F, J, or Enter**: Fire weapon
+- **Restart**: Click the restart button after game over
 
-## Credits
+## Development Workflow
+- Code is modularized by feature (input, player, physics, enemies, projectiles, UI).
+- Pull requests should include concise edits and comments for context.
+- Linting and code style: 2-space indentation, 80-character max line length.
+- Use the DevTools overlay (`Ctrl+Shift+Q`) to visualize hitboxes, tweak difficulty, and inspect state.
 
-See [credits.txt](credits.txt) for full attributions and asset sources. The credits are also viewable in-game via the version link.
+## Asset Organization
+```text
+assets/
+├── audio/
+│   ├── bgm/  # Background music tracks (.mp3)
+│   └── sfx/  # Sound effects (.mp3)
+├── images/   # Static images (title screens, UI)
+└── sprites/  # Sprite sheets (characters, enemies, levels)
+```
 
-If you use or distribute this project, please respect the licenses of all included assets.
-
----
-
-**Unruggabull is permanently hosted on [Arweave](https://www.arweave.org/), making it truly unruggable!**
+## Credits & License
+See `credits.txt` for full attributions and asset sources. The project is MIT-licensed (`LICENSE.txt`).
 
 ## Mobile Gallery
-
-If you open Unruggabull on a mobile device, you'll see a fullscreen gallery of Unruggabull images with swipe/tap navigation and a music button. 
-
-You can customize the gallery images by editing the `galleryImages` array in `scripts/mobile-gallery.js`.
+On mobile devices, the game loads a fullscreen gallery with swipe/tap navigation:
+```js
+// scripts/mobile-gallery.js
+const galleryImages = [ /* image URLs */ ];
+```
+Customize the `galleryImages` array to change the displayed images.
 
 Enjoy Unruggabull!

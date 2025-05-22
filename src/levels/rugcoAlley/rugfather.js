@@ -14,6 +14,7 @@ import { BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './rugfatherConstants.js'
 import { GAME_STATES } from '../../constants/gameStates.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT } from '../../constants/player.js';
 import { updateBossAI } from './rugfatherAI.js';
+import { setScreenShake, setScreenShakeStartTime, setCarpshitsDuringBoss, setCurrentBoss, setBossActive, setGameState, setCongratsStartTime } from '../../state.js';
 
 // Level 1 Boss: Rugfather
 // Access the canvas and context
@@ -33,11 +34,23 @@ const BOSS_HEIGHT = 256;
 // Export sprite dimensions for external positioning
 export { BOSS_WIDTH, BOSS_HEIGHT };
 
+// Maximum HP for phase calculations
+const MAX_HP = 5;
+// Phase configurations: attack cooldown in ms per phase
+const PHASE_ATTACK_COOLDOWNS = {
+  5: 3000, // 100%
+  4: 2500, // 80%
+  3: 2000, // 60%
+  2: 1500, // 40%
+  1: 1000  // 20%
+};
+
 // Internal state
 const state = {
   x: 0,
   y: 0,
-  hp: 5,
+  hp: MAX_HP,
+  phase: 5,
   active: false,
   opacity: 1,
   entering: true,
@@ -57,7 +70,7 @@ const state = {
   fadeInDuration: 0,
   sprite: 'idle',
   lastAttackTime: 0,
-  attackCooldown: 3000,
+  attackCooldown: PHASE_ATTACK_COOLDOWNS[5],
   attackAnimationStartTime: null,
   hasSpawnedProjectile: false
 };
@@ -70,10 +83,26 @@ const bossStartX = () => bossCenterX();
 const blinkPattern = [600, 300, 900, 200, 1200, 150, 1500, 100, 1800]; // ms on/off
 const blinkTotalDuration = blinkPattern.reduce((a, b) => a + b, 0);
 
+/**
+ * Recalculate boss phase based on current HP and adjust parameters.
+ */
+function updatePhase() {
+  const ratio = state.hp / MAX_HP;
+  const newPhase = Math.ceil(ratio * MAX_HP);
+  if (newPhase !== state.phase) {
+    state.phase = newPhase;
+    // Adjust attack cooldown for this phase
+    const cd = PHASE_ATTACK_COOLDOWNS[newPhase] || state.attackCooldown;
+    state.attackCooldown = cd;
+    console.log(`Rugfather phase changed to ${newPhase}, attackCooldown=${cd}`);
+  }
+}
+
 // Spawn the boss at center-top of the screen
 function spawn() {
   state.active = true;
-  state.hp = 5;
+  state.hp = MAX_HP;
+  state.phase = MAX_HP;
   state.scale = 0.5;
   state.x = bossStartX();
   // Anchor head at a fixed Y so feet align at player.feetY when fully scaled
@@ -350,6 +379,8 @@ function draw() {
 function hit(damage = 1) {
   if (!state.active) return;
   state.hp -= damage;
+  // Update phase based on new HP
+  updatePhase();
   if (state.hp < 0) state.hp = 0;
   // Shake the screen
   stateModule.setScreenShake(true);
@@ -416,7 +447,7 @@ function getHitbox() {
 }
 
 // Export boss interface
-const rugfatherBoss = { spawn, update, draw, hit, getHitbox };
+const rugfatherBoss = { spawn, update, draw, hit, getHitbox, phase: () => state.phase };
 export default rugfatherBoss;
 
 // Expose internal boss state for orchestrator

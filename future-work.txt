@@ -1,21 +1,18 @@
 rugfather
 -unruggabull hit frames
--add unruggabull hit sound
--is there a invulnerability set when unruggabull is hit?
 -figure out the battle
+--randomize carpet projectiles vertically
+--jitter the boss 
 -level intro/story
 -level finish screen
 -whats gameover during boss?
 -goodbye rugfather Sounds
 -platforms and carpshits should flicker/fade out
--background should flicker after garage opens
--player should walk into position and fall gracefully at boss intro
 -garage handle animation
--fix intro screen to 960x540
--master unrugabull sprite
 -improve difficulty of carpshits
 -exit scene
-
+-master unrugabull sprite
+-fix intro screen to 960x540
 
 
 add changelog to version number 
