@@ -3,8 +3,7 @@ import { player } from '../../player.js';
 import * as stateModule from '../../state.js';
 import { bgMusic, evilLaughSfx, fireWindsSwoosh, helloUnruggabullSfx } from '../../sound.js';
 import { carpshits, lowerCarpshits, NUM_CARPSHITS, NUM_LOWER_CARPSHITS } from '../../enemies/carpshits.js';
-import { setAutoRunLeft } from '../../state.js';
-import { setBossBattleStarted, getBossBattleStarted } from '../../state.js';
+import { setAutoRunLeft, setBossBattleStarted, getBossBattleStarted, setBackgroundFlickerMode } from '../../state.js';
 import { startBossIntro, updateBossIntro } from './rugfatherOrchestrator.js';
 import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
 import levels from '../../levels/index.js';
@@ -45,10 +44,21 @@ const PHASE_ATTACK_COOLDOWNS = {
   1: 1000  // 20%
 };
 
+// Phase 1 movement constants
+const PHASE1_MOVE_AMPLITUDE = 80;        // px left/right
+const PHASE1_MOVE_PERIOD = 5000;         // ms for full cycle
+const PHASE1_JUMP_HEIGHT = 40;           // px jump bob
+const PHASE1_JUMP_PERIOD = 8000;         // ms for jump cycle
+
 // Internal state
 const state = {
   x: 0,
   y: 0,
+  baseY: null,          // for vertical movement in phase 1
+  hasCapturedBaseY: false,
+  baseX: null,          // for horizontal movement in phase 1
+  hasCapturedBaseX: false,
+  lastPhase1LogTime: 0,
   hp: MAX_HP,
   phase: 5,
   active: false,
@@ -105,7 +115,6 @@ function spawn() {
   state.phase = MAX_HP;
   state.scale = 0.5;
   state.x = bossStartX();
-  // Anchor head at a fixed Y so feet align at player.feetY when fully scaled
   const finalScale = 1.0;
   const headY = player.feetY - BOSS_HEIGHT * finalScale;
   state.y = headY;
@@ -124,6 +133,11 @@ function spawn() {
   setBossBattleStarted(false);
   // start the intro sequence
   startBossIntro();
+  // Reset baseY capture for phase 1 movement
+  state.baseY = null;
+  state.hasCapturedBaseY = false;
+  state.baseX = null;
+  state.hasCapturedBaseX = false;
 }
 
 // Basic oscillation movement
@@ -169,6 +183,32 @@ function update() {
 
   // Post-intro and battle logic are now fully controlled by timeline and combat handlers.
   updateBossAI(now);
+
+  // Phase 1 boss movement: horizontal oscillation and vertical bob (after battle starts)
+  if (getBossBattleStarted() && state.active && !state.dying && state.phase === MAX_HP) {
+    // Capture baseY/baseX first time battle starts
+    if (!state.hasCapturedBaseY) {
+      state.baseY = state.y;
+      state.hasCapturedBaseY = true;
+      console.log(`Phase1 start: captured baseY=${state.baseY.toFixed(1)}`);
+    }
+    if (!state.hasCapturedBaseX) {
+      state.baseX = state.x;
+      state.hasCapturedBaseX = true;
+      console.log(`Phase1 start: captured baseX=${state.baseX.toFixed(1)}`);
+    }
+    // Horizontal oscillation
+    const offsetX = PHASE1_MOVE_AMPLITUDE * Math.sin((now / PHASE1_MOVE_PERIOD) * 2 * Math.PI);
+    state.x = state.baseX + offsetX;
+    // Vertical bob/jump effect
+    const jumpOffset = Math.abs(Math.sin((now / PHASE1_JUMP_PERIOD) * 2 * Math.PI)) * PHASE1_JUMP_HEIGHT;
+    state.y = state.baseY - jumpOffset;
+    // Periodic debug log
+    if (now - state.lastPhase1LogTime > 2000) {
+      console.log(`Phase1 move: t=${now.toFixed(0)}, x=${state.x.toFixed(1)}, y=${state.y.toFixed(1)}, baseX=${state.baseX.toFixed(1)}, baseY=${state.baseY.toFixed(1)}, offsetX=${offsetX.toFixed(1)}, jumpOffset=${jumpOffset.toFixed(1)}`);
+      state.lastPhase1LogTime = now;
+    }
+  }
 }
 
 // Draw the boss and its HP bar

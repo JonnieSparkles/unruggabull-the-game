@@ -28,12 +28,12 @@ export const rugfatherIntroTimeline = [
 
   // 2. Ground + center the player
   { time: 500,  action: 'movePlayerToFloor' }, // TODO: Could be more elegant (e.g. tween to floor)
-  { time: 1500, action: 'movePlayerTo', data: { x: 400, walk: true }, duration: 1200 },
+  { time: 1500, action: 'movePlayerTo', data: { x: 380, walk: true }, duration: 1200 },
 
   // 3. Garage door starts opening (~13s) + player shocked
   { time: 3000, action: 'playSfx', data: garageDoorSound },
   { time: 3000, action: 'startGarageDoorOpen' },
-  { time: 3500, action: 'setPlayerSprite', data: 'shocked' },
+  { time: 6000, action: 'setPlayerSprite', data: 'shocked' },
 
   // 4. Boss appears at center after door opens
   { time: 16000, action: 'cycleGarageDoorOpen' },

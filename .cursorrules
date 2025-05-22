@@ -7,4 +7,5 @@ rules:
   - integrity: "avoid introducing unrelated changes"
   - imports: "add necessary imports when adding new features"
   - style: "follow project formatting: 2-space indentation, 80-character max line length"
-  - clarification: "ask clarifying questions when requirements are unclear or ambiguous" 
+  - clarification: "ask clarifying questions when requirements are unclear or ambiguous"
+  - elegance: "make the code as elegant as possible"

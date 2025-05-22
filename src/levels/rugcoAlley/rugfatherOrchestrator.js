@@ -1,5 +1,5 @@
 import { rugfatherIntroTimeline as introsceneTimeline } from './rugfatherIntroScene.js';
-import { setAutoRunLeft, setBossBattleStarted, setBackgroundFlickerMode } from '../../state.js';
+import { setAutoRunLeft, setBossBattleStarted, getBossBattleStarted, setBackgroundFlickerMode } from '../../state.js';
 import rugfatherBoss, { bossState, BOSS_HEIGHT } from './rugfather.js';
 import { player } from '../../player.js';
 import * as stateModule from '../../state.js';
@@ -30,6 +30,18 @@ function updateTweens(now) {
     }
     if (t >= 1) tweens.splice(i, 1);
   }
+}
+
+// Force all tweens to their final state (progress=1)
+function completeAllTweens(now) {
+  for (let i = tweens.length - 1; i >= 0; i--) {
+    const tw = tweens[i];
+    for (const key in tw.to) {
+      tw.target[key] = tw.to[key];
+    }
+    tweens.splice(i, 1);
+  }
+  console.log(`[orchestrator] completeAllTweens: bossState.x=${bossState.x}, y=${bossState.y}, scale=${bossState.scale}`);
 }
 
 function resolveY(y) {
@@ -136,6 +148,9 @@ function handleEvent(event, now) {
       setAutoRunLeft(event.data !== false);
       break;
     case 'startBattle':
+      console.log(`[orchestrator] startBattle PRE: bossState.x=${bossState.x}, y=${bossState.y}, scale=${bossState.scale}`);
+      completeAllTweens(now);
+      console.log(`[orchestrator] startBattle POST: bossState.x=${bossState.x}, y=${bossState.y}, scale=${bossState.scale}`);
       setBossBattleStarted(true);
       setAutoRunLeft(false);
       bossState.entering = false;
@@ -152,9 +167,7 @@ function handleEvent(event, now) {
         let targetY, debugBottom;
         if (event.data.y === 'floor') {
           const floorY = levels[getCurrentLevelKey()].floorY;
-          // Use the final scale for this tween (if present)
           let finalScale = bossState.scale;
-          // Try to find a matching tweenBossScale event for the same time
           const scaleEvent = introsceneTimeline.find(e => e.time === event.time && e.action === 'tweenBossScale');
           if (scaleEvent && scaleEvent.data && scaleEvent.data.scale) {
             finalScale = scaleEvent.data.scale;
@@ -165,7 +178,7 @@ function handleEvent(event, now) {
           targetY = event.data.y;
           debugBottom = event.data.y + BOSS_HEIGHT * bossState.scale;
         }
- 
+        console.log(`[orchestrator] tweenBossPosition: target x=${event.data.x}, y=${targetY}, scale=${bossState.scale}`);
         startTween(bossState, { x: event.data.x, y: targetY }, event.duration || 0, now);
       }
       break;
@@ -236,4 +249,11 @@ export function skipToBattle() {
   timelineIndex = 0;
   // Process all events up to and including the last
   updateBossIntro(now);
+  // Immediately complete any active tweens so position & scale reach final values
+  tweens.forEach(tw => tw.startTime = now - tw.duration);
+  updateTweens(now);
+}
+
+export default class RugfatherCarpet {
+  // ... existing code ...
 } 
