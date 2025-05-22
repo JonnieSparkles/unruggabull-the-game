@@ -16,6 +16,7 @@ import { bgMusic, evilLaughSfx, helloUnruggabullSfx, challengeMeSfx, wovenIntoRu
 import { carpshits, lowerCarpshits, NUM_CARPSHITS, NUM_LOWER_CARPSHITS } from '../../enemies/carpshits.js';
 import levels from '../index.js';
 import { getCurrentLevelKey, setCarpshitsDuringBoss } from '../../state.js';
+import * as stateModule from '../../state.js';
 
 // Projectile image
 const flameCarpetImg = new Image();
@@ -42,6 +43,8 @@ function basicAttack(now, state) {
     const frameIndex = Math.floor(elapsed / FRAME_DURATION);
     if (frameIndex >= 3 && !state.hasSpawnedProjectile) {
       spawnProjectile(state);
+      stateModule.setScreenShake(true);
+      stateModule.setScreenShakeStartTime(performance.now());
       state.hasSpawnedProjectile = true;
     }
     if (elapsed >= ATTACK_ANIM_DURATION) {

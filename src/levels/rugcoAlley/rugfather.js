@@ -1,6 +1,6 @@
 import { player } from '../../player.js';
 import * as stateModule from '../../state.js';
-import { bgMusic, evilLaughSfx, fireWindsSwoosh, helloUnruggabullSfx, challengeMeSfx } from '../../sound.js';
+import { evilLaughSfx, fireWindsSwoosh, helloUnruggabullSfx, challengeMeSfx } from '../../sound.js';
 import { setAutoRunLeft, setBossBattleStarted, getBossBattleStarted } from '../../state.js';
 import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
 import {
@@ -301,14 +301,8 @@ function hit(damage = 1) {
   // Update phase based on new HP
   updatePhaseLogic(state);
   if (state.hp < 0) state.hp = 0;
-  // Shake the screen
-  stateModule.setScreenShake(true);
-  stateModule.setScreenShakeStartTime(performance.now());
-  // Speed up music and boss
+  // Speed up boss (not music)
   state.speedMultiplier += 0.5;
-  if (state.hp > 0) {
-    bgMusic.playbackRate = Math.min(2.0, Math.max(0.5, 1 + (5 - state.hp) * 0.2));
-  }
   // Win on last hit
   if (state.hp <= 0) {
     state.active = false;
@@ -317,19 +311,21 @@ function hit(damage = 1) {
     // Play challenge-me SFX at boss death
     challengeMeSfx.currentTime = 0;
     challengeMeSfx.play();
-    // Reset music speed
-    bgMusic.playbackRate = 1.0;
     // Removal of boss and carpshitsDuringBoss will happen after death animation
   }
 }
 
 // Get boss hitbox (for collision)
 function getHitbox() {
+  const width = 100;
+  const height = 196;
+  const offsetX = (BOSS_WIDTH * state.scale - width) / 2;
+  const offsetY = (BOSS_HEIGHT * state.scale - height) / 2;
   return {
-    x: state.x,
-    y: state.y,
-    width: BOSS_WIDTH * state.scale,
-    height: BOSS_HEIGHT * state.scale
+    x: state.x + offsetX,
+    y: state.y + offsetY,
+    width,
+    height
   };
 }
 
