@@ -1,6 +1,8 @@
 import { keys } from './input.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT, MOVE_SPEED, CROUCH_SPEED, JUMP_FORCE, MAX_VELOCITY } from './constants/player.js';
 
+export const PLAYER_START_HEALTH = 100;
+
 /**
  * Player state and related assets.
  */
@@ -17,7 +19,7 @@ export const player = {
   grounded: true,
   firing: false,
   facing: 1, // 1 for right, -1 for left
-  health: 3,
+  health: PLAYER_START_HEALTH,
   crouching: false,
   muzzleFlashTimer: 0,
   shockedFrame: 0,

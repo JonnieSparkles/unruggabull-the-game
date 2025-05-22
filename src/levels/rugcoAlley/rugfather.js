@@ -34,7 +34,7 @@ const BOSS_HEIGHT = 256;
 export { BOSS_WIDTH, BOSS_HEIGHT };
 
 // Maximum HP for phase calculations
-const MAX_HP = 5;
+const MAX_HP = 100;
 // Phase configurations: attack cooldown in ms per phase
 const PHASE_ATTACK_COOLDOWNS = {
   5: 3000, // 100%

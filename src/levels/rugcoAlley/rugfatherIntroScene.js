@@ -33,7 +33,8 @@ export const rugfatherIntroTimeline = [
   // 3. Garage door starts opening (~13s) + player shocked
   { time: 3000, action: 'playSfx', data: garageDoorSound },
   { time: 3000, action: 'startGarageDoorOpen' },
-  { time: 6000, action: 'setPlayerSprite', data: 'shocked' },
+  { time: 6000, action: 'setPlayerSprite', data: 'lookForward' },
+  { time: 16000, action: 'setPlayerSprite', data: 'shocked' },
 
   // 4. Boss appears at center after door opens
   { time: 16000, action: 'cycleGarageDoorOpen' },
@@ -51,7 +52,7 @@ export const rugfatherIntroTimeline = [
   // 6. Player runs left to battle position
   { time: 20000, action: 'autoRunLeft',     data: true },
   { time: 20000, action: 'setPlayerSprite', data: 'walk' },
-  { time: 20000, action: 'movePlayerTo',    data: { x: 200, y: 'floor' }, duration: 1000 },
+  { time: 20000, action: 'movePlayerTo',    data: { x: 200, y: 'floor' }, duration: 4000 },
   { time: 21000, action: 'setPlayerFacing', data: 'right' },
   { time: 21000, action: 'setPlayerSprite', data: 'idle' },
 

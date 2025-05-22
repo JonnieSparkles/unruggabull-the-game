@@ -6,7 +6,7 @@ import * as state from './state.js';
 import { updateGame } from './update.js';
 import { renderGame } from './render.js';
 import { walkingSprite, carpshitSprite } from './assets.js';
-import { player } from './player.js';
+import { player, PLAYER_START_HEALTH } from './player.js';
 import { carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits } from './enemies/carpshits.js';
 import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
@@ -34,7 +34,7 @@ export function resetGame(canvas, bullets) {
   player.grounded = true;
   player.firing = false;
   player.facing = 1;
-  player.health = 3;
+  player.health = PLAYER_START_HEALTH;
   state.resetKillCount();
   // Configure how many kills until difficulty increases for this level
   state.setPhaseChangeKillCount(levelConfig.phaseChangeKillCount);

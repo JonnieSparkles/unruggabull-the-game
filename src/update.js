@@ -270,7 +270,11 @@ export function updateGame(bullets, canvas) {
   } else {
     if (player.width !== 64) player.width = 64;
     if (player.firing) {
-      player.sprite = 'fire';
+      if (player.crouching) {
+        player.sprite = 'crouchFire';
+      } else {
+        player.sprite = 'fire';
+      }
     } else if (!player.grounded && !player.crouching) {
       player.sprite = 'jump';
     } else if (player.crouching) {
