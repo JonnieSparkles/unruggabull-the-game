@@ -8,9 +8,9 @@ export const NUM_PHASES = 3;
 
 // Phase configurations: attack cooldown in ms per phase
 export const PHASE_ATTACK_COOLDOWNS = {
-  3: 3000, // 100%
-  2: 2000, //  50%
-  1: 1000  //   0%
+  1: 3000, // easy
+  2: 2000, // medium
+  3: 1000  // hard
 };
 
 // Phase 1 movement constants

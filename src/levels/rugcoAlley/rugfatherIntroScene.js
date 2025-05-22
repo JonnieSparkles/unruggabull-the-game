@@ -13,7 +13,7 @@
  * - Fight begins after "FIGHT!" flashes
  */
 
-import { evilLaughSfx, helloUnruggabullSfx, garageDoorSound, fireWindsSwoosh, unruggabullVoiceSounds } from '../../sound.js';
+import { evilLaughSfx, helloUnruggabullSfx, challengeMeSfx, wovenIntoRugSfx, heatThingsUpSfx, muhahahaSfx, garageDoorSound, fireWindsSwoosh, unruggabullVoiceSounds } from '../../sound.js';
 import { FLASH_DURATION } from '../../constants/timing.js';
 
 export const rugfatherIntroTimeline = [
@@ -50,7 +50,7 @@ export const rugfatherIntroTimeline = [
   { time: 19000, action: 'setBossSprite',     data: 'spin' },
   { time: 19000, action: 'setBossOpacity',   data: 0 },
   { time: 19000, action: 'playSfx',          data: fireWindsSwoosh, duration: 10000 },
-  { time: 19000, action: 'tweenBossPosition', data: { x: 450, y: 'floor' }, duration: 10000 },
+  { time: 19000, action: 'tweenBossPosition', data: { x: 500, y: 'floor' }, duration: 10000 },
   { time: 19000, action: 'tweenBossScale',    data: { scale: 1.0 }, duration: 10000 },
   { time: 19000, action: 'tweenBossOpacity',  data: { opacity: 1 }, duration: 1500 },
 
@@ -63,7 +63,7 @@ export const rugfatherIntroTimeline = [
   { time: 27500, action: 'playSfx', data: unruggabullVoiceSounds[7] },
 
   // 7. Both face off and hold
-  { time: 29200, action: 'setBossSprite',   data: 'idle' },
+  { time: 29200, action: 'setBossSprite',   data: 'faceCamera' },
 
   // 8. Boss speaks
   { time: 29500, action: 'playSfx', data: helloUnruggabullSfx },

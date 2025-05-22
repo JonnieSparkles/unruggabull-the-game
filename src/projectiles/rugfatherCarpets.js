@@ -84,7 +84,9 @@ export default class RugfatherCarpet {
     // Draw with scaling around center
     ctx.save();
     ctx.translate(this.x, this.y);
-    ctx.scale(scale, scale);
+    // Mirror if moving right (vx>0)
+    const sx = this.vx > 0 ? -scale : scale;
+    ctx.scale(sx, scale);
     ctx.drawImage(
       this.sprite,
       frame * frameW, 0, frameW, frameH,

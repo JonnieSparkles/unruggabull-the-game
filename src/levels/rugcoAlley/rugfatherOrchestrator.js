@@ -9,6 +9,7 @@ import { getCurrentLevelKey } from '../../state.js';
 import { bgMusic } from '../../sound.js';
 import { platforms } from '../../physics.js';
 import { carpshits, lowerCarpshits } from '../../enemies/carpshits.js';
+import { wovenIntoRugSfx } from '../../sound.js';
 
 let timelineStart = 0;
 let timelineIndex = 0;
@@ -150,6 +151,11 @@ function handleEvent(event, now) {
       setAutoRunLeft(event.data !== false);
       break;
     case 'startBattle':
+      // End intro mode so battle draw (and health bar) will show
+      rugfatherBoss.setEntering(false);
+      // Play start-of-fight SFX (woven into rug)
+      wovenIntoRugSfx.currentTime = 0;
+      wovenIntoRugSfx.play();
       completeAllTweens(now);
       setBossBattleStarted(true);
       setAutoRunLeft(false);

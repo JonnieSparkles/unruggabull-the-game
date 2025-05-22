@@ -290,6 +290,35 @@ export function updateGame(bullets, canvas) {
     }
   }
   updateProjectiles(canvas.width);
+  // Make boss carpet projectiles shoot-downable by player bullets
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    if (p.type === 'boss' && typeof p.getHitbox === 'function') {
+      const projHitbox = p.getHitbox();
+      for (let j = projectiles.length - 1; j >= 0; j--) {
+        const b = projectiles[j];
+        if (b.type === 'player') {
+          // Check if bullet inside carpet hitbox
+          if (
+            b.x > projHitbox.x && b.x < projHitbox.x + projHitbox.width &&
+            b.y > projHitbox.y && b.y < projHitbox.y + projHitbox.height
+          ) {
+            p.hit = true;
+            p.vx = 0;
+            p.vy = 0;
+            // Remove the bullet after impact
+            projectiles.splice(j, 1);
+            // Schedule explosion to disappear after 500ms
+            setTimeout(() => {
+              const idx2 = projectiles.indexOf(p);
+              if (idx2 >= 0) projectiles.splice(idx2, 1);
+            }, 500);
+            break;
+          }
+        }
+      }
+    }
+  }
 
   // Check boss carpet projectile collisions with player
   for (let i = projectiles.length - 1; i >= 0; i--) {

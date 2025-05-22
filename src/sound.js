@@ -59,6 +59,16 @@ export const garageDoorCloseSound = new Audio('assets/audio/sfx/garage-door-clos
 garageDoorCloseSound.volume = 1.0;
 
 // Entrance sound effects
-export const evilLaughSfx = new Audio('assets/audio/sfx/rugfather/rugfather-ha-ha-evil-echo-laugh.mp3');
 export const fireWindsSwoosh = new Audio('assets/audio/sfx/fire-winds-swoosh.mp3');
-export const helloUnruggabullSfx = new Audio('assets/audio/sfx/rugfather/rugfather-hello-unruggabull.mp3'); 
+
+// Rugfather voice lines
+export const evilLaughSfx = new Audio('assets/audio/sfx/rugfather/rugfather-ha-ha-evil-echo-laugh.mp3');
+export const helloUnruggabullSfx = new Audio('assets/audio/sfx/rugfather/rugfather-hello-unruggabull.mp3');
+export const challengeMeSfx = new Audio('assets/audio/sfx/rugfather/rugfather-challenge-me.mp3');
+export const wovenIntoRugSfx = new Audio('assets/audio/sfx/rugfather/rugfather-woven-into-rug.mp3');
+export const heatThingsUpSfx = new Audio('assets/audio/sfx/rugfather/rugfather-heat-things-up.mp3');
+export const muhahahaSfx = new Audio('assets/audio/sfx/rugfather/rugfather-muhahaha.mp3');
+export const rugfatherWeaveRemembersSfx = new Audio('assets/audio/sfx/rugfather/rugfather-weave-remembers.mp3');
+export const rugfatherOuchSfx = new Audio('assets/audio/sfx/rugfather/rugfather-ouch.mp3');
+export const rugfatherOwSfx = new Audio('assets/audio/sfx/rugfather/rugfather-ow.mp3');
+

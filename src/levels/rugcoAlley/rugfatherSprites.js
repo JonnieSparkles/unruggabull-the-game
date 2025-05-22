@@ -6,7 +6,8 @@ bossDeadSprite.src = 'assets/sprites/levels/rugcoAlley/rugfather-dead.png';
 
 // Map of logical boss states to sprite sheets and animation info
 export const RUGFATHER_SPRITES = {
-  idle:        { image: bossSpriteSheet, animated: false, frame: 1, frameWidth: 256, frameHeight: 256 },
+  idle:        { image: bossSpriteSheet, animated: false, frame: 3, frameWidth: 256, frameHeight: 256 },
+  faceCamera:  { image: bossSpriteSheet, animated: false, frame: 1, frameWidth: 256, frameHeight: 256 },
   spin:        { image: bossSpriteSheet, animated: true,  frameSequence: [
     {frame:2, mirror:false},
     {frame:3, mirror:false},
