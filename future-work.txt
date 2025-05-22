@@ -1,8 +1,7 @@
 rugfather
 -unruggabull hit frames
 -figure out the battle
---randomize carpet projectiles vertically
---jitter the boss 
+-rugfather taunts
 -blaster cool down? temp-blaster-energy.md
 -animate idle sprites
 -level intro/story
@@ -10,11 +9,10 @@ rugfather
 -whats gameover during boss?
 -goodbye rugfather Sounds
 -platforms and carpshits should flicker/fade out
--garage handle animation
 -improve difficulty of carpshits
 -exit scene
 -master unrugabull sprite
--rugfather taunts
+
 -fix intro screen to 960x540
 
 

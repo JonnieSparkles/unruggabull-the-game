@@ -1,12 +1,8 @@
-import { setPlayerAutoRunLeft } from '../../state.js';
 import { player } from '../../player.js';
 import * as stateModule from '../../state.js';
 import { bgMusic, evilLaughSfx, fireWindsSwoosh, helloUnruggabullSfx } from '../../sound.js';
-import { carpshits, lowerCarpshits, NUM_CARPSHITS, NUM_LOWER_CARPSHITS } from '../../enemies/carpshits.js';
 import { setAutoRunLeft, setBossBattleStarted, getBossBattleStarted } from '../../state.js';
 import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
-import levels from '../../levels/index.js';
-import { getCurrentLevelKey } from '../../state.js';
 import {
   BOSS_HOLD_DURATION,
   BLINK_OUT_DURATION,
@@ -21,9 +17,8 @@ import {
   BLINK_TOTAL_DURATION
 } from './rugfatherConstants.js';
 import { GAME_STATES } from '../../constants/gameStates.js';
-import { PLAYER_WIDTH, PLAYER_HEIGHT } from '../../constants/player.js';
 import { updateBossAI, updatePhaseLogic, updatePhase1Movement } from './rugfatherAI.js';
-import { setScreenShake, setScreenShakeStartTime, setCarpshitsDuringBoss, setCurrentBoss, setBossActive, setGameState, setCongratsStartTime } from '../../state.js';
+import { setScreenShake, setScreenShakeStartTime, setCurrentBoss, setBossActive, setGameState, setCongratsStartTime } from '../../state.js';
 
 // Level 1 Boss: Rugfather
 // Access the canvas and context
@@ -245,41 +240,6 @@ function hit(damage = 1) {
   stateModule.setScreenShakeStartTime(performance.now());
   // Speed up music and boss
   state.speedMultiplier += 0.5;
-  if (state.hp === 3) {
-    // Respawn carpshits and lowerCarpshits
-    carpshits.length = 0;
-    lowerCarpshits.length = 0;
-    const levelConfig = levels[getCurrentLevelKey()];
-    for (let i = 0; i < NUM_CARPSHITS; i++) {
-      carpshits.push({
-        x: canvas.width + 48 + Math.random() * 200,
-        y: canvas.height * 0.1 + Math.random() * (canvas.height * 0.6 - canvas.height * 0.1),
-        vx: -(1.5 + Math.random()),
-        alive: true,
-        frame: 0,
-        frameTimer: 0,
-        falling: false,
-        vy: 0,
-        onFloor: false,
-        respawnTimer: 0
-      });
-    }
-    for (let i = 0; i < NUM_LOWER_CARPSHITS; i++) {
-      lowerCarpshits.push({
-        x: canvas.width + 48 + Math.random() * 200,
-        y: canvas.height * 0.6 + Math.random() * ((levelConfig.floorY - 48) - canvas.height * 0.6),
-        vx: -(1 + Math.random()),
-        alive: true,
-        frame: 0,
-        frameTimer: 0,
-        falling: false,
-        vy: 0,
-        onFloor: false,
-        respawnTimer: 0
-      });
-    }
-    stateModule.setCarpshitsDuringBoss(true);
-  }
   if (state.hp > 0) {
     bgMusic.playbackRate = Math.min(2.0, Math.max(0.5, 1 + (5 - state.hp) * 0.2));
   }

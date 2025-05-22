@@ -116,10 +116,6 @@ function handleEvent(event, now) {
       stateModule.setBossTransition(true);
       stateModule.setBossTransitionStartTime(now);
       break;
-    case 'fadeInBoss':
-      // Use only public boss interface; orchestrator should not mutate boss internals directly
-      // (If needed, add a public method to rugfatherBoss to handle fade-in)
-      break;
     case 'setPlayerControl':
       player.controlEnabled = !!event.data;
       break;
@@ -154,9 +150,7 @@ function handleEvent(event, now) {
       setAutoRunLeft(event.data !== false);
       break;
     case 'startBattle':
-      // TODO: If needed, log boss position/scale via public API
       completeAllTweens(now);
-      // TODO: If needed, log boss position/scale via public API
       setBossBattleStarted(true);
       setAutoRunLeft(false);
       // Clear intro state flags so the intro doesn't restart
@@ -212,7 +206,12 @@ function handleEvent(event, now) {
       player.facing = event.data === 'left' ? -1 : 1;
       break;
     case 'setBossFacing':
-      // Use only public boss interface; orchestrator should not mutate boss internals directly
+      // Since we don't have a direct setFacing method on the boss,
+      // we can use the appropriate sprite that faces the correct direction
+      // or implement mirroring in the future if needed
+      const facingDirection = event.data || 'right';
+      // For now, we'll just log this since facing is controlled by sprite selection
+      console.log(`Boss facing ${facingDirection} requested but not implemented yet`);
       break;
     case 'flashScreen':
       stateModule.setFlashActive(true);
@@ -261,8 +260,4 @@ export function skipToBattle() {
   // Immediately complete any active tweens so position & scale reach final values
   tweens.forEach(tw => tw.startTime = now - tw.duration);
   updateTweens(now);
-}
-
-export default class RugfatherCarpet {
-  // ... existing code ...
 } 

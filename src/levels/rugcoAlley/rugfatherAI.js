@@ -12,6 +12,10 @@ import {
 import { getBossBattleStarted } from '../../state.js';
 import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
 import { spawnRugfatherCarpet } from '../../projectiles/index.js';
+import { bgMusic } from '../../sound.js';
+import { carpshits, lowerCarpshits, NUM_CARPSHITS, NUM_LOWER_CARPSHITS } from '../../enemies/carpshits.js';
+import levels from '../index.js';
+import { getCurrentLevelKey, setCarpshitsDuringBoss } from '../../state.js';
 
 // Projectile image
 const flameCarpetImg = new Image();
@@ -76,6 +80,78 @@ export function updatePhaseLogic(state) {
     const cd = PHASE_ATTACK_COOLDOWNS[newPhase] || state.attackCooldown;
     state.attackCooldown = cd;
     console.log(`Rugfather phase changed to ${newPhase}, attackCooldown=${cd}`);
+    // Prepare for spawning minions: get canvas and level config
+    const canvas = document.getElementById('gameCanvas');
+    const levelConfig = levels[getCurrentLevelKey()];
+    // Phase 2: speed up music and spawn minions
+    if (newPhase === 2) {
+      bgMusic.playbackRate = 1.5;
+      setCarpshitsDuringBoss(true);
+      for (let i = 0; i < NUM_CARPSHITS; i++) {
+        carpshits.push({
+          x: canvas.width + 48 + Math.random() * 200,
+          y: canvas.height * 0.1 + Math.random() *
+             (canvas.height * 0.6 - canvas.height * 0.1),
+          vx: -(1.5 + Math.random()),
+          alive: true,
+          frame: 0,
+          frameTimer: 0,
+          falling: false,
+          vy: 0,
+          onFloor: false,
+          respawnTimer: 0
+        });
+      }
+      for (let i = 0; i < NUM_LOWER_CARPSHITS; i++) {
+        lowerCarpshits.push({
+          x: canvas.width + 48 + Math.random() * 200,
+          y: canvas.height * 0.6 + Math.random() *
+             ((levelConfig.floorY - 48) - canvas.height * 0.6),
+          vx: -(1 + Math.random()),
+          alive: true,
+          frame: 0,
+          frameTimer: 0,
+          falling: false,
+          vy: 0,
+          onFloor: false,
+          respawnTimer: 0
+        });
+      }
+    } else if (newPhase === 1) {
+      // Phase 3: further speed up music and additional minions
+      bgMusic.playbackRate = 2.0;
+      setCarpshitsDuringBoss(true);
+      for (let i = 0; i < NUM_CARPSHITS; i++) {
+        carpshits.push({
+          x: canvas.width + 48 + Math.random() * 200,
+          y: canvas.height * 0.1 + Math.random() *
+             (canvas.height * 0.6 - canvas.height * 0.1),
+          vx: -(2 + Math.random()),
+          alive: true,
+          frame: 0,
+          frameTimer: 0,
+          falling: false,
+          vy: 0,
+          onFloor: false,
+          respawnTimer: 0
+        });
+      }
+      for (let i = 0; i < NUM_LOWER_CARPSHITS; i++) {
+        lowerCarpshits.push({
+          x: canvas.width + 48 + Math.random() * 200,
+          y: canvas.height * 0.6 + Math.random() *
+             ((levelConfig.floorY - 48) - canvas.height * 0.6),
+          vx: -(1.5 + Math.random()),
+          alive: true,
+          frame: 0,
+          frameTimer: 0,
+          falling: false,
+          vy: 0,
+          onFloor: false,
+          respawnTimer: 0
+        });
+      }
+    }
   }
 }
 

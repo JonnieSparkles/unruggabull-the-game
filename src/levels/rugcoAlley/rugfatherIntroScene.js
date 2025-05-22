@@ -27,7 +27,7 @@ export const rugfatherIntroTimeline = [
   { time: 0,    action: 'setPlayerControl', data: false },
 
   // 2. Ground + center the player
-  { time: 500,  action: 'movePlayerToFloor' }, // TODO: Could be more elegant (e.g. tween to floor)
+  { time: 500,  action: 'movePlayerToFloor' },
   { time: 1500, action: 'setPlayerSprite', data: 'walk' },
   { time: 1500, action: 'playSfx', data: unruggabullVoiceSounds[6] },
   { time: 1500, action: 'movePlayerTo', data: { x: 380 }, duration: 1200 },
@@ -63,7 +63,6 @@ export const rugfatherIntroTimeline = [
   { time: 27500, action: 'playSfx', data: unruggabullVoiceSounds[7] },
 
   // 7. Both face off and hold
-  { time: 29000, action: 'setBossFacing',   data: 'left' },
   { time: 29200, action: 'setBossSprite',   data: 'idle' },
 
   // 8. Boss speaks

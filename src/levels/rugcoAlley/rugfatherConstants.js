@@ -3,16 +3,14 @@ export const BOSS_HOLD_DURATION = 1000; // ms to pause before boss transition
 export const BLINK_OUT_DURATION = 800;  // ms for blink-out effect before platforms disappear
 
 // Boss HP and phase constants
-export const MAX_HP = 100;
-export const NUM_PHASES = 5;
+export const MAX_HP = 75;
+export const NUM_PHASES = 3;
 
 // Phase configurations: attack cooldown in ms per phase
 export const PHASE_ATTACK_COOLDOWNS = {
-  5: 3000, // 100%
-  4: 2500, // 80%
-  3: 2000, // 60%
-  2: 1500, // 40%
-  1: 1000  // 20%
+  3: 3000, // 100%
+  2: 2000, //  50%
+  1: 1000  //   0%
 };
 
 // Phase 1 movement constants
