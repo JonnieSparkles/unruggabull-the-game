@@ -108,8 +108,6 @@ function update() {
   const now = performance.now();
 
   updateBossAI(now);
-  // Phase logic
-  updatePhaseLogic();
   // Phase 1 movement
   updatePhase1Movement(now);
 }
