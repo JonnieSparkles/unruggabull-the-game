@@ -166,12 +166,14 @@ export function updatePhaseLogic(state) {
     // Show hit frame between phases and pause music for dramatic effect
     const dramaticPause = 2000;
     state.sprite = 'hit';
+    state.invulnerable = true; // Boss is invulnerable during phase change
     bgMusic.pause();
     setTimeout(() => {
       if (state.sprite === 'hit') state.sprite = 'idle';
       bgMusic.play();
     }, dramaticPause);
     // Prepare one-time spin-and-switch for hardest phase 3
+    let extraInvuln = 0;
     if (newPhase === NUM_PHASES) {
       const canvas = document.getElementById('gameCanvas');
       const floorY = levels[getCurrentLevelKey()].floorY - BOSS_HEIGHT * state.scale;
@@ -182,7 +184,14 @@ export function updatePhaseLogic(state) {
       state.spinSwitchEndX = SPIN_LAND_X;
       state.spinSwitchFloorY = floorY;
       state.spinSwitchAmplitude = 200
+      extraInvuln = state.spinSwitchDuration + 200; // buffer after landing
     }
+    // Remove invulnerability after pause and (if phase 3) after spin
+    setTimeout(() => {
+      state.invulnerable = false;
+      state.invulnFadeIn = true;
+      state.invulnFadeInStart = performance.now();
+    }, dramaticPause + extraInvuln);
     state.phase = newPhase;
     // Reset movement base capture for new phase
     state.hasCapturedBaseX = false;

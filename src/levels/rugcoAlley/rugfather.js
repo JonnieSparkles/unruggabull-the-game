@@ -66,7 +66,13 @@ const state = {
   spinEndTime: 0,
   jumpDone: false,
   helloPlayed: false,
-  facing: -1 // Boss initially faces left
+  facing: -1, // Boss initially faces left
+  invulnerable: false, // Add invulnerability flag
+  invulnFadeIn: false,
+  invulnFadeInStart: 0,
+  hitFlashEnd: 0, // For hit flash effect
+  hitJitterX: 0,  // For jitter/knockback effect
+  hitJitterY: 0   // For vertical jitter/knockback effect
 };
 
 const bossCenterX = () => canvas.width / 2 - BOSS_WIDTH / 2;
@@ -103,6 +109,7 @@ function spawn() {
   state.hasCapturedBaseY = false;
   state.baseX = null;
   state.hasCapturedBaseX = false;
+  state.invulnerable = false; // Reset invulnerability on spawn
 }
 
 // Basic oscillation movement
@@ -111,6 +118,15 @@ function update() {
   if (!state.active) return;
   const now = performance.now();
   updateBossAI(now, state);
+  // Decay jitter/knockback if active (but do not add to state.x/y here)
+  if (state.hitJitterX) {
+    state.hitJitterX *= 0.8;
+    if (state.hitJitterX < 0.5) state.hitJitterX = 0;
+  }
+  if (state.hitJitterY) {
+    state.hitJitterY *= 0.8;
+    if (state.hitJitterY < 0.5) state.hitJitterY = 0;
+  }
   // Phase 1 (easy): horizontal sway only
   if (state.phase === 1) {
     if (!state.hasCapturedBaseX) {
@@ -216,9 +232,35 @@ function draw() {
     ctx.restore();
     return;
   }
+  // Hit flash effect: brighten/contrast if recently hit
+  let filterApplied = false;
+  if (state.hitFlashEnd && performance.now() < state.hitFlashEnd) {
+    ctx.filter = 'brightness(1.5) contrast(1.0)';
+    filterApplied = true;
+  }
+  // Flicker effect when invulnerable
+  let drawAlpha = state.opacity;
+  if (state.invulnerable) {
+    // Flicker: alternate visible/invisible every 80ms
+    const flickerSpeed = 80; // ms
+    const now = performance.now();
+    drawAlpha = (Math.floor(now / flickerSpeed) % 2 === 0) ? 0.25 : 1.0;
+  } else if (state.invulnFadeIn) {
+    // Fade in: animate opacity from 0 to 1 over 400ms
+    const fadeDuration = 400;
+    const now = performance.now();
+    const t = Math.min(1, (now - state.invulnFadeInStart) / fadeDuration);
+    drawAlpha = t;
+    if (t >= 1) {
+      state.invulnFadeIn = false;
+      drawAlpha = 1.0;
+    }
+  }
+  // Calculate jitter offset for this frame
+  const jitterX = state.hitJitterX ? (Math.random() - 0.5) * state.hitJitterX : 0;
+  const jitterY = state.hitJitterY ? (Math.random() - 0.5) * state.hitJitterY : 0;
   ctx.save();
-  ctx.globalAlpha = state.opacity;
-
+  ctx.globalAlpha = drawAlpha;
   // Determine which sprite frame to draw
   const spriteState = state.sprite || 'idle';
   let spriteInfo = RUGFATHER_SPRITES[spriteState] || RUGFATHER_SPRITES.idle;
@@ -234,9 +276,9 @@ function draw() {
     // Determine mirroring based on frameData or boss facing
     const shouldMirror = frameData.mirror || state.facing > 0;
     ctx.save();
-    ctx.globalAlpha = state.opacity;
+    ctx.globalAlpha = drawAlpha;
     if (shouldMirror) {
-      ctx.translate(state.x + fw * state.scale, state.y);
+      ctx.translate(state.x + jitterX + fw * state.scale, state.y + jitterY);
       ctx.scale(-1, 1);
       ctx.drawImage(
         spriteInfo.image,
@@ -247,7 +289,7 @@ function draw() {
       ctx.drawImage(
         spriteInfo.image,
         frameData.frame * fw, 0, fw, fh,
-        state.x, state.y, fw * state.scale, fh * state.scale
+        state.x + jitterX, state.y + jitterY, fw * state.scale, fh * state.scale
       );
     }
     ctx.restore();
@@ -260,15 +302,16 @@ function draw() {
     ctx.fillRect(canvas.width / 2 - barWidth / 2, 20, barWidth * hpRatio, 10);
     ctx.strokeStyle = 'white';
     ctx.strokeRect(canvas.width / 2 - barWidth / 2, 20, barWidth, 10);
+    if (filterApplied) ctx.filter = 'none';
     return;
   }
   // Draw static frame with mirroring based on facing
   const staticFrame = spriteInfo.frame || 0;
   const mirrorStatic = state.facing > 0;
   ctx.save();
-  ctx.globalAlpha = state.opacity;
+  ctx.globalAlpha = drawAlpha;
   if (mirrorStatic) {
-    ctx.translate(state.x + fw * state.scale, state.y);
+    ctx.translate(state.x + jitterX + fw * state.scale, state.y + jitterY);
     ctx.scale(-1, 1);
     ctx.drawImage(
       spriteInfo.image,
@@ -279,7 +322,7 @@ function draw() {
     ctx.drawImage(
       spriteInfo.image,
       staticFrame * fw, 0, fw, fh,
-      state.x, state.y, fw * state.scale, fh * state.scale
+      state.x + jitterX, state.y + jitterY, fw * state.scale, fh * state.scale
     );
   }
   ctx.restore();
@@ -292,12 +335,23 @@ function draw() {
   ctx.fillRect(canvas.width / 2 - barWidth / 2, 20, barWidth * hpRatio, 10);
   ctx.strokeStyle = 'white';
   ctx.strokeRect(canvas.width / 2 - barWidth / 2, 20, barWidth, 10);
+  if (filterApplied) ctx.filter = 'none';
 }
 
 // Apply damage to the boss
 function hit(damage = 1) {
-  if (!state.active) return;
+  if (!state.active || state.invulnerable) return;
   state.hp -= damage;
+  // Flash effect
+  state.hitFlashEnd = performance.now() + 150;
+  // Jitter/knockback effect (more dramatic)
+  state.hitJitterX = 24;
+  state.hitJitterY = 12;
+  // Screen shake on low HP
+  if (state.hp < MAX_HP * 0.25) {
+    stateModule.setScreenShake(true);
+    stateModule.setScreenShakeStartTime(performance.now());
+  }
   // Update phase based on new HP
   updatePhaseLogic(state);
   if (state.hp < 0) state.hp = 0;
