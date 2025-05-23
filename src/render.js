@@ -246,8 +246,8 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
 
     // Projectiles (player bullets and boss carpets)
     drawProjectiles(ctx, DEBUG_HITBOXES);
-    // Enemies only when not in boss transition or boss fight, or if carpshitsDuringBoss is true
-    if (!getBossTransition() && !getBossActive() || getCarpshitsDuringBoss()) {
+    // Enemies behind boss: only before boss fight begins
+    if (!getBossTransition() && !getBossActive()) {
       if (getBlinkingOut()) {
         const elapsed = performance.now() - getBlinkingOutStartTime();
         const blink = Math.floor(elapsed / 80) % 2 === 0;
@@ -302,6 +302,11 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     // Boss draw if active
     if (getBossActive() && getCurrentBoss()) {
       getCurrentBoss().draw(ctx);
+      // Draw carpshits in front of boss during battle
+      if (getCarpshitsDuringBoss()) {
+        drawCarpshits(ctx);
+        drawLowerCarpshits(ctx);
+      }
       if (DEBUG_HITBOXES) {
         // Draw boss hitbox
         const bossHitbox = getCurrentBoss().getHitbox();

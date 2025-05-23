@@ -74,8 +74,14 @@ export function handleCarpetHit(projectiles, index, carpet) {
     player.sprite = 'dead';
     player.width = 128;
   }
+  // Mark as hit and stop movement, then remove after delay to show final frame
   carpet.hit = true;
-  projectiles.splice(index, 1);
+  carpet.vx = 0;
+  carpet.vy = 0;
+  setTimeout(() => {
+    const idx = projectiles.indexOf(carpet);
+    if (idx >= 0) projectiles.splice(idx, 1);
+  }, 500);
   state.setFlashActive(true);
   state.setFlashColor('rgba(255,0,0,0.5)');
   state.setFlashEndTime(performance.now() + FLASH_DURATION);
