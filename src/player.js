@@ -1,7 +1,7 @@
 import { keys } from './input.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT, MOVE_SPEED, CROUCH_SPEED, JUMP_FORCE, MAX_VELOCITY } from './constants/player.js';
 
-export const PLAYER_START_HEALTH = 100;
+export const PLAYER_START_HEALTH = 10;
 
 /**
  * Player state and related assets.

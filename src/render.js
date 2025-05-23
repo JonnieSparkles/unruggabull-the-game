@@ -4,7 +4,7 @@ import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
 import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGameOver, drawCongrats, drawRestartButton } from './ui.js';
 import { drawPlatforms, platforms } from './physics.js';
-import { walkingSprite, crouchSprite, deadSprite, jumpingSprite, shockedSprite, walkingForwardSprite, bossDeadImage } from './assets.js';
+import { deadSprite } from './assets.js';
 import { drawCarpshits, drawLowerCarpshits, carpshits, lowerCarpshits } from './enemies/carpshits.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 import { getHitbox } from './player.js';
