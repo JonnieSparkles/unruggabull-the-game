@@ -16,6 +16,7 @@ import { FLASH_DURATION } from './constants/timing.js';
 import { BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './levels/rugcoAlley/rugfatherConstants.js';
 import { GAME_STATES } from './constants/gameStates.js';
 import { startBossIntro, updateBossIntro } from './levels/rugcoAlley/rugfatherOrchestrator.js';
+import { clearEntities } from './utils/sceneUtils.js';
 
 /**
  * Perform one update cycle: input, physics, firing, bullet & enemy updates, and collision checks.
@@ -178,10 +179,7 @@ export function updateGame(bullets, canvas) {
   // During blink-out, wait before removing platforms/carpshits
   if (state.getBlinkingOut()) {
     if (performance.now() - state.getBlinkingOutStartTime() > state.BLINK_OUT_DURATION) {
-      enemyCarpshits.length = 0;
-      enemyLowercarpshits.length = 0;
-      platforms.length = 0;
-      bullets.length = 0;
+      clearEntities(enemyCarpshits, enemyLowercarpshits, platforms, bullets);
       state.setBlinkingOut(false);
     }
   }

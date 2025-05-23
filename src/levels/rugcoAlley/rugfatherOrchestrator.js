@@ -10,6 +10,7 @@ import { bgMusic } from '../../sound.js';
 import { platforms } from '../../physics.js';
 import { carpshits, lowerCarpshits } from '../../enemies/carpshits.js';
 import { wovenIntoRugSfx } from '../../sound.js';
+import { clearEntities } from '../../utils/sceneUtils.js';
 
 let timelineStart = 0;
 let timelineIndex = 0;
@@ -86,11 +87,7 @@ function handleEvent(event, now) {
   switch (event.action) {
     case 'clearEntities':
       // Clear all bullets, platforms, and carpshits at intro start
-      if (window.bullets) window.bullets.length = 0;
-      projectiles.length = 0;
-      platforms.length = 0;
-      carpshits.length = 0;
-      lowerCarpshits.length = 0;
+      clearEntities(window.bullets, projectiles, platforms, carpshits, lowerCarpshits);
       break;
     case 'spawnBoss':
       // Activate boss and its internal state for intro
@@ -99,9 +96,7 @@ function handleEvent(event, now) {
       // Use only public boss interface; orchestrator should not mutate boss internals directly
       rugfatherBoss.spawn();
       // Clear existing platforms and enemies so they don't reappear
-      platforms.length = 0;
-      carpshits.length = 0;
-      lowerCarpshits.length = 0;
+      clearEntities(platforms, carpshits, lowerCarpshits);
       break;
     case 'stopMusic':
       bgMusic.pause();

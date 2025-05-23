@@ -12,6 +12,7 @@ import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
 import { GAME_STATES } from './constants/gameStates.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT } from './constants/player.js';
+import { clearEntities } from './utils/sceneUtils.js';
 
 /**
  * Reset player, enemies, and bullets for a new game.
@@ -62,7 +63,7 @@ export function resetGame(canvas, bullets) {
     carpshit.onFloor = false;
     carpshit.respawnTimer = 0;
   });
-  bullets.length = 0;
+  clearEntities(bullets);
   state.setDyingStartTime(null);
   state.setGameState('playing');
 }
