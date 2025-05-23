@@ -43,8 +43,19 @@ function basicAttack(now, state) {
     const frameIndex = Math.floor(elapsed / FRAME_DURATION);
     if (frameIndex >= 3 && !state.hasSpawnedProjectile) {
       spawnProjectile(state);
+      // trigger screen shake at reduced magnitude for boss carpet shot
       stateModule.setScreenShake(true);
       stateModule.setScreenShakeStartTime(performance.now());
+      // reduce shake magnitude by 25%
+      stateModule.setScreenShakeMagnitude(
+        stateModule.DEFAULT_SCREEN_SHAKE_MAGNITUDE * 0.75
+      );
+      // restore default magnitude after shake duration
+      setTimeout(() => {
+        stateModule.setScreenShakeMagnitude(
+          stateModule.DEFAULT_SCREEN_SHAKE_MAGNITUDE
+        );
+      }, stateModule.SCREEN_SHAKE_DURATION);
       state.hasSpawnedProjectile = true;
     }
     if (elapsed >= ATTACK_ANIM_DURATION) {
@@ -213,8 +224,8 @@ export function updatePhaseLogic(state) {
     // Phase 2: speed up music and spawn minions
     if (newPhase === 2) {
       // Play phase 2 challenge-me SFX
-      challengeMeSfx.currentTime = 0;
-      challengeMeSfx.play();
+      wovenIntoRugSfx.currentTime = 0;
+      wovenIntoRugSfx.play();
       bgMusic.playbackRate = 1.5;
       setCarpshitsDuringBoss(true);
       for (let i = 0; i < NUM_CARPSHITS; i++) {

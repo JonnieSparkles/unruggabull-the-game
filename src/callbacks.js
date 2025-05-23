@@ -52,6 +52,9 @@ export function handlePlayerHit(carpshit) {
   playPlayerHitSound();
   setPlayerHitFlashActive(true);
   setPlayerHitFlashEndTime(performance.now() + duration);
+  // hold hit frame for specified duration
+  player.sprite = 'hit';
+  player.hitHoldUntil = performance.now() + duration;
   if (player.health <= 0) {
     if (!state.gameState.includes('over') && state.gameState !== 'dying') {
       gameOverSound.currentTime = 0;
@@ -88,6 +91,9 @@ export function handleCarpetHit(projectiles, index, carpet) {
   playPlayerHitSound();
   setPlayerHitFlashActive(true);
   setPlayerHitFlashEndTime(performance.now() + FLASH_DURATION);
+  // hold hit frame for specified duration
+  player.sprite = 'hit';
+  player.hitHoldUntil = performance.now() + FLASH_DURATION;
   if (player.health <= 0 && !state.gameState.includes('over') && state.gameState !== 'dying') {
     gameOverSound.currentTime = 0;
     gameOverSound.play();

@@ -28,6 +28,7 @@ export const player = {
   sprite: 'idle',
   invulnerable: false,
   invulnerableUntil: null,
+  hitHoldUntil: 0,
   scale: 1,
   opacity: 1
 };

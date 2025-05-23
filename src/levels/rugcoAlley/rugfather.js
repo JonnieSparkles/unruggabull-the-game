@@ -176,14 +176,38 @@ function update() {
 // Draw the boss and its HP bar
 function draw() {
   if (state.dying) {
+    const spriteInfo = RUGFATHER_SPRITES.dead;
+    const now = performance.now();
+    const elapsed = now - state.deathStart;
+    const sequence = spriteInfo.frameSequence;
+    const frameDuration = spriteInfo.frameDuration;
+    const holdTime = 2500;
+    const animTime = holdTime + sequence.length * frameDuration;
+    let frameNum;
+    if (elapsed < holdTime) {
+      // Hold first frame
+      frameNum = sequence[0];
+    } else if (elapsed < animTime) {
+      // Play through sequence
+      const idx = Math.floor((elapsed - holdTime) / frameDuration);
+      frameNum = sequence[Math.min(idx, sequence.length - 1)];
+    } else {
+      // Flicker between last two frames after animation
+      const flickerInterval = 500;
+      const t = Math.floor((elapsed - animTime) / flickerInterval) % 2;
+      const last = sequence.length - 1;
+      const prev = Math.max(0, last - 1);
+      frameNum = t === 0 ? sequence[last] : sequence[prev];
+    }
+    const fw = spriteInfo.frameWidth;
+    const fh = spriteInfo.frameHeight;
     ctx.save();
     ctx.globalAlpha = Math.max(0, state.opacity);
     ctx.drawImage(
-      bossDeadSprite,
-      state.x,
-      state.y,
-      BOSS_WIDTH * state.scale,
-      BOSS_HEIGHT * state.scale
+      spriteInfo.image,
+      frameNum * fw, 0, fw, fh,
+      state.x, state.y,
+      fw * state.scale, fh * state.scale
     );
     ctx.globalAlpha = 1.0;
     ctx.restore();
@@ -350,6 +374,13 @@ function hit(damage = 1) {
     return;
   }
   state.hp -= damage;
+  // play challenge SFX when crossing 75% HP threshold
+  const prevHp = state.hp + damage;
+  const threshold = MAX_HP * 0.75;
+  if (prevHp > threshold && state.hp <= threshold) {
+    challengeMeSfx.currentTime = 0;
+    challengeMeSfx.play();
+  }
   // Flash effect
   state.hitFlashEnd = performance.now() + 150;
   // Jitter/knockback effect (more dramatic)

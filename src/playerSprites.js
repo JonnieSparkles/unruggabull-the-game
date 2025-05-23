@@ -1,4 +1,4 @@
-import { walkingSprite, crouchSprite, jumpingSprite, shockedSprite, walkingForwardSprite, deadSprite } from './assets.js';
+import { walkingSprite, crouchSprite, jumpingSprite, shockedSprite, walkingForwardSprite, deadSprite, hitSprite } from './assets.js';
 
 // Map of logical player states to their sprite sheets and animation settings
 export const PLAYER_SPRITES = {
@@ -23,6 +23,7 @@ export const PLAYER_SPRITES = {
     {frame: 2, mirror: false},
     {frame: 3, mirror: false}
   ], frameDuration: 150, offsetY: 0, frameWidth: 64, frameHeight: 96 },
+  hit:         { image: hitSprite,       animated: false, frame: 0, offsetY: 0, frameWidth: 64, frameHeight: 96 },
   walkForward: { image: walkingForwardSprite, animated: true, frameSequence: [
     {frame: 0, mirror: false},
     {frame: 1, mirror: false},

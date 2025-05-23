@@ -13,7 +13,7 @@
  * - Fight begins after "FIGHT!" flashes
  */
 
-import { evilLaughSfx, helloUnruggabullSfx, challengeMeSfx, wovenIntoRugSfx, heatThingsUpSfx, muhahahaSfx, garageDoorSound, fireWindsSwoosh, unruggabullVoiceSounds } from '../../sound.js';
+import { evilLaughSfx, helloUnruggabullSfx, garageDoorSound, fireWindsSwoosh, unruggabullVoiceSounds } from '../../sound.js';
 import { FLASH_DURATION } from '../../constants/timing.js';
 
 export const rugfatherIntroTimeline = [
@@ -69,8 +69,8 @@ export const rugfatherIntroTimeline = [
   { time: 29500, action: 'playSfx', data: helloUnruggabullSfx },
 
   // 9. Begin battle after dramatic pause
-  { time: 30500, action: 'showFightBanner' },
-  { time: 31000, action: 'startMusic' },
-  { time: 31000, action: 'startBattle' },
-  { time: 31000, action: 'setPlayerControl', data: true }
+  { time: 32000, action: 'startMusic' },
+  { time: 32000, action: 'startBattle' },
+  { time: 32000, action: 'setPlayerControl', data: true },
+  { time: 32000, action: 'showFightBanner' }
 ];

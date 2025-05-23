@@ -12,6 +12,9 @@ export { bgSprite, FIRST_FLICKER_FRAMES, TRANSITION_FRAMES };
 const TOTAL_FRAMES = 10;
 const FIRST_FLICKER_FRAMES = 2;
 const TRANSITION_FRAMES = TOTAL_FRAMES - FIRST_FLICKER_FRAMES; // 8 frames
+// Separate durations for opening vs. closing the garage door
+const OPEN_TRANSITION_DURATION = 13000;  // ms for garage opening
+const CLOSE_TRANSITION_DURATION = 6000;  // ms for garage closing (adjust as needed)
 
 // Ember system (hybrid: always on, intensifies with boss phase)
 const embers = [];
@@ -72,7 +75,7 @@ export default function drawRugcoBackground(ctx, canvas) {
   if (state.getBossExitDoorClosing()) {
     const elapsed = now - state.getBossExitDoorStartTime();
     const framesToCycle = TRANSITION_FRAMES;
-    const transitionDuration = 13000;
+    const transitionDuration = CLOSE_TRANSITION_DURATION;
     const interval = transitionDuration / framesToCycle;
     let idx = Math.floor(elapsed / interval);
     if (idx >= framesToCycle) idx = framesToCycle - 1;
@@ -113,7 +116,7 @@ export default function drawRugcoBackground(ctx, canvas) {
     } else {
       // Cycle remaining frames over the rest of the transition
       const framesToCycle = TRANSITION_FRAMES; // 8 frames
-      const transitionDuration = 13000; // total ms for opening
+      const transitionDuration = OPEN_TRANSITION_DURATION; // total ms for opening
       const cycleDuration = transitionDuration - initialHold;
       const interval = cycleDuration / framesToCycle;
       let idx = Math.floor((elapsed - initialHold) / interval);

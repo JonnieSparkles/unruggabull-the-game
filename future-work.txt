@@ -1,7 +1,7 @@
 rugfather
 -unruggabull hit frames
--rugfather taunts
 -blaster cool down? temp-blaster-energy.md
+-rugfather dead sprite animation, spruce up
 -level intro/story
 -improve difficulty of carpshits
 -whats gameover screen during boss?

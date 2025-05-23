@@ -78,6 +78,12 @@ export let screenShake = false;
 export let screenShakeStartTime = 0;
 export const SCREEN_SHAKE_DURATION = 1000;
 
+// add magnitude support for screen shake (default 10px)
+export const DEFAULT_SCREEN_SHAKE_MAGNITUDE = 10;
+export let screenShakeMagnitude = DEFAULT_SCREEN_SHAKE_MAGNITUDE;
+export function setScreenShakeMagnitude(val) { screenShakeMagnitude = val; }
+export function getScreenShakeMagnitude() { return screenShakeMagnitude; }
+
 // Boss hold (pre-transition) control
 export let bossHold = false;
 export let bossHoldStartTime = 0;

@@ -6,7 +6,7 @@ import * as stateModule from '../../state.js';
 import levels from '../../levels/index.js';
 import { projectiles } from '../../projectiles/index.js';
 import { getCurrentLevelKey } from '../../state.js';
-import { bgMusic } from '../../sound.js';
+import { bgMusic, garageDoorCloseSound } from '../../sound.js';
 import { platforms } from '../../physics.js';
 import { carpshits, lowerCarpshits } from '../../enemies/carpshits.js';
 import { wovenIntoRugSfx } from '../../sound.js';
@@ -167,8 +167,10 @@ function handleEvent(event, now) {
       stateModule.setBlinkingOut(false);
       break;
     case 'tweenBossPosition':
-      if (event.data && typeof event.data.x === 'number' && event.data.y !== undefined) {
-        // If y is 'floor', convert to top for final scale; else treat as top
+      if (event.data && event.data.y !== undefined) {
+        // Default x to current boss x if not provided, and convert floor Y to top coordinate
+        const posX = (typeof event.data.x === 'number') ? event.data.x : __bossState.x;
+        // If y is 'floor', convert to top for final scale; else treat numeric y as top
         let targetY;
         if (event.data.y === 'floor') {
           const floorY = levels[getCurrentLevelKey()].floorY;
@@ -180,7 +182,7 @@ function handleEvent(event, now) {
           targetY = event.data.y;
         }
         // Tween boss position by mutating internal state
-        startTween(__bossState, { x: event.data.x, y: targetY }, event.duration || 0, now);
+        startTween(__bossState, { x: posX, y: targetY }, event.duration || 0, now);
       }
       break;
     case 'tweenBossScale':
@@ -198,7 +200,9 @@ function handleEvent(event, now) {
       } else if (typeof event.data.y === 'number') {
         posY = event.data.y;
       }
-      rugfatherBoss.setPosition(event.data.x, posY);
+      // Default x to current boss x if not provided
+      const posX = (typeof event.data.x === 'number') ? event.data.x : __bossState.x;
+      rugfatherBoss.setPosition(posX, posY);
       break;
     case 'setBossSprite':
       rugfatherBoss.setSprite(event.data);
@@ -264,7 +268,10 @@ function handleEvent(event, now) {
       }
       break;
     case 'tweenPlayerPosition':
-      startTween(player, { x: event.data.x, y: event.data.y }, event.duration, now);
+      // Ensure player is in walk-forward animation during tween
+      player.sprite = 'walkForward';
+      // Tween horizontal x and feetY for vertical positioning
+      startTween(player, { x: event.data.x, feetY: event.data.y }, event.duration, now);
       break;
     case 'tweenPlayerScale':
       startTween(player, { scale: event.data.scale }, event.duration, now);
@@ -273,15 +280,26 @@ function handleEvent(event, now) {
       startTween(player, { opacity: 0 }, event.duration, now);
       break;
     case 'playGarageCloseReverse':
-      // For now, just play the garage door closing sound (reverse anim not implemented)
-      if (typeof garageDoorSound !== 'undefined') {
-        garageDoorSound.currentTime = 0;
-        garageDoorSound.play();
-      }
+      // Play the garage door closing (reverse) sound
+      garageDoorCloseSound.currentTime = 0;
+      garageDoorCloseSound.play();
+      break;
+    case 'setBossExitDoorClosing':
+      // Trigger the background door-closing animation and end the defeat override
+      stateModule.setBossExitDoorClosing(true);
+      stateModule.setBossExitDoorStartTime(now);
       break;
     case 'transitionTo':
       stateModule.setGameState(event.data);
+      if (event.data === 'bossExit') {
+        // clear dying to stop defeat override
+        __bossState.dying = false;
+      }
       if (event.data === 'congrats') {
+        // clear boss so renderGame won't draw it
+        stateModule.setBossActive(false);
+        stateModule.setCurrentBoss(null);
+        __bossState.dying = false;
         stateModule.setCongratsStartTime(performance.now());
       }
       break;
@@ -309,6 +327,8 @@ export function skipToBattle() {
 export function launchRugfatherDefeatScene() {
   defeatTimelineStart = performance.now();
   defeatTimelineIndex = 0;
+  // Align boss death animation timing with defeat timeline
+  __bossState.deathStart = defeatTimelineStart;
   defeatTimelineActive = true;
 }
 

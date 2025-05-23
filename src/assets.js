@@ -24,4 +24,8 @@ walkingForwardSprite.src = 'assets/sprites/unruggabull-walking-forward.png';
 
 // Boss dead sprite used when the boss falls and before exit sequence
 export const bossDeadImage = new Image();
-bossDeadImage.src = 'assets/sprites/levels/rugcoAlley/rugfather-dead.png'; 
+bossDeadImage.src = 'assets/sprites/levels/rugcoAlley/rugfather-dead.png';
+
+// add hit sprite asset for unruggabull when hit
+export const hitSprite = new Image();
+hitSprite.src = 'assets/sprites/unruggabull-hit.png'; 

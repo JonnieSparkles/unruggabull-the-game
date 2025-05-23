@@ -23,8 +23,17 @@ import { clearEntities } from './utils/sceneUtils.js';
  */
 export function updateGame(bullets, canvas) {
   const now = performance.now();
+  // Defeat scene override: if boss is dying, run defeat timeline only
+  const bossEntity = state.getCurrentBoss && state.getCurrentBoss();
+  if (bossEntity && bossEntity.dying) {
+    if (!updateGame._defeatSceneStarted) {
+      launchRugfatherDefeatScene();
+      updateGame._defeatSceneStarted = true;
+    }
+    updateRugfatherDefeatScene(now);
+    return;
+  }
   const levelConfig = levels[getCurrentLevelKey()];
-  console.log('Game state at update:', state.gameState);
   // If the boss intro timeline is running, advance it and skip normal updates
   if (state.getBossTriggered() && !getBossBattleStarted()) {
     updateBossIntro(now);
@@ -48,48 +57,6 @@ export function updateGame(bullets, canvas) {
         state.setGameState('gameover');
       }
     }
-    return;
-  }
-  // Exit sequence handling after boss defeat
-  if (state.getGameState() === 'bossExit') {
-    const now = performance.now();
-    // Dramatic pause before exit movement
-    if (state.getExitPause()) {
-      if (now - state.getExitPauseStartTime() < state.EXIT_PAUSE_DURATION) {
-        return;
-      } else {
-        // End pause and snap to floor once
-        const floorY = levelConfig.floorY;
-        player.feetY = floorY;
-        state.setExitPause(false);
-      }
-    }
-    const garageFloorY = canvas.height - 120;
-    const walkSpeed = 4;
-    // Walk horizontally to the center door
-    const centerX = Math.round(canvas.width / 2 - player.width / 2);
-    if (Math.abs(player.x - centerX) > 2) {
-      player.x += player.x < centerX ? walkSpeed : -walkSpeed;
-      player.facing = player.x < centerX ? 1 : -1;
-      player.frame = (player.frame + 1) % 40;
-      return;
-    }
-    // Then walk 'into' the garage: move up
-    if (player.feetY > garageFloorY) {
-      player.feetY -= walkSpeed;
-      player.frame = (player.frame + 1) % 40;
-    } else {
-      // Start door closing animation
-      state.setGameState('bossExitDoorClosing');
-      state.setBossExitDoorStartTime(performance.now());
-      state.setBossExitDoorClosing(true);
-      garageDoorCloseSound.currentTime = 0;
-      garageDoorCloseSound.play();
-    }
-    return;
-  }
-  // Skip updates during door closing
-  if (state.gameState === 'bossExitDoorClosing') {
     return;
   }
   // Only continue normal updates while playing
@@ -262,30 +229,35 @@ export function updateGame(bullets, canvas) {
   } else if (!(keys['f'] || keys['F'] || keys['j'] || keys['J'] || keys['Enter'])) {
     player.firing = false;
   }
-  // Sprite state: firing overrides movement
-  if (player.health <= 0) {
-    player.sprite = 'dead';
-    player.width = 128;
+  // Sprite state: freeze on hit frame if within hit hold duration
+  if (player.hitHoldUntil && now < player.hitHoldUntil) {
+    player.sprite = 'hit';
   } else {
-    if (player.width !== 64) player.width = 64;
-    if (player.firing) {
-      if (player.crouching) {
-        player.sprite = 'crouchFire';
-      } else {
-        player.sprite = 'fire';
-      }
-    } else if (!player.grounded && !player.crouching) {
-      player.sprite = 'jump';
-    } else if (player.crouching) {
-      if (player.vx !== 0) {
-        player.sprite = 'crouch'; // crouch-walking
-      } else {
-        player.sprite = 'crouchIdle'; // crouch idle
-      }
-    } else if (player.vx !== 0) {
-      player.sprite = 'walk';
+    // Sprite state: firing overrides movement
+    if (player.health <= 0) {
+      player.sprite = 'dead';
+      player.width = 128;
     } else {
-      player.sprite = 'idle';
+      if (player.width !== 64) player.width = 64;
+      if (player.firing) {
+        if (player.crouching) {
+          player.sprite = 'crouchFire';
+        } else {
+          player.sprite = 'fire';
+        }
+      } else if (!player.grounded && !player.crouching) {
+        player.sprite = 'jump';
+      } else if (player.crouching) {
+        if (player.vx !== 0) {
+          player.sprite = 'crouch'; // crouch-walking
+        } else {
+          player.sprite = 'crouchIdle'; // crouch idle
+        }
+      } else if (player.vx !== 0) {
+        player.sprite = 'walk';
+      } else {
+        player.sprite = 'idle';
+      }
     }
   }
   updateProjectiles(canvas.width);
@@ -337,26 +309,28 @@ export function updateGame(bullets, canvas) {
     }
   }
 
-  // Update boss if present
+  // Update boss if present and not dying
   if (state.getCurrentBoss()) {
     const boss = state.getCurrentBoss();
     boss.update();
-    // Bullet-boss collision: only allow player bullets
-    for (let i = projectiles.length - 1; i >= 0; i--) {
-      const bullet = projectiles[i];
-      const isBossProjectile = bullet.type === 'boss';
-      if (!isBossProjectile && checkBossBulletCollision(bullet)) {
-        boss.hit(1);
-        projectiles.splice(i, 1);
+    // Only handle bullet collisions while boss is alive
+    if (!boss.dying) {
+      for (let i = projectiles.length - 1; i >= 0; i--) {
+        const bullet = projectiles[i];
+        const isBossProjectile = bullet.type === 'boss';
+        if (!isBossProjectile && checkBossBulletCollision(bullet)) {
+          boss.hit(1);
+          projectiles.splice(i, 1);
+        }
       }
     }
   }
 
   // Player-body collision with boss
-  const bossEntity = state.getCurrentBoss();
-  console.log('Boss entity after update:', bossEntity);
-  if (bossEntity && state.getBossBattleStarted()) {
-    const bossHitbox = bossEntity.getHitbox();
+  const bossEntityCollision = state.getCurrentBoss();
+  // Only allow body collision if battle started and boss not yet dead
+  if (bossEntityCollision && state.getBossBattleStarted() && !bossEntityCollision.dying) {
+    const bossHitbox = bossEntityCollision.getHitbox();
     const playerHitbox = getHitbox(player);
     // AABB collision
     if (
@@ -393,20 +367,5 @@ export function updateGame(bullets, canvas) {
     checkBulletLowercarpshitCollisions(projectiles, enemyLowercarpshits, handleBulletKill);
     checkPlayercarpshitCollisions(player, enemyCarpshits, handlePlayerHit);
     checkPlayercarpshitCollisions(player, enemyLowercarpshits, handlePlayerHit);
-  }
-
-  // If boss is dying, launch defeat scene and run its timeline
-  if (bossEntity && bossEntity.dying) {
-    console.log('Defeat scene trigger check:', {
-      bossEntity,
-      dying: bossEntity.dying,
-      defeatSceneStarted: updateGame._defeatSceneStarted
-    });
-    if (!updateGame._defeatSceneStarted) {
-      launchRugfatherDefeatScene();
-      updateGame._defeatSceneStarted = true;
-    }
-    updateRugfatherDefeatScene(now);
-    return;
   }
 } 

@@ -9,7 +9,7 @@ import { drawCarpshits, drawLowerCarpshits, carpshits, lowerCarpshits } from './
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 import { getHitbox } from './player.js';
 import { getCarpshitHitbox } from './enemies/carpshits.js';
-import { getBossHold, getBossPause, getBossTransition, getBossActive, getCurrentBoss, getScreenShake, getScreenShakeStartTime, SCREEN_SHAKE_DURATION, getBlinkingOut, getBlinkingOutStartTime, getCarpshitsDuringBoss } from './state.js';
+import { getBossHold, getBossPause, getBossTransition, getBossActive, getCurrentBoss, getScreenShake, getScreenShakeStartTime, SCREEN_SHAKE_DURATION, getScreenShakeMagnitude, getBlinkingOut, getBlinkingOutStartTime, getCarpshitsDuringBoss } from './state.js';
 import { BLINK_OUT_DURATION } from './levels/rugcoAlley/rugfatherConstants.js';
 import { bgSprite, FIRST_FLICKER_FRAMES, TRANSITION_FRAMES } from './levels/rugcoAlley/background.js';
 import { PLAYER_SPRITES } from './playerSprites.js';
@@ -50,7 +50,7 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     } else {
       shaking = true;
       ctx.save();
-      const magnitude = 10;
+      const magnitude = getScreenShakeMagnitude();
       const dx = (Math.random() * 2 - 1) * magnitude;
       const dy = (Math.random() * 2 - 1) * magnitude;
       ctx.translate(dx, dy);
@@ -60,18 +60,7 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const levelConfig = levels[getCurrentLevelKey()];
   const floorY = levelConfig.floorY;
-    levelConfig.background(ctx, canvas);
-  if (state.getGameState() === 'bossExit' || state.getGameState() === 'bossExitDoorClosing') {
-      ctx.save();
-    ctx.font = 'bold 72px Arial';
-    ctx.fillStyle = '#0f0';
-    ctx.textAlign = 'center';
-    ctx.fillText('VICTORY!', canvas.width / 2, canvas.height / 2);
-      ctx.restore();
-    if (shaking) ctx.restore();
-    // TODO: move full exit/defeat sequence logic into rugfatherDefeatScene.js using rugfatherDefeatTimeline
-    return;
-  }
+  levelConfig.background(ctx, canvas);
 
   // Flash overlay
   if (state.flashActive) {
