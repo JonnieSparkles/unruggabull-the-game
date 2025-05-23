@@ -88,6 +88,8 @@ function handleEvent(event, now) {
     case 'clearEntities':
       // Clear all bullets, platforms, and carpshits at intro start
       clearEntities(window.bullets, projectiles, platforms, carpshits, lowerCarpshits);
+      // Clear player muzzle flash
+      if (player && typeof player.muzzleFlashTimer === 'number') player.muzzleFlashTimer = 0;
       break;
     case 'spawnBoss':
       // Activate boss and its internal state for intro
