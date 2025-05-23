@@ -366,11 +366,6 @@ function draw() {
 function hit(damage = 1) {
   // Ignore hits before battle starts, during intro, while invulnerable, or when dying
   if (!state.active || state.entering || state.invulnerable || state.dying) {
-    console.log('Hit ignored until battle begins:', {
-      entering: state.entering,
-      invulnerable: state.invulnerable,
-      dying: state.dying
-    });
     return;
   }
   state.hp -= damage;

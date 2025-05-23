@@ -74,12 +74,12 @@ export default function drawRugcoBackground(ctx, canvas) {
   // During boss exit door closing: reverse of opening frames
   if (state.getBossExitDoorClosing()) {
     const elapsed = now - state.getBossExitDoorStartTime();
-    const framesToCycle = TRANSITION_FRAMES;
+    const framesToCycle = TOTAL_FRAMES;
     const transitionDuration = CLOSE_TRANSITION_DURATION;
     const interval = transitionDuration / framesToCycle;
     let idx = Math.floor(elapsed / interval);
     if (idx >= framesToCycle) idx = framesToCycle - 1;
-    const frameIndex = FIRST_FLICKER_FRAMES + (framesToCycle - 1 - idx);
+    const frameIndex = framesToCycle - 1 - idx;
     ctx.drawImage(
       bgSprite,
       frameIndex * canvas.width, 0,
@@ -91,8 +91,11 @@ export default function drawRugcoBackground(ctx, canvas) {
     // Once closing animation is done, proceed to congrats
     if (elapsed > transitionDuration) {
       state.setBossExitDoorClosing(false);
+      // Transition to congrats and clear boss so it doesn't linger
       state.setGameState('congrats');
       state.setCongratsStartTime(performance.now());
+      state.setBossActive(false);
+      state.setCurrentBoss(null);
     }
     return;
   }

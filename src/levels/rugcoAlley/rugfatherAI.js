@@ -224,8 +224,8 @@ export function updatePhaseLogic(state) {
     // Phase 2: speed up music and spawn minions
     if (newPhase === 2) {
       // Play phase 2 challenge-me SFX
-      wovenIntoRugSfx.currentTime = 0;
-      wovenIntoRugSfx.play();
+      challengeMeSfx.currentTime = 0;
+      challengeMeSfx.play();
       bgMusic.playbackRate = 1.5;
       setCarpshitsDuringBoss(true);
       for (let i = 0; i < NUM_CARPSHITS; i++) {

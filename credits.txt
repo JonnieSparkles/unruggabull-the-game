@@ -1,5 +1,4 @@
 Designs by:
-
 @JonnieSparkles
 @LPB
 @Kemp
@@ -7,7 +6,6 @@ Designs by:
 
 
 Help from:
-
 All the chatbots
 GIMP
 Aseprite
@@ -16,8 +14,7 @@ https://www.piskelapp.com/
 https://www.pixellab.ai
 
 
-Sounds by:
-
+Additional sounds by:
 https://pixabay.com/users/edr-1177074/
 https://pixabay.com/users/freesound_community-46691455/
 https://pixabay.com/users/nickpanek620-38266323/

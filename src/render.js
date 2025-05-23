@@ -14,7 +14,7 @@ import { BLINK_OUT_DURATION } from './levels/rugcoAlley/rugfatherConstants.js';
 import { bgSprite, FIRST_FLICKER_FRAMES, TRANSITION_FRAMES } from './levels/rugcoAlley/background.js';
 import { PLAYER_SPRITES } from './playerSprites.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT } from './constants/player.js';
-import { drawProjectiles } from './projectiles/index.js';
+import { drawProjectiles, projectiles } from './projectiles/index.js';
 
 /**
  * Render the current game frame.
@@ -240,7 +240,8 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     }
 
     // Projectiles (player bullets and boss carpets)
-    drawProjectiles(ctx, DEBUG_HITBOXES);
+    // Draw only player bullets beneath environment
+    projectiles.forEach(p => { if (p.type === 'player') p.draw(ctx, DEBUG_HITBOXES); });
     // Enemies behind boss: only before boss fight begins
     if (!getBossTransition() && !getBossActive()) {
       if (getBlinkingOut()) {
@@ -302,6 +303,8 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
         drawCarpshits(ctx);
         drawLowerCarpshits(ctx);
       }
+      // Draw boss carpets on top of boss
+      projectiles.forEach(p => { if (p.type === 'boss') p.draw(ctx, DEBUG_HITBOXES); });
       if (DEBUG_HITBOXES) {
         // Draw boss hitbox
         const bossHitbox = getCurrentBoss().getHitbox();

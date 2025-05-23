@@ -221,8 +221,6 @@ function handleEvent(event, now) {
       // we can use the appropriate sprite that faces the correct direction
       // or implement mirroring in the future if needed
       const facingDirection = event.data || 'right';
-      // For now, we'll just log this since facing is controlled by sprite selection
-      console.log(`Boss facing ${facingDirection} requested but not implemented yet`);
       break;
     case 'flashScreen':
       stateModule.setFlashActive(true);

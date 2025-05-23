@@ -13,7 +13,7 @@ export const rugfatherDefeatTimeline = [
 
   // 1. Walk to ceter
   { time: 1000, action: 'setPlayerSprite', data: 'walk' },
-  { time: 1000, action: 'movePlayerTo', data: { x: 400 }, duration: 1500 },
+  { time: 1000, action: 'movePlayerTo', data: { x: 450 }, duration: 1500 },
 
   // 2. Play farewell
   { time: 2500, action: 'setRugfatherSprite', data: 'dead' },
@@ -24,7 +24,7 @@ export const rugfatherDefeatTimeline = [
   // 3. Walk into garage
   { time: 4500, action: 'setPlayerSprite', data: 'walkForward' },
   { time: 5000, action: 'playSfx', data: rugfatherWeaveRemembersSfx }, 
-  { time: 4500, action: 'tweenPlayerPosition', data: { x: 480, y: 400 }, duration: 3000 },
+  { time: 4500, action: 'tweenPlayerPosition', data: { x: 500, y: 400 }, duration: 3000 },
   { time: 4500, action: 'tweenPlayerScale', data: { scale: 0.5 }, duration: 3000 },
   { time: 4500, action: 'fadeOutPlayer', duration: 3000 },
 
@@ -33,6 +33,6 @@ export const rugfatherDefeatTimeline = [
   { time: 5000, action: 'setBossExitDoorClosing' },
 
   // 5. End scene
-  { time: 12000, action: 'clearEntities' },
+  { time: 10000, action: 'clearEntities' },
   { time: 12000, action: 'transitionTo', data: 'congrats' }
 ];
