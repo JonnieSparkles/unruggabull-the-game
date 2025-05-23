@@ -1,7 +1,9 @@
 rugfather
 -unruggabull hit frames
+-player should get hit if walk into rugfather
 -carpet hit frame when it hits player
 -rugfather taunts
+-carpshits should spawn in front of rugfather
 -blaster cool down? temp-blaster-energy.md
 -level intro/story
 -platforms and carpshits should flicker/fade out
@@ -11,9 +13,8 @@ rugfather
 -exit scene
 --goodbye rugfather Sounds
 -master unrugabull sprite
-
 -fix intro screen to 960x540
-
+-clean up console.logs
 
 
 add changelog to version number 

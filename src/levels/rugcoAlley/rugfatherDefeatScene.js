@@ -2,8 +2,11 @@ import { goodbyeRugfatherSfx, garageDoorSound } from '../../sound.js';
 
 export const rugfatherDefeatTimeline = [
   // 0. Freeze player and start cinematic
+
+  { time: 0, action: 'setCarpshitsFalling', data: true },
   { time: 0, action: 'setPlayerControl', data: false },
   { time: 0, action: 'setPlayerSprite', data: 'idle' },
+  { time: 0, action: 'setRugfatherSprite', data: 'dead' },
   { time: 0, action: 'movePlayerToFloor' }, // ensure grounded
 
   // 1. Walk to boss body
@@ -27,6 +30,3 @@ export const rugfatherDefeatTimeline = [
   // 5. End scene
   { time: 8000, action: 'transitionTo', data: 'congrats' }
 ];
-
-// TODO: Implement boss defeat rendering and orchestration here using rugfatherDefeatTimeline.
-//       The full exit/defeat sequence logic has been moved from render.js and will be integrated.

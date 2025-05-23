@@ -1,7 +1,6 @@
 import { player } from '../../player.js';
 import * as stateModule from '../../state.js';
-import { evilLaughSfx, fireWindsSwoosh, helloUnruggabullSfx, challengeMeSfx } from '../../sound.js';
-import { setAutoRunLeft, setBossBattleStarted, getBossBattleStarted } from '../../state.js';
+import { challengeMeSfx } from '../../sound.js';
 import { RUGFATHER_SPRITES } from './rugfatherSprites.js';
 import {
   BOSS_HOLD_DURATION,
@@ -16,9 +15,7 @@ import {
   BLINK_PATTERN,
   BLINK_TOTAL_DURATION
 } from './rugfatherConstants.js';
-import { GAME_STATES } from '../../constants/gameStates.js';
 import { updateBossAI, updatePhaseLogic } from './rugfatherAI.js';
-import { setScreenShake, setScreenShakeStartTime, setCurrentBoss, setBossActive, setGameState, setCongratsStartTime } from '../../state.js';
 
 // Level 1 Boss: Rugfather
 // Access the canvas and context
@@ -83,7 +80,10 @@ const bossStartX = () => bossCenterX();
 function spawn() {
   state.active = true;
   state.hp = MAX_HP;
-  state.phase = NUM_PHASES;
+  // Set initial phase based on full HP (phase 1 = easiest)
+  state.phase = 1;
+  // Set attack cooldown for phase 1
+  state.attackCooldown = PHASE_ATTACK_COOLDOWNS[state.phase];
   state.scale = 0.5;
   state.x = bossStartX();
   const finalScale = 1.0;
@@ -102,7 +102,7 @@ function spawn() {
   state.attackAnimationStartTime = null;
   state.hasSpawnedProjectile = false;
   // reset battle flag too
-  setBossBattleStarted(false);
+  stateModule.setBossBattleStarted(false);
   // start the intro sequence
   // Reset baseY capture for phase 1 movement
   state.baseY = null;
@@ -340,7 +340,15 @@ function draw() {
 
 // Apply damage to the boss
 function hit(damage = 1) {
-  if (!state.active || state.invulnerable) return;
+  // Ignore hits before battle starts, during intro, while invulnerable, or when dying
+  if (!state.active || state.entering || state.invulnerable || state.dying) {
+    console.log('Hit ignored until battle begins:', {
+      entering: state.entering,
+      invulnerable: state.invulnerable,
+      dying: state.dying
+    });
+    return;
+  }
   state.hp -= damage;
   // Flash effect
   state.hitFlashEnd = performance.now() + 150;

@@ -100,6 +100,8 @@ function spinSwitchBehavior(now, state) {
   // Not started yet: dramatic pause
   if (now < arcStart) {
     state.sprite = 'hit';
+    // ensure boss still facing right during pause
+    state.facing = 1;
     return;
   }
   // Arc in progress
@@ -113,6 +115,8 @@ function spinSwitchBehavior(now, state) {
     state.x = lerpX;
     state.y = arcY;
     state.sprite = 'spin';
+    // boss should face right (looking at player) after spin
+    state.facing = 1;
     return;
   }
   // Dramatic pause after landing
@@ -131,10 +135,14 @@ function spinSwitchBehavior(now, state) {
   }
   if (now - state.spinSwitchLandTime < postPause) {
     state.sprite = 'hit';
+    // maintain facing right during landing pause
+    state.facing = 1;
     return;
   }
   // Resume normal AI
   state.sprite = 'idle';
+  // ensure boss is looking right as he begins phase 3
+  state.facing = 1;
   state.spinSwitchDone = true;
 }
 

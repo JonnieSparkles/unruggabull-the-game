@@ -351,6 +351,38 @@ export function updateGame(bullets, canvas) {
     }
   }
 
+  // Player-body collision with boss
+  const bossEntity = state.getCurrentBoss();
+  if (bossEntity && state.getBossBattleStarted()) {
+    const bossHitbox = bossEntity.getHitbox();
+    const playerHitbox = getHitbox(player);
+    // AABB collision
+    if (
+      playerHitbox.x < bossHitbox.x + bossHitbox.width &&
+      playerHitbox.x + playerHitbox.width > bossHitbox.x &&
+      playerHitbox.y < bossHitbox.y + bossHitbox.height &&
+      playerHitbox.y + playerHitbox.height > bossHitbox.y
+    ) {
+      // Damage player on contact if not invulnerable
+      if (!player.invulnerable) {
+        player.health--;
+        player.invulnerable = true;
+        player.invulnerableUntil = performance.now() + state.INVULNERABLE_TIME;
+        state.setFlashActive(true);
+        state.setFlashColor('rgba(255,0,0,0.5)');
+        state.setFlashEndTime(performance.now() + FLASH_DURATION);
+        state.playPlayerHitSound();
+        state.setPlayerHitFlashActive(true);
+        state.setPlayerHitFlashEndTime(performance.now() + FLASH_DURATION);
+        // Handle death state
+        if (player.health <= 0 && state.getGameState() !== 'dying') {
+          state.setGameState('dying');
+          state.setDyingStartTime(null);
+        }
+      }
+    }
+  }
+
   // Update enemies after battle begins
   if (!state.getBossTransition() && !state.getBossActive() || state.getCarpshitsDuringBoss()) {
     updateEnemyCarpshits();
