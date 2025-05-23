@@ -1,14 +1,9 @@
 rugfather
 -blaster cool down? temp-blaster-energy.md
--level intro/story
--improve difficulty of carpshits
--whats gameover screen during boss?
 -level finish screen
--master unruggabull sprite
 -free play after finish
 -jazz up around the game frame
 -fix intro screen to 960x540
--clean up console.logs
 -audit mobile js
 -readme
 -license type
