@@ -27,7 +27,9 @@ export const player = {
   controlEnabled: true,
   sprite: 'idle',
   invulnerable: false,
-  invulnerableUntil: null
+  invulnerableUntil: null,
+  scale: 1,
+  opacity: 1
 };
 
 /**

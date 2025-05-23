@@ -66,6 +66,8 @@ export function resetGame(canvas, bullets) {
   clearEntities(bullets);
   state.setDyingStartTime(null);
   state.setGameState('playing');
+  // Reset defeat scene trigger
+  if (typeof updateGame !== 'undefined') updateGame._defeatSceneStarted = false;
 }
 
 /**

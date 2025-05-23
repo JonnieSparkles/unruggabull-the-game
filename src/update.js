@@ -15,7 +15,7 @@ import { setBossShockedStartTime, getBossShockedStartTime, setAutoRunLeft, getAu
 import { FLASH_DURATION } from './constants/timing.js';
 import { BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './levels/rugcoAlley/rugfatherConstants.js';
 import { GAME_STATES } from './constants/gameStates.js';
-import { startBossIntro, updateBossIntro } from './levels/rugcoAlley/rugfatherOrchestrator.js';
+import { startBossIntro, updateBossIntro, launchRugfatherDefeatScene, updateRugfatherDefeatScene } from './levels/rugcoAlley/rugfatherOrchestrator.js';
 import { clearEntities } from './utils/sceneUtils.js';
 
 /**
@@ -24,6 +24,7 @@ import { clearEntities } from './utils/sceneUtils.js';
 export function updateGame(bullets, canvas) {
   const now = performance.now();
   const levelConfig = levels[getCurrentLevelKey()];
+  console.log('Game state at update:', state.gameState);
   // If the boss intro timeline is running, advance it and skip normal updates
   if (state.getBossTriggered() && !getBossBattleStarted()) {
     updateBossIntro(now);
@@ -353,6 +354,7 @@ export function updateGame(bullets, canvas) {
 
   // Player-body collision with boss
   const bossEntity = state.getCurrentBoss();
+  console.log('Boss entity after update:', bossEntity);
   if (bossEntity && state.getBossBattleStarted()) {
     const bossHitbox = bossEntity.getHitbox();
     const playerHitbox = getHitbox(player);
@@ -391,5 +393,20 @@ export function updateGame(bullets, canvas) {
     checkBulletLowercarpshitCollisions(projectiles, enemyLowercarpshits, handleBulletKill);
     checkPlayercarpshitCollisions(player, enemyCarpshits, handlePlayerHit);
     checkPlayercarpshitCollisions(player, enemyLowercarpshits, handlePlayerHit);
+  }
+
+  // If boss is dying, launch defeat scene and run its timeline
+  if (bossEntity && bossEntity.dying) {
+    console.log('Defeat scene trigger check:', {
+      bossEntity,
+      dying: bossEntity.dying,
+      defeatSceneStarted: updateGame._defeatSceneStarted
+    });
+    if (!updateGame._defeatSceneStarted) {
+      launchRugfatherDefeatScene();
+      updateGame._defeatSceneStarted = true;
+    }
+    updateRugfatherDefeatScene(now);
+    return;
   }
 } 

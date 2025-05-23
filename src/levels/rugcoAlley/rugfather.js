@@ -360,20 +360,16 @@ function hit(damage = 1) {
     stateModule.setScreenShake(true);
     stateModule.setScreenShakeStartTime(performance.now());
   }
-  // Update phase based on new HP
-  updatePhaseLogic(state);
-  if (state.hp < 0) state.hp = 0;
-  // Speed up boss (not music)
-  state.speedMultiplier += 0.5;
-  // Win on last hit
-  if (state.hp <= 0) {
+  // Update phase based on new HP, but skip if dying
+  if (state.hp > 0) {
+    updatePhaseLogic(state);
+    state.speedMultiplier += 0.5;
+  } else if (state.hp <= 0 && !state.dying) {
+    state.hp = 0;
     state.active = false;
     state.dying = true;
     state.deathStart = performance.now();
-    // Play challenge-me SFX at boss death
-    challengeMeSfx.currentTime = 0;
-    challengeMeSfx.play();
-    // Removal of boss and carpshitsDuringBoss will happen after death animation
+    // Defeat visuals/audio handled by orchestrator defeat scene
   }
 }
 
@@ -422,7 +418,11 @@ const rugfatherBoss = {
   setPosition,
   setOpacity,
   setScale,
-  setEntering
+  setEntering,
+  // Expose internal dying state for external checks
+  get dying() {
+    return state.dying;
+  }
 };
 export default rugfatherBoss;
 

@@ -154,23 +154,29 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
 
       ctx.save();
       // Player invulnerability blink
+      let alpha = player.opacity !== undefined ? player.opacity : 1.0;
       if (player.invulnerable) {
         const blinkInterval = 200; // ms between alpha toggles
         const blinkOn = Math.floor(now / blinkInterval) % 2 === 0;
-        ctx.globalAlpha = blinkOn ? 0.5 : 1.0;
+        alpha *= blinkOn ? 0.5 : 1.0;
       }
+      ctx.globalAlpha = alpha;
+      // Support scale for defeat scene
+      const scale = player.scale !== undefined ? player.scale : 1.0;
+      ctx.translate(player.x + (frameWidth * (1 - scale)) / 2, destY + (frameHeight * (1 - scale)) / 2);
+      ctx.scale(scale, scale);
       // Special case: dead sprite is always unmirrored and uses full width
       if (spriteState === 'dead') {
         ctx.drawImage(
           img,
           0, 0, frameWidth, frameHeight,
-          player.x, destY, frameWidth, frameHeight
+          0, 0, frameWidth, frameHeight
         );
       } else {
         // Mirror if frameData.mirror is true, or if player is facing left and not in walkForward (back view)
         const shouldMirror = frameData.mirror || (player.facing < 0 && spriteState !== 'walkForward');
         if (shouldMirror) {
-          ctx.translate(player.x + frameWidth, destY);
+          ctx.translate(frameWidth, 0);
           ctx.scale(-1, 1);
           ctx.drawImage(
             img,
@@ -181,7 +187,7 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
           ctx.drawImage(
             img,
             frameData.frame * frameWidth, srcY, frameWidth, srcH,
-            player.x, destY, frameWidth, frameHeight
+            0, 0, frameWidth, frameHeight
           );
         }
       }

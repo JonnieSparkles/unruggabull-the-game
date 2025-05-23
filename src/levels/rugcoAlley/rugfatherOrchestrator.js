@@ -11,9 +11,13 @@ import { platforms } from '../../physics.js';
 import { carpshits, lowerCarpshits } from '../../enemies/carpshits.js';
 import { wovenIntoRugSfx } from '../../sound.js';
 import { clearEntities } from '../../utils/sceneUtils.js';
+import { rugfatherDefeatTimeline } from './rugfatherDefeatScene.js';
 
 let timelineStart = 0;
 let timelineIndex = 0;
+let defeatTimelineStart = 0;
+let defeatTimelineIndex = 0;
+let defeatTimelineActive = false;
 
 // Tween support
 const tweens = [];
@@ -244,6 +248,43 @@ function handleEvent(event, now) {
         startTween(__bossState, { opacity: event.data.opacity }, event.duration || 0, now);
       }
       break;
+    case 'setCarpshitsFalling':
+      // Make all carpshits die and fall dramatically
+      [carpshits, lowerCarpshits].forEach(arr => {
+        arr.forEach(c => {
+          c.alive = false;
+          c.falling = true;
+          c.vy = 0;
+        });
+      });
+      break;
+    case 'setRugfatherSprite':
+      if (stateModule.getCurrentBoss()) {
+        stateModule.getCurrentBoss().setSprite(event.data);
+      }
+      break;
+    case 'tweenPlayerPosition':
+      startTween(player, { x: event.data.x, y: event.data.y }, event.duration, now);
+      break;
+    case 'tweenPlayerScale':
+      startTween(player, { scale: event.data.scale }, event.duration, now);
+      break;
+    case 'fadeOutPlayer':
+      startTween(player, { opacity: 0 }, event.duration, now);
+      break;
+    case 'playGarageCloseReverse':
+      // For now, just play the garage door closing sound (reverse anim not implemented)
+      if (typeof garageDoorSound !== 'undefined') {
+        garageDoorSound.currentTime = 0;
+        garageDoorSound.play();
+      }
+      break;
+    case 'transitionTo':
+      stateModule.setGameState(event.data);
+      if (event.data === 'congrats') {
+        stateModule.setCongratsStartTime(performance.now());
+      }
+      break;
     default:
       break;
   }
@@ -262,5 +303,24 @@ export function skipToBattle() {
   updateBossIntro(now);
   // Immediately complete any active tweens so position & scale reach final values
   tweens.forEach(tw => tw.startTime = now - tw.duration);
+  updateTweens(now);
+}
+
+export function launchRugfatherDefeatScene() {
+  defeatTimelineStart = performance.now();
+  defeatTimelineIndex = 0;
+  defeatTimelineActive = true;
+}
+
+export function updateRugfatherDefeatScene(now) {
+  if (!defeatTimelineActive) return;
+  const elapsed = now - defeatTimelineStart;
+  while (defeatTimelineIndex < rugfatherDefeatTimeline.length && elapsed >= rugfatherDefeatTimeline[defeatTimelineIndex].time) {
+    const event = rugfatherDefeatTimeline[defeatTimelineIndex];
+    // Dispatch defeat scene event
+    handleEvent(event, now);
+    defeatTimelineIndex++;
+  }
+  // Advance any tweens (player scale/position, opacity)
   updateTweens(now);
 } 
