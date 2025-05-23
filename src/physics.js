@@ -10,18 +10,16 @@ import { GRAVITY } from './constants/physics.js';
  */
 export const PLATFORM_WIDTH = 120;
 export const PLATFORM_HEIGHT = 16;
-export const platforms = [
-  { x: 200, y: 450, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
-  { x: 450, y: 274, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
-  { x: 320, y: 350, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
-  { x: 400, y: 400, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT }
-];
+export let platforms = [];
 
 /**
- * No-op for fixed platforms (skeletal for future dynamic levels)
+ * Populate the platforms array based on the current level configuration.
  */
 export function generatePlatforms() {
-  // platforms are static in this game
+  const levelConfig = levels[getCurrentLevelKey()];
+  const levelPlatforms = levelConfig.platforms || [];
+  platforms.length = 0;
+  levelPlatforms.forEach(p => platforms.push(p));
 }
 
 // Add physics handlers
@@ -29,6 +27,7 @@ export function generatePlatforms() {
  * Apply gravity, movement, collisions, and animation frame updates for the player.
  */
 export function handlePhysics(player, platforms, canvas) {
+  const levelConfig = levels[getCurrentLevelKey()];
   // gravity and movement
   player.vy += GRAVITY;
   player.x += player.vx;
@@ -56,7 +55,6 @@ export function handlePhysics(player, platforms, canvas) {
   }
   // ground collision
   if (!onPlatform) {
-    const levelConfig = levels[getCurrentLevelKey()];
     const floorY = levelConfig.floorY;
     if (player.feetY >= floorY) {
       player.feetY = floorY;
@@ -69,7 +67,6 @@ export function handlePhysics(player, platforms, canvas) {
     }
   }
   // horizontal wrap (configurable per level)
-  const levelConfig = levels[getCurrentLevelKey()];
   if (levelConfig.wrapHorizontal) {
     // wrap around edges
     if (player.x + PLAYER_WIDTH < 0) {
