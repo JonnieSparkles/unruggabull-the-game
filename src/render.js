@@ -144,7 +144,8 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       ctx.save();
       // Player invulnerability blink
       let alpha = player.opacity !== undefined ? player.opacity : 1.0;
-      if (player.invulnerable) {
+      // Only apply invulnerable flicker if not dead
+      if (player.invulnerable && spriteState !== 'dead') {
         const blinkInterval = 200; // ms between alpha toggles
         const blinkOn = Math.floor(now / blinkInterval) % 2 === 0;
         alpha *= blinkOn ? 0.5 : 1.0;

@@ -36,6 +36,8 @@ export function resetGame(canvas, bullets) {
   player.firing = false;
   player.facing = 1;
   player.health = PLAYER_START_HEALTH;
+  player.invulnerable = false;
+  player.invulnerableUntil = null;
   state.resetKillCount();
   // Configure how many kills until difficulty increases for this level
   state.setPhaseChangeKillCount(levelConfig.phaseChangeKillCount);

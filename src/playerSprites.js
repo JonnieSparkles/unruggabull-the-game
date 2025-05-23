@@ -30,7 +30,7 @@ export const PLAYER_SPRITES = {
     {frame: 11, mirror: false},
     {frame: 12, mirror: false}
   ], frameDuration: 100, offsetY: 0, frameWidth: 64, frameHeight: 96 },
-  lookForward:        { image: playerMasterSprite,        animated: false, frame: 0, offsetY: 0, frameWidth: 96, frameHeight: 96 },
+  lookForward:        { image: playerMasterSprite,        animated: false, frame: 13, offsetY: 0, frameWidth: 64, frameHeight: 96 },
   dead:        { image: deadSprite,        animated: false, frame: 0, offsetY: 0, frameWidth: 128, frameHeight: 96 },
   fire:        { image: playerMasterSprite,    animated: false, frame: 3, offsetY: 0, frameWidth: 64, frameHeight: 96 },
   crouchFire:        { image: playerMasterSprite,    animated: false, frame: 8, offsetY: 0, frameWidth: 64, frameHeight: 96 }

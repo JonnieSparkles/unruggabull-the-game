@@ -40,6 +40,12 @@ export function updateGame(bullets, canvas) {
     return;
   }
   if (state.gameState === 'dying') {
+    // Ensure dead sprite is shown and stop invulnerability flicker
+    player.sprite = 'dead';
+    player.width = 128;
+    player.invulnerable = false;
+    player.invulnerableUntil = null;
+    player.hitHoldUntil = null;
     // Animate body falling to the floor
     const floorY = levelConfig.floorY;
     if (player.feetY < floorY) {
