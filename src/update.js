@@ -274,16 +274,24 @@ export function updateGame(bullets, canvas) {
             b.x > projHitbox.x && b.x < projHitbox.x + projHitbox.width &&
             b.y > projHitbox.y && b.y < projHitbox.y + projHitbox.height
           ) {
-            p.hit = true;
-            p.vx = 0;
-            p.vy = 0;
             // Remove the bullet after impact
             projectiles.splice(j, 1);
-            // Schedule explosion to disappear after 500ms
-            setTimeout(() => {
-              const idx2 = projectiles.indexOf(p);
-              if (idx2 >= 0) projectiles.splice(idx2, 1);
-            }, 500);
+            // Decrement carpet HP
+            p.hp -= 1;
+            if (p.hp > 0) {
+              // First hit: flash sprite
+              p.flashEndTime = performance.now() + FLASH_DURATION;
+            } else {
+              // Second hit: destroy carpet with explosion frame
+              p.hit = true;
+              p.vx = 0;
+              p.vy = 0;
+              // Schedule removal after explosion
+              setTimeout(() => {
+                const idx2 = projectiles.indexOf(p);
+                if (idx2 >= 0) projectiles.splice(idx2, 1);
+              }, 500);
+            }
             break;
           }
         }

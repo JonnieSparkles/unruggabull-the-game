@@ -3,6 +3,7 @@ import { projectiles } from './index.js';
 
 const flameCarpetImg = new Image();
 flameCarpetImg.src = 'assets/sprites/levels/rugcoAlley/flaming-carpet-Sheet.png';
+const PROJECTILE_HP = 2;
 const PROJECTILE_SPEED = 5;
 const PROJECTILE_DAMAGE = 1;
 const SUMMON_GROW_DURATION = 300; // ms to grow from 25% to 100%
@@ -20,6 +21,9 @@ export default class RugfatherCarpet {
     this.damage = PROJECTILE_DAMAGE;
     this.frameTimer = 0;
     this.hit = false;
+    // projectile health and flash timer for first hit
+    this.hp = PROJECTILE_HP;
+    this.flashEndTime = 0;
     // Summoning animation
     this.spawnTime = performance.now();
     this.scaleDuration = SUMMON_GROW_DURATION;
@@ -76,6 +80,9 @@ export default class RugfatherCarpet {
   }
 
   draw(ctx, debug) {
+    // Determine flash state
+    const now = performance.now();
+    const flashActive = now < this.flashEndTime;
     const frameW = this.width;
     const frameH = this.height;
     const scale = this.getScale();
@@ -87,9 +94,9 @@ export default class RugfatherCarpet {
       frame = Math.floor(this.frameTimer / 6) % 3;
     }
     // Draw fire-like trail
-    const now = performance.now();
+    const nowTrail = performance.now();
     for (const point of this.trail) {
-      const age = now - point.time;
+      const age = nowTrail - point.time;
       const fade = 1 - age / 300;
       // Flicker: random offset for fire effect
       const flickerX = (Math.random() - 0.5) * 6 * fade;
@@ -132,6 +139,8 @@ export default class RugfatherCarpet {
     }
     // Draw with scaling around center
     ctx.save();
+    // apply flash effect if first hit occurred
+    if (flashActive) ctx.filter = 'brightness(2)';
     ctx.translate(this.x, this.y);
     // Mirror if moving right (vx>0)
     const sx = this.vx > 0 ? -scale : scale;
@@ -142,6 +151,8 @@ export default class RugfatherCarpet {
       -frameW / 2, -frameH / 2,
       frameW, frameH
     );
+    // restore filter
+    ctx.filter = 'none';
     ctx.restore();
     // Debug hitbox outline in global context
     if (debug) {
