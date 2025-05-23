@@ -22,7 +22,7 @@ const upperSpawnMaxY = canvas.height * 0.6;
 const lowerSpawnMinY = canvas.height * 0.6;
 const lowerSpawnMaxY = floorY - 48;
 
-import { difficultyLevel } from '../state.js';
+import { difficultyLevel, getCarpshitsDuringBoss } from '../state.js';
 
 /**
  * Primary enemy: flying carpshits
@@ -31,7 +31,7 @@ export const NUM_CARPSHITS = 3;
 export const carpshits = Array.from({ length: NUM_CARPSHITS }, () => ({
   x: canvas.width + 48 + Math.random() * 200,
   y: upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY),
-  vx: -(1.5 + Math.random()),
+  vx: -getUpperSpeed(),
   alive: true,
   frame: 0,
   frameTimer: 0,
@@ -48,7 +48,7 @@ export const NUM_LOWER_CARPSHITS = 2;
 export const lowerCarpshits = Array.from({ length: NUM_LOWER_CARPSHITS }, () => ({
   x: canvas.width + 48 + Math.random() * 200,
   y: lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY),
-  vx: -(1 + Math.random()),
+  vx: -getLowerSpeed(),
   alive: true,
   frame: 0,
   frameTimer: 0,
@@ -57,6 +57,28 @@ export const lowerCarpshits = Array.from({ length: NUM_LOWER_CARPSHITS }, () => 
   onFloor: false,
   respawnTimer: 0
 }));
+
+// Difficulty-based speed and respawn helper functions
+function getUpperSpeed() {
+  const base = 1.5 + Math.random();
+  return base * (1 + (difficultyLevel - 1) * 0.15);
+}
+function getLowerSpeed() {
+  const base = 1 + Math.random() * 1.2;
+  return base * (1 + (difficultyLevel - 1) * 0.15);
+}
+function getRespawnDelay() {
+  const base = Math.max(500, 2000 - (difficultyLevel - 1) * 300);
+  return base + Math.random() * base;
+}
+
+// Independent spawn timers
+let nextUpperSpawn = performance.now() + getRespawnDelay();
+let nextLowerSpawn = performance.now() + getRespawnDelay();
+// Floor-clear interval and independent clear timers
+const floorClearInterval = 5000;
+let nextUpperClear = performance.now() + floorClearInterval;
+let nextLowerClear = performance.now() + floorClearInterval;
 
 /**
  * Get the carpshit's collision hitbox rectangle.
@@ -84,12 +106,16 @@ export function spawnCarpshit() {
   const x = fromLeft
     ? -48 - Math.random() * 200
     : canvas.width + 48 + Math.random() * 200;
-  const vx = fromLeft
-    ? 1.5 + Math.random() * 1.2
-    : -(1.5 + Math.random() * 1.2);
+  const speed = getUpperSpeed();
+  const vx = fromLeft ? speed : -speed;
   carpshits.push({
     x,
     y: upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY),
+    swoop: difficultyLevel >= 4 && Math.random() < 0.3,
+    swoopStart: performance.now(),
+    swoopAmplitude: (upperSpawnMaxY - upperSpawnMinY) / 2,
+    swoopBaseY: (upperSpawnMaxY + upperSpawnMinY) / 2,
+    swoopPeriod: 1500,
     vx,
     alive: true,
     frame: 0,
@@ -110,12 +136,16 @@ export function spawnLowerCarpshit() {
   const x = fromLeft
     ? -48 - Math.random() * 200
     : canvas.width + 48 + Math.random() * 200;
-  const vx = fromLeft
-    ? 1 + Math.random() * 1.2
-    : -(1 + Math.random() * 1.2);
+  const speed = getLowerSpeed();
+  const vx = fromLeft ? speed : -speed;
   lowerCarpshits.push({
     x,
     y: lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY),
+    swoop: difficultyLevel >= 4 && Math.random() < 0.3,
+    swoopStart: performance.now(),
+    swoopAmplitude: (lowerSpawnMaxY - lowerSpawnMinY) / 2,
+    swoopBaseY: (lowerSpawnMaxY + lowerSpawnMinY) / 2,
+    swoopPeriod: 1500,
     vx,
     alive: true,
     frame: 0,
@@ -144,29 +174,7 @@ export function updateCarpshits() {
       }
       return;
     }
-    if (!carpshit.alive && carpshit.onFloor) {
-      if (performance.now() - carpshit.respawnTimer > 2000 + Math.random() * 2000) {
-        let fromLeft = false;
-        if (difficultyLevel >= 2) fromLeft = Math.random() < 0.5;
-        if (fromLeft) {
-          carpshit.x = -48 - Math.random() * 200;
-          carpshit.vx = 1.5 + Math.random() * 1.2;
-        } else {
-          carpshit.x = canvas.width + 48 + Math.random() * 200;
-          carpshit.vx = -(1.5 + Math.random() * 1.2);
-        }
-        carpshit.y = upperSpawnMinY + Math.random() * (upperSpawnMaxY - upperSpawnMinY);
-        carpshit.alive = true;
-        carpshit.frame = 0;
-        carpshit.frameTimer = 0;
-        carpshit.falling = false;
-        carpshit.vy = 0;
-        carpshit.onFloor = false;
-        carpshit.respawnTimer = 0;
-      }
-      return;
-    }
-    if (!carpshit.alive && !carpshit.onFloor) return;
+    if (!carpshit.alive) return;
     if (carpshit.alive) {
       carpshit.x += carpshit.vx;
       carpshit.frameTimer++;
@@ -180,7 +188,27 @@ export function updateCarpshits() {
         carpshit.x = -48;
       }
     }
+    if (carpshit.swoop) {
+      const t = performance.now() - carpshit.swoopStart;
+      carpshit.y = carpshit.swoopBaseY +
+        Math.sin((t / carpshit.swoopPeriod) * 2 * Math.PI) *
+        carpshit.swoopAmplitude;
+    }
   });
+  // periodic clear of dead minions on floor (works during boss battle too)
+  const now = performance.now();
+  if (now >= nextUpperClear) {
+    for (let i = carpshits.length - 1; i >= 0; i--) {
+      const c = carpshits[i];
+      if (!c.alive && c.onFloor) carpshits.splice(i, 1);
+    }
+    nextUpperClear = now + floorClearInterval;
+  }
+  // periodic spawn only outside boss battle
+  if (!getCarpshitsDuringBoss() && now >= nextUpperSpawn) {
+    spawnCarpshit();
+    nextUpperSpawn = now + getRespawnDelay();
+  }
 }
 
 /**
@@ -212,29 +240,7 @@ export function updateLowerCarpshits() {
       }
       return;
     }
-    if (!carpshit.alive && carpshit.onFloor) {
-      if (performance.now() - carpshit.respawnTimer > 2000 + Math.random() * 2000) {
-        let fromLeft = false;
-        if (difficultyLevel >= 2) fromLeft = Math.random() < 0.5;
-        if (fromLeft) {
-          carpshit.x = -48 - Math.random() * 200;
-          carpshit.vx = 1 + Math.random() * 1.2;
-        } else {
-          carpshit.x = canvas.width + 48 + Math.random() * 200;
-          carpshit.vx = -(1 + Math.random() * 1.2);
-        }
-        carpshit.y = lowerSpawnMinY + Math.random() * (lowerSpawnMaxY - lowerSpawnMinY);
-        carpshit.alive = true;
-        carpshit.frame = 0;
-        carpshit.frameTimer = 0;
-        carpshit.falling = false;
-        carpshit.vy = 0;
-        carpshit.onFloor = false;
-        carpshit.respawnTimer = 0;
-      }
-      return;
-    }
-    if (!carpshit.alive && !carpshit.onFloor) return;
+    if (!carpshit.alive) return;
     if (carpshit.alive) {
       carpshit.x += carpshit.vx;
       carpshit.frameTimer++;
@@ -248,7 +254,27 @@ export function updateLowerCarpshits() {
         carpshit.x = -48;
       }
     }
+    if (carpshit.swoop) {
+      const t = performance.now() - carpshit.swoopStart;
+      carpshit.y = carpshit.swoopBaseY +
+        Math.sin((t / carpshit.swoopPeriod) * 2 * Math.PI) *
+        carpshit.swoopAmplitude;
+    }
   });
+  // periodic clear of dead minions on floor (works during boss battle too)
+  const nowL = performance.now();
+  if (nowL >= nextLowerClear) {
+    for (let i = lowerCarpshits.length - 1; i >= 0; i--) {
+      const c = lowerCarpshits[i];
+      if (!c.alive && c.onFloor) lowerCarpshits.splice(i, 1);
+    }
+    nextLowerClear = nowL + floorClearInterval;
+  }
+  // periodic spawn only outside boss battle
+  if (!getCarpshitsDuringBoss() && nowL >= nextLowerSpawn) {
+    spawnLowerCarpshit();
+    nextLowerSpawn = nowL + getRespawnDelay();
+  }
 }
 
 /**

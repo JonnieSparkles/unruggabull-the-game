@@ -11,11 +11,11 @@ export default {
   floorY: 520,
   wrapHorizontal: false,
   bossTriggerDifficulty: 6,
-  phaseChangeKillCount: 15,
+  phaseChangeKillCount: 10,
   platforms: [
     { x: 200, y: 450, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
-    { x: 450, y: 274, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
-    { x: 320, y: 350, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
+    { x: 450, y: 270, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
+    { x: 320, y: 300, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT },
     { x: 400, y: 400, width: PLATFORM_WIDTH, height: PLATFORM_HEIGHT }
   ]
 }; 

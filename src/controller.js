@@ -6,12 +6,12 @@ import * as state from './state.js';
 import { updateGame } from './update.js';
 import { renderGame } from './render.js';
 import { carpshitSprite } from './assets.js';
-import { player, PLAYER_START_HEALTH } from './player.js';
+import { player} from './player.js';
 import { carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits } from './enemies/carpshits.js';
 import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
 import { GAME_STATES } from './constants/gameStates.js';
-import { PLAYER_WIDTH, PLAYER_HEIGHT } from './constants/player.js';
+import { PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_START_HEALTH } from './constants/player.js';
 import { clearEntities } from './utils/sceneUtils.js';
 
 /**

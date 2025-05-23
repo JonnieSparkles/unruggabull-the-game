@@ -217,7 +217,6 @@ export function updatePhaseLogic(state) {
     state.hasCapturedBaseY = false;
     const cd = PHASE_ATTACK_COOLDOWNS[newPhase] || state.attackCooldown;
     state.attackCooldown = cd;
-    console.log(`Rugfather phase changed to ${newPhase}, attackCooldown=${cd}`);
     // Prepare for spawning minions: get canvas and level config
     const canvas = document.getElementById('gameCanvas');
     const levelConfig = levels[getCurrentLevelKey()];
@@ -263,11 +262,17 @@ export function updatePhaseLogic(state) {
       bgMusic.playbackRate = 2.0;
       setCarpshitsDuringBoss(true);
       for (let i = 0; i < NUM_CARPSHITS; i++) {
+        const fromLeft = Math.random() < 0.5;
+        const speed = 2 + Math.random();
+        const x = fromLeft
+          ? -48 - Math.random() * 200
+          : canvas.width + 48 + Math.random() * 200;
+        const vx = fromLeft ? speed : -speed;
         carpshits.push({
-          x: canvas.width + 48 + Math.random() * 200,
+          x,
           y: canvas.height * 0.1 + Math.random() *
              (canvas.height * 0.6 - canvas.height * 0.1),
-          vx: -(2 + Math.random()),
+          vx,
           alive: true,
           frame: 0,
           frameTimer: 0,
@@ -278,11 +283,17 @@ export function updatePhaseLogic(state) {
         });
       }
       for (let i = 0; i < NUM_LOWER_CARPSHITS; i++) {
+        const fromLeft = Math.random() < 0.5;
+        const speed = 1.5 + Math.random();
+        const x = fromLeft
+          ? -48 - Math.random() * 200
+          : canvas.width + 48 + Math.random() * 200;
+        const vx = fromLeft ? speed : -speed;
         lowerCarpshits.push({
-          x: canvas.width + 48 + Math.random() * 200,
+          x,
           y: canvas.height * 0.6 + Math.random() *
              ((levelConfig.floorY - 48) - canvas.height * 0.6),
-          vx: -(1.5 + Math.random()),
+          vx,
           alive: true,
           frame: 0,
           frameTimer: 0,
