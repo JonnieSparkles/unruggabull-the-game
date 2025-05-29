@@ -1,5 +1,7 @@
 rugfather
 -easy, hard, endless modes
+-feedback for carpshit progression
+-allow arrows for control?
 -fine tune blaster cool down
 -level finish screen
 -player might be invulnerable flashing when going to boss intro
