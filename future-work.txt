@@ -1,10 +1,11 @@
 rugfather
--east, hard, endless modes
--blaster cool down? temp-blaster-energy.md
+-easy, hard, endless modes
+-fine tune blaster cool down
 -level finish screen
--free play after finish
+-player might be invulnerable flashing when going to boss intro
 -jazz up around the game frame
 -fix intro screen to 960x540
+-fix gameover screen overlay - text and buttons should be in front 
 -audit mobile js
 -readme
 -license type

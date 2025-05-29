@@ -2,9 +2,9 @@
 import * as state from './state.js';
 import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
-import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGameOver, drawCongrats, drawRestartButton } from './ui.js';
+import { showControlsScreen, drawKillCounter, drawDifficulty, drawGameOver, drawCongrats, drawRestartButton } from './ui.js';
 import { drawPlatforms, platforms } from './physics.js';
-import { deadSprite } from './assets.js';
+import { deadSprite, blasterIcon, heartIcon } from './assets.js';
 import { drawCarpshits, drawLowerCarpshits, carpshits, lowerCarpshits } from './enemies/carpshits.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 import { getHitbox } from './player.js';
@@ -13,7 +13,7 @@ import { getBossHold, getBossPause, getBossTransition, getBossActive, getCurrent
 import { BLINK_OUT_DURATION } from './levels/rugcoAlley/rugfatherConstants.js';
 import { bgSprite, FIRST_FLICKER_FRAMES, TRANSITION_FRAMES } from './levels/rugcoAlley/background.js';
 import { PLAYER_SPRITES } from './playerSprites.js';
-import { PLAYER_WIDTH, PLAYER_HEIGHT } from './constants/player.js';
+import { PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_START_HEALTH } from './constants/player.js';
 import { drawProjectiles, projectiles } from './projectiles/index.js';
 import { BLASTER_EMPTY_FLASH_DURATION } from './constants/blaster.js';
 
@@ -86,13 +86,38 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     shouldReturn = true;
   } else {
     // HUD
-    drawHealth(ctx, player.health);
+    // Player health bar
+    {
+      const iconSize = 32;
+      const iconX = 20;
+      const iconY = 20;
+      ctx.save();
+      ctx.drawImage(heartIcon, iconX, iconY, iconSize, iconSize);
+      ctx.restore();
+      const barX = iconX + iconSize + 4;
+      const barHeight = 12;
+      const barY = iconY + (iconSize - barHeight) / 2;
+      const barWidth = 200;
+      ctx.save();
+      ctx.fillStyle = '#222';
+      ctx.fillRect(barX, barY, barWidth, barHeight);
+      const healthRatio = player.health / PLAYER_START_HEALTH;
+      ctx.fillStyle = '#f44';
+      ctx.fillRect(barX, barY, barWidth * healthRatio, barHeight);
+      ctx.restore();
+    }
     // Blaster energy bar
     {
-      const barX = 20;
-      const barY = 50;
+      const iconSize = 32;
+      const iconX = 20;
+      const barX = iconX + iconSize + 4;
+      const barY = 60;
       const barWidth = 200;
       const barHeight = 12;
+      const iconY = barY - (iconSize - barHeight) / 2;
+      ctx.save();
+      ctx.drawImage(blasterIcon, iconX, iconY, iconSize, iconSize);
+      ctx.restore();
       // Background
       ctx.save();
       ctx.fillStyle = '#222';
