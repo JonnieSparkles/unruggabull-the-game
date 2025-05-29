@@ -11,6 +11,7 @@ bgMusic.volume = 0.3;
  * Player firing sound.
  */
 export const fireSound = new Audio('assets/audio/sfx/blaster-fire.mp3');
+fireSound.volume = 0.25;
 
 /**
  * Unruggabull reactions.
@@ -71,4 +72,8 @@ export const muhahahaSfx = new Audio('assets/audio/sfx/rugfather/rugfather-muhah
 export const rugfatherWeaveRemembersSfx = new Audio('assets/audio/sfx/rugfather/rugfather-weave-remembers.mp3');
 export const rugfatherOuchSfx = new Audio('assets/audio/sfx/rugfather/rugfather-ouch.mp3');
 export const rugfatherOwSfx = new Audio('assets/audio/sfx/rugfather/rugfather-ow.mp3');
+
+// Blaster empty sound for no-energy attempts
+export const blasterEmptySound = new Audio('assets/audio/sfx/blaster-fx-343681.mp3');
+blasterEmptySound.volume = 1.0;
 

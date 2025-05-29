@@ -13,6 +13,7 @@ import { getCurrentLevelKey } from './state.js';
 import { GAME_STATES } from './constants/gameStates.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_START_HEALTH } from './constants/player.js';
 import { clearEntities } from './utils/sceneUtils.js';
+import { BLASTER_MAX_ENERGY } from './constants/blaster.js';
 
 /**
  * Reset player, enemies, and bullets for a new game.
@@ -38,6 +39,11 @@ export function resetGame(canvas, bullets) {
   player.health = PLAYER_START_HEALTH;
   player.invulnerable = false;
   player.invulnerableUntil = null;
+  // Initialize blaster energy system
+  player.blasterEnergy = BLASTER_MAX_ENERGY;
+  player.blasterMaxEnergy = BLASTER_MAX_ENERGY;
+  player.blasterLastRechargeTime = performance.now();
+  player.blasterEmptyFlashEndTime = 0;
   state.resetKillCount();
   // Configure how many kills until difficulty increases for this level
   state.setPhaseChangeKillCount(levelConfig.phaseChangeKillCount);

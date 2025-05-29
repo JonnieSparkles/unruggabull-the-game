@@ -15,6 +15,7 @@ import { bgSprite, FIRST_FLICKER_FRAMES, TRANSITION_FRAMES } from './levels/rugc
 import { PLAYER_SPRITES } from './playerSprites.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT } from './constants/player.js';
 import { drawProjectiles, projectiles } from './projectiles/index.js';
+import { BLASTER_EMPTY_FLASH_DURATION } from './constants/blaster.js';
 
 /**
  * Render the current game frame.
@@ -86,6 +87,28 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
   } else {
     // HUD
     drawHealth(ctx, player.health);
+    // Blaster energy bar
+    {
+      const barX = 20;
+      const barY = 50;
+      const barWidth = 200;
+      const barHeight = 12;
+      // Background
+      ctx.save();
+      ctx.fillStyle = '#222';
+      ctx.fillRect(barX, barY, barWidth, barHeight);
+      // Filled portion
+      const ratio = player.blasterEnergy / player.blasterMaxEnergy;
+      ctx.fillStyle = '#0ff';
+      ctx.fillRect(barX, barY, barWidth * ratio, barHeight);
+      // Flash red when empty
+      if (player.blasterEmptyFlashEndTime > now) {
+        ctx.globalAlpha = (player.blasterEmptyFlashEndTime - now) / BLASTER_EMPTY_FLASH_DURATION;
+        ctx.fillStyle = 'red';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+      }
+      ctx.restore();
+    }
     if (!getBossHold() && !getBossPause() && !getBossTransition() && !getBossActive()) {
       drawKillCounter(ctx, state.killCount, canvas.width);
       if (showDifficulty) drawDifficulty(ctx, state.difficultyLevel, canvas.width);

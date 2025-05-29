@@ -17,6 +17,8 @@ import { BOSS_HOLD_DURATION, BLINK_OUT_DURATION } from './levels/rugcoAlley/rugf
 import { GAME_STATES } from './constants/gameStates.js';
 import { startBossIntro, updateBossIntro, launchRugfatherDefeatScene, updateRugfatherDefeatScene } from './levels/rugcoAlley/rugfatherOrchestrator.js';
 import { clearEntities } from './utils/sceneUtils.js';
+import { BLASTER_RECHARGE_INTERVAL, BLASTER_EMPTY_FLASH_DURATION } from './constants/blaster.js';
+import { blasterEmptySound } from './sound.js';
 
 /**
  * Perform one update cycle: input, physics, firing, bullet & enemy updates, and collision checks.
@@ -67,6 +69,15 @@ export function updateGame(bullets, canvas) {
   }
   // Only continue normal updates while playing
   if (state.gameState !== 'playing') return;
+  // Blaster energy recharge
+  if (player.blasterEnergy < player.blasterMaxEnergy) {
+    const rechargeElapsed = now - player.blasterLastRechargeTime;
+    const chargesToAdd = Math.floor(rechargeElapsed / BLASTER_RECHARGE_INTERVAL);
+    if (chargesToAdd > 0) {
+      player.blasterEnergy = Math.min(player.blasterEnergy + chargesToAdd, player.blasterMaxEnergy);
+      player.blasterLastRechargeTime += chargesToAdd * BLASTER_RECHARGE_INTERVAL;
+    }
+  }
   // Reset player invulnerability if expired
   if (player.invulnerable && player.invulnerableUntil != null && now > player.invulnerableUntil) {
     player.invulnerable = false;
@@ -228,10 +239,19 @@ export function updateGame(bullets, canvas) {
   // Battle has started: allow player control and boss update
   updatePlayerInput();
   handlePhysics(player, platforms, canvas);
-  // Player firing uses projectiles manager
+  // Player firing uses projectiles manager with blaster energy
   if ((keys['f'] || keys['F'] || keys['j'] || keys['J'] || keys['Enter']) && !player.firing) {
+    // Attempt to fire
+    if (player.blasterEnergy > 0) {
+      player.blasterEnergy--;
+      spawnPlayerBullet(player);
+    } else {
+      // No energy: flash bar and play hissing sound
+      player.blasterEmptyFlashEndTime = now + BLASTER_EMPTY_FLASH_DURATION;
+      blasterEmptySound.currentTime = 0;
+      blasterEmptySound.play();
+    }
     player.firing = true;
-    spawnPlayerBullet(player);
   } else if (!(keys['f'] || keys['F'] || keys['j'] || keys['J'] || keys['Enter'])) {
     player.firing = false;
   }

@@ -1,4 +1,5 @@
 rugfather
+-east, hard, endless modes
 -blaster cool down? temp-blaster-energy.md
 -level finish screen
 -free play after finish

@@ -1,5 +1,6 @@
 import { keys } from './input.js';
 import { PLAYER_WIDTH, PLAYER_HEIGHT, MOVE_SPEED, CROUCH_SPEED, JUMP_FORCE, MAX_VELOCITY, PLAYER_START_HEALTH } from './constants/player.js';
+import { BLASTER_MAX_ENERGY } from './constants/blaster.js';
 
 
 /**
@@ -29,7 +30,12 @@ export const player = {
   invulnerableUntil: null,
   hitHoldUntil: 0,
   scale: 1,
-  opacity: 1
+  opacity: 1,
+  // Blaster energy system
+  blasterEnergy: BLASTER_MAX_ENERGY,
+  blasterMaxEnergy: BLASTER_MAX_ENERGY,
+  blasterLastRechargeTime: 0,
+  blasterEmptyFlashEndTime: 0
 };
 
 /**
