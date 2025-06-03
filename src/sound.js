@@ -11,7 +11,7 @@ bgMusic.volume = 0.3;
  * Player firing sound.
  */
 export const fireSound = new Audio('assets/audio/sfx/blaster-fire.mp3');
-fireSound.volume = 0.15;
+fireSound.volume = 0.08;
 
 /**
  * Unruggabull reactions.
