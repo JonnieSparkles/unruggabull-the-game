@@ -342,7 +342,7 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       restartButton.x = Math.round(canvas.width / 2 - restartButton.width / 2);
       restartButton.y = Math.round(canvas.height / 2 + 60);
       drawRestartButton(ctx, canvas, restartButton, isRestartHover);
-      shouldReturn = true;
+      return;
     }
 
     // Game over
@@ -360,7 +360,7 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       restartButton.x = Math.round(canvas.width / 2 - restartButton.width / 2);
       restartButton.y = Math.round(canvas.height / 2 + 40);
       drawRestartButton(ctx, canvas, restartButton, isRestartHover);
-      shouldReturn = true;
+      return;
     }
 
     // Boss draw if active
