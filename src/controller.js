@@ -120,6 +120,9 @@ export function startGame(canvas, ctx, bullets, restartButton, isRestartHover) {
   function controlsScreenHandler(e) {
     if (state.gameState === 'controls') {
       state.setGameState('playing');
+      // Show initial wave banner only after controls screen is dismissed
+      state.setWaveBanner(true);
+      state.setWaveBannerStartTime(performance.now());
       gameLoop(canvas, ctx, bullets, restartButton, isRestartHover);
       document.removeEventListener('keydown', controlsScreenHandler);
       canvas.removeEventListener('click', controlsScreenHandler);

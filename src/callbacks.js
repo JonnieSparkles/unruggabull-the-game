@@ -22,6 +22,9 @@ export function handleBulletKill(bullets, index, carpshit) {
     state.setFlashActive(true);
     state.setFlashEndTime(performance.now() + state.FLASH_DURATION);
     state.increaseDifficulty();
+    // Show wave banner for new difficulty wave
+    state.setWaveBanner(true);
+    state.setWaveBannerStartTime(performance.now());
   }
 }
 

@@ -41,6 +41,25 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       state.setFightBanner(false);
     }
   }
+  // Wave banner overlay
+  if (state.getWaveBanner && state.getWaveBanner()) {
+    const elapsedWave = now - state.getWaveBannerStartTime();
+    const DURATION_WAVE = 1000; // ms to display wave banner
+    const levelConfig = levels[getCurrentLevelKey()];
+    const maxWaves = levelConfig.bossTriggerDifficulty - 1;
+    if (elapsedWave < DURATION_WAVE && state.difficultyLevel <= maxWaves) {
+      ctx.save();
+      ctx.font = 'bold 72px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 12;
+      ctx.fillText(`Wave ${state.difficultyLevel}/${maxWaves}`, canvas.width / 2, canvas.height / 2 - 50);
+      ctx.restore();
+    } else {
+      state.setWaveBanner(false);
+    }
+  }
   ctx.save();
   let shouldReturn = false;
   let shaking = false;
@@ -384,5 +403,26 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
     return;
   }
   if (shaking) ctx.restore();
+
+  // Wave banner overlay (draw last, always on top)
+  if (state.getWaveBanner && state.getWaveBanner()) {
+    const now = performance.now();
+    const elapsedWave = now - state.getWaveBannerStartTime();
+    const DURATION_WAVE = 1000; // ms to display wave banner
+    const levelConfig = levels[getCurrentLevelKey()];
+    const maxWaves = levelConfig.bossTriggerDifficulty - 1;
+    if (elapsedWave < DURATION_WAVE && state.difficultyLevel <= maxWaves) {
+      ctx.save();
+      ctx.font = 'bold 72px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 12;
+      ctx.fillText(`Wave ${state.difficultyLevel}/${maxWaves}`, canvas.width / 2, canvas.height / 2 - 50);
+      ctx.restore();
+    } else {
+      state.setWaveBanner(false);
+    }
+  }
   ctx.restore();
 } 

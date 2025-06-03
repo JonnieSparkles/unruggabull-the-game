@@ -214,6 +214,14 @@ export function getFightBanner() { return fightBannerActive; }
 export function setFightBannerStartTime(val) { fightBannerStartTime = val; }
 export function getFightBannerStartTime() { return fightBannerStartTime; }
 
+// Add wave banner control
+export let waveBannerActive = false;
+export let waveBannerStartTime = 0;
+export function setWaveBanner(val) { waveBannerActive = val; }
+export function getWaveBanner() { return waveBannerActive; }
+export function setWaveBannerStartTime(val) { waveBannerStartTime = val; }
+export function getWaveBannerStartTime() { return waveBannerStartTime; }
+
 export function playPlayerHitSound() {
   if (!playPlayerHitSound.audio) {
     playPlayerHitSound.audio = new Audio('assets/audio/sfx/unruggabull/unruggabull-ow.mp3');
