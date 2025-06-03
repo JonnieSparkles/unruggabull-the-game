@@ -16,6 +16,8 @@ import {
   BLINK_TOTAL_DURATION
 } from './rugfatherConstants.js';
 import { updateBossAI, updatePhaseLogic } from './rugfatherAI.js';
+import levels from '../index.js';
+import { getCurrentLevelKey } from '../../state.js';
 
 // Level 1 Boss: Rugfather
 // Access the canvas and context
@@ -217,6 +219,25 @@ function draw() {
   if (!state.active) return;
   if (!isFinite(state.x) || !isFinite(state.y) || !isFinite(state.scale) || !bossSpriteSheet.complete || bossSpriteSheet.naturalWidth === 0) {
     return;
+  }
+  // Draw shadow ellipse if boss is near the ground
+  const levelConfig = levels[getCurrentLevelKey()];
+  const bossFeetY = state.y + BOSS_HEIGHT * state.scale;
+  if (Math.abs(bossFeetY - levelConfig.floorY) < 10) {
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+    ctx.beginPath();
+    ctx.ellipse(
+      state.x + (BOSS_WIDTH * state.scale) / 2,
+      levelConfig.floorY - 5,
+      (BOSS_WIDTH * state.scale) / 2.5,
+      16,
+      0,
+      0,
+      2 * Math.PI
+    );
+    ctx.fill();
+    ctx.restore();
   }
   // Intro rendering: respect orchestrator-driven sprite states
   if (state.entering) {

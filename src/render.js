@@ -208,6 +208,24 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
         destY = player.feetY - frameHeight + offsetY;
       }
 
+      // Draw shadow ellipse before drawing the player sprite, but only if grounded
+      if (player.grounded) {
+        ctx.save();
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.beginPath();
+        ctx.ellipse(
+          player.x + player.width / 2,
+          player.feetY - 5,
+          player.width / 2.5,
+          8,
+          0,
+          0,
+          2 * Math.PI
+        );
+        ctx.fill();
+        ctx.restore();
+      }
+
       ctx.save();
       // Player invulnerability blink
       let alpha = player.opacity !== undefined ? player.opacity : 1.0;

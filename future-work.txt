@@ -6,7 +6,7 @@ rugfather
 -fix intro screen to 960x540
 -fix game restart - on death and victory
 -add timer and final health to victory screen
--add shadows below player and boss sprites
+-add shadows below boss sprite
 -fix gameover screen overlay - text and buttons should be in front 
 -audit mobile js
 -readme
