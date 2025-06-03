@@ -18,7 +18,8 @@ import { GAME_STATES } from './constants/gameStates.js';
 import { startBossIntro, updateBossIntro, launchRugfatherDefeatScene, updateRugfatherDefeatScene } from './levels/rugcoAlley/rugfatherOrchestrator.js';
 import { clearEntities } from './utils/sceneUtils.js';
 import { BLASTER_RECHARGE_INTERVAL, BLASTER_EMPTY_FLASH_DURATION } from './constants/blaster.js';
-import { blasterEmptySound } from './sound.js';
+import { blasterEmptySound, flawlessVictorySound } from './sound.js';
+import { PLAYER_START_HEALTH } from './constants/player.js';
 
 /**
  * Perform one update cycle: input, physics, firing, bullet & enemy updates, and collision checks.
@@ -85,6 +86,11 @@ export function updateGame(bullets, canvas) {
   }
   // Boss hold: when reaching the per-level difficulty trigger, start hold phase
   if (!state.getBossHold() && !state.getBossTransition() && !state.getBossActive() && !state.getBossTriggered() && state.difficultyLevel >= levelConfig.bossTriggerDifficulty) {
+    // Play flawless victory sound if player is at full health
+    if (player.health === PLAYER_START_HEALTH) {
+      flawlessVictorySound.currentTime = 0;
+      flawlessVictorySound.play();
+    }
     state.setBossHold(true);
     state.setBossTriggered(true);
     // Start the boss intro timeline

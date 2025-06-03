@@ -34,6 +34,7 @@ export const unruggabullVoiceSounds = [
   new Audio('assets/audio/sfx/unruggabull/unruggabull-permanence.mp3'),
   new Audio('assets/audio/sfx/unruggabull/unrugabull-do-do-do.mp3'),
   new Audio('assets/audio/sfx/unruggabull/unruggabull-oh-shit.mp3'),
+  new Audio('assets/audio/sfx/unruggabull/unruggabull-flawless-victory.mp3'),
   // Add more as needed
 ];
 
@@ -76,4 +77,7 @@ export const rugfatherOwSfx = new Audio('assets/audio/sfx/rugfather/rugfather-ow
 // Blaster empty sound for no-energy attempts
 export const blasterEmptySound = new Audio('assets/audio/sfx/blaster-fx-343681.mp3');
 blasterEmptySound.volume = 1.0;
+
+// Flawless victory sound
+export const flawlessVictorySound = new Audio('assets/audio/sfx/unruggabull/unruggabull-flawless-victory.mp3');
 

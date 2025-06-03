@@ -1,10 +1,12 @@
 // Callbacks module: default handlers for collisions
-import { carpshitDeathSound, gameOverSound } from './sound.js';
+import { carpshitDeathSound, gameOverSound, difficultyIncreaseSounds } from './sound.js';
 import * as state from './state.js';
 import { player } from './player.js';
 import { FLASH_DURATION, INVULNERABLE_TIME } from './constants/timing.js';
 import { GAME_STATES } from './constants/gameStates.js';
 import { playPlayerHitSound, setPlayerHitFlashActive, setPlayerHitFlashEndTime } from './state.js';
+import levels from './levels/index.js';
+import { getCurrentLevelKey } from './state.js';
 
 /**
  * Handle when a bullet hits a carpshit: kill carpshit, play sound, update score and difficulty.
@@ -21,7 +23,20 @@ export function handleBulletKill(bullets, index, carpshit) {
   if (state.getKillCount() === state.nextPhaseKillCount) {
     state.setFlashActive(true);
     state.setFlashEndTime(performance.now() + state.FLASH_DURATION);
-    state.increaseDifficulty();
+    // Only play reaction sound if not at boss trigger
+    const levelConfig = levels[getCurrentLevelKey()];
+    const maxWaves = levelConfig.bossTriggerDifficulty - 1;
+    if (state.difficultyLevel + 1 < levelConfig.bossTriggerDifficulty) {
+      // Play a random reaction sound
+      const sound = difficultyIncreaseSounds[Math.floor(Math.random() * difficultyIncreaseSounds.length)];
+      sound.currentTime = 0;
+      sound.play();
+      state.increaseDifficulty();
+    } else {
+      // Still increment difficultyLevel and nextPhaseKillCount for consistency
+      state.setDifficultyLevel(state.difficultyLevel + 1);
+      state.setNextPhaseKillCount(state.nextPhaseKillCount + state.PHASE_CHANGE_KILL_COUNT);
+    }
     // Show wave banner for new difficulty wave
     state.setWaveBanner(true);
     state.setWaveBannerStartTime(performance.now());

@@ -1,12 +1,12 @@
 rugfather
 -easy, hard, endless modes
--feedback for carpshit progression
 -level finish screen
 -player might be invulnerable flashing when going to boss intro
 -jazz up around the game frame
 -fix intro screen to 960x540
 -fix game restart - on death and victory
 -flawless victory
+-add timer and final health to victory screen
 -fix gameover screen overlay - text and buttons should be in front 
 -audit mobile js
 -readme

@@ -39,10 +39,6 @@ export let PHASE_CHANGE_KILL_COUNT = 15;
 export let difficultyLevel = 1;
 export let nextPhaseKillCount = PHASE_CHANGE_KILL_COUNT;
 export function increaseDifficulty() {
-  // Play a random reaction sound
-  const sound = difficultyIncreaseSounds[Math.floor(Math.random() * difficultyIncreaseSounds.length)];
-  sound.currentTime = 0;
-  sound.play();
   difficultyLevel++;
   nextPhaseKillCount += PHASE_CHANGE_KILL_COUNT;
 }
@@ -57,6 +53,7 @@ export function setPhaseChangeKillCount(val) {
   // Recalculate nextPhaseKillCount so the next phase is always reachable
   setNextPhaseKillCount(killCount + PHASE_CHANGE_KILL_COUNT);
 }
+export function setDifficultyLevel(val) { difficultyLevel = val; }
 export function setNextPhaseKillCount(val) { nextPhaseKillCount = val; }
 
 // Level selection
