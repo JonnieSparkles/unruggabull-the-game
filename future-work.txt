@@ -1,13 +1,10 @@
 rugfather
 -easy, hard, endless modes
--level finish screen
 -player might be invulnerable flashing when going to boss intro
 -jazz up around the game frame
--fix intro screen to 960x540
--fix game restart - on death and victory
+-fix game restart - on victory
 -add timer and final health to victory screen
--add shadows below boss sprite
--fix gameover screen overlay - text and buttons should be in front 
+-level finish screen
 -audit mobile js
 -readme
 -license type
