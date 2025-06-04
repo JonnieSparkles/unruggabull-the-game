@@ -7,7 +7,7 @@ import { updateGame } from './update.js';
 import { renderGame } from './render.js';
 import { carpshitSprite } from './assets.js';
 import { player} from './player.js';
-import { carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits } from './enemies/carpshits.js';
+import { carpshits as enemyCarpshits, lowerCarpshits as enemyLowerCarpshits, NUM_CARPSHITS, NUM_LOWER_CARPSHITS } from './enemies/carpshits.js';
 import levels from './levels/index.js';
 import { getCurrentLevelKey } from './state.js';
 import { GAME_STATES } from './constants/gameStates.js';
@@ -47,30 +47,37 @@ export function resetGame(canvas, bullets) {
   state.resetKillCount();
   // Configure how many kills until difficulty increases for this level
   state.setPhaseChangeKillCount(levelConfig.phaseChangeKillCount);
-  enemyCarpshits.forEach(carpshit => {
-    carpshit.x = canvas.width + 48 + Math.random() * 200;
-    carpshit.y = 80 + Math.random() * 180;
-    carpshit.vx = -(1.5 + Math.random());
-    carpshit.alive = true;
-    carpshit.frame = 0;
-    carpshit.frameTimer = 0;
-    carpshit.falling = false;
-    carpshit.vy = 0;
-    carpshit.onFloor = false;
-    carpshit.respawnTimer = 0;
-  });
-  enemyLowerCarpshits.forEach(carpshit => {
-    carpshit.x = canvas.width + 48 + Math.random() * 200;
-    carpshit.y = 300 + Math.random() * 40;
-    carpshit.vx = -(1 + Math.random());
-    carpshit.alive = true;
-    carpshit.frame = 0;
-    carpshit.frameTimer = 0;
-    carpshit.falling = false;
-    carpshit.vy = 0;
-    carpshit.onFloor = false;
-    carpshit.respawnTimer = 0;
-  });
+  // Reset enemies arrays to initial state
+  enemyCarpshits.length = 0;
+  for (let i = 0; i < NUM_CARPSHITS; i++) {
+    enemyCarpshits.push({
+      x: canvas.width + 48 + Math.random() * 200,
+      y: 80 + Math.random() * 180,
+      vx: -(1.5 + Math.random()),
+      alive: true,
+      frame: 0,
+      frameTimer: 0,
+      falling: false,
+      vy: 0,
+      onFloor: false,
+      respawnTimer: 0
+    });
+  }
+  enemyLowerCarpshits.length = 0;
+  for (let i = 0; i < NUM_LOWER_CARPSHITS; i++) {
+    enemyLowerCarpshits.push({
+      x: canvas.width + 48 + Math.random() * 200,
+      y: 300 + Math.random() * 40,
+      vx: -(1 + Math.random()),
+      alive: true,
+      frame: 0,
+      frameTimer: 0,
+      falling: false,
+      vy: 0,
+      onFloor: false,
+      respawnTimer: 0
+    });
+  }
   clearEntities(bullets);
   state.setDyingStartTime(null);
   state.setGameState('playing');
@@ -82,6 +89,37 @@ export function resetGame(canvas, bullets) {
   state.setWaveBannerStartTime(0);
   // Reset defeat scene trigger
   if (typeof updateGame !== 'undefined') updateGame._defeatSceneStarted = false;
+  // Re-initialize player state
+  Object.assign(player, {
+    x: 50,
+    feetY: levelConfig.floorY,
+    width: PLAYER_WIDTH,
+    height: PLAYER_HEIGHT,
+    frame: 0,
+    speed: player.speed,
+    vx: 0,
+    vy: 0,
+    jumping: false,
+    grounded: true,
+    firing: false,
+    facing: 1,
+    health: PLAYER_START_HEALTH,
+    crouching: false,
+    muzzleFlashTimer: 0,
+    shockedFrame: 0,
+    shockedFrameTimer: 0,
+    controlEnabled: true,
+    sprite: 'idle',
+    invulnerable: false,
+    invulnerableUntil: null,
+    hitHoldUntil: 0,
+    scale: 1,
+    opacity: 1,
+    blasterEnergy: BLASTER_MAX_ENERGY,
+    blasterMaxEnergy: BLASTER_MAX_ENERGY,
+    blasterLastRechargeTime: performance.now(),
+    blasterEmptyFlashEndTime: 0
+  });
 }
 
 /**

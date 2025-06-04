@@ -29,6 +29,11 @@ export function setupRestartUI(canvas, ctx, bullets) {
       mx >= restartButton.x && mx <= restartButton.x + restartButton.width &&
       my >= restartButton.y && my <= restartButton.y + restartButton.height
     ) {
+      // On congrats, do a full reload to reset all game state
+      if (state.gameState === 'congrats') {
+        window.location.reload();
+        return;
+      }
       // Restart from the controls screen
       isRestartHover = false;
       startGame(canvas, ctx, bullets, restartButton, isRestartHover);
