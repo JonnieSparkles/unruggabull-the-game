@@ -77,6 +77,9 @@ export function resetGame(canvas, bullets) {
   state.setGameStartTime(performance.now());
   state.setGameStopTime(0);
   state.setCongratsStartTime(0);
+  state.setDifficultyLevel(1);
+  state.setWaveBanner(false);
+  state.setWaveBannerStartTime(0);
   // Reset defeat scene trigger
   if (typeof updateGame !== 'undefined') updateGame._defeatSceneStarted = false;
 }

@@ -1,9 +1,6 @@
 rugfather
 -easy, hard, endless modes
 -jazz up around the game frame
--fix game restart - on victory
--add timer and final health to victory screen
--level finish screen
 -audit mobile js
 -readme
 -license type
