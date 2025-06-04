@@ -1,7 +1,6 @@
 rugfather
 -jazz up around the game frame
 -audit mobile js
--license type
 -make carpshits harder?
 -version number
 
