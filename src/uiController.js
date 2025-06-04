@@ -1,6 +1,6 @@
 // UI Controller: manage restart button interactions
 import * as state from './state.js';
-import { resetGame, gameLoop } from './controller.js';
+import { resetGame, gameLoop, startGame } from './controller.js';
 import { renderGame } from './render.js';
 import { bgMusic } from './sound.js';
 import { player } from './player.js';
@@ -29,18 +29,9 @@ export function setupRestartUI(canvas, ctx, bullets) {
       mx >= restartButton.x && mx <= restartButton.x + restartButton.width &&
       my >= restartButton.y && my <= restartButton.y + restartButton.height
     ) {
-      // Reset game state and reload level-specific music
-      resetGame(canvas, bullets);
-      const levelConfig = levels[getCurrentLevelKey()];
-      // Pause before changing src to avoid AbortError
-      bgMusic.pause();
-      bgMusic.src = levelConfig.music;
-      bgMusic.currentTime = 0;
-      // Play in a microtask to avoid race with pause
-      Promise.resolve().then(() => bgMusic.play());
-      state.setGameState('playing');
+      // Restart from the controls screen
       isRestartHover = false;
-      gameLoop(canvas, ctx, bullets, restartButton, isRestartHover);
+      startGame(canvas, ctx, bullets, restartButton, isRestartHover);
     }
   });
 

@@ -74,6 +74,9 @@ export function resetGame(canvas, bullets) {
   clearEntities(bullets);
   state.setDyingStartTime(null);
   state.setGameState('playing');
+  state.setGameStartTime(performance.now());
+  state.setGameStopTime(0);
+  state.setCongratsStartTime(0);
   // Reset defeat scene trigger
   if (typeof updateGame !== 'undefined') updateGame._defeatSceneStarted = false;
 }
@@ -120,6 +123,7 @@ export function startGame(canvas, ctx, bullets, restartButton, isRestartHover) {
   function controlsScreenHandler(e) {
     if (state.gameState === 'controls') {
       state.setGameState('playing');
+      state.setGameStartTime(performance.now());
       // Show initial wave banner only after controls screen is dismissed
       state.setWaveBanner(true);
       state.setWaveBannerStartTime(performance.now());

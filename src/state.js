@@ -158,6 +158,16 @@ export let congratsStartTime = 0;
 export function setCongratsStartTime(val) { congratsStartTime = val; }
 export function getCongratsStartTime() { return congratsStartTime; }
 
+// Add game timer start time
+export let gameStartTime = 0;
+export function setGameStartTime(val) { gameStartTime = val; }
+export function getGameStartTime() { return gameStartTime; }
+
+// Add game timer stop time
+export let gameStopTime = 0;
+export function setGameStopTime(val) { gameStopTime = val; }
+export function getGameStopTime() { return gameStopTime; }
+
 // Exit boss position and scale
 export let exitBossX = 0;
 export let exitBossY = 0;

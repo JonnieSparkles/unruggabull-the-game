@@ -356,9 +356,23 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       ctx.restore();
 
       drawCongrats(ctx, canvas);
+      // Draw health percentage and elapsed time
+      ctx.save();
+      ctx.font = 'bold 28px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      const healthPercent = Math.round((player.health / PLAYER_START_HEALTH) * 100);
+      ctx.fillText(`Health: ${healthPercent}%`, canvas.width / 2, canvas.height / 2 - 30);
+      // Stop timer at boss kill
+      const stopTime = state.getGameStopTime() || now;
+      const elapsedMs = stopTime - state.getGameStartTime();
+      const elapsedSec = (elapsedMs / 1000).toFixed(1);
+      ctx.fillText(`Time: ${elapsedSec}s`, canvas.width / 2, canvas.height / 2);
+      ctx.restore();
+
       // Center the restart button
       restartButton.x = Math.round(canvas.width / 2 - restartButton.width / 2);
-      restartButton.y = Math.round(canvas.height / 2 + 60);
+      restartButton.y = Math.round(canvas.height / 2 + 30);
       drawRestartButton(ctx, canvas, restartButton, isRestartHover);
       return;
     }

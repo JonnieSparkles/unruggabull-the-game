@@ -26,11 +26,17 @@ import { PLAYER_START_HEALTH } from './constants/player.js';
  */
 export function updateGame(bullets, canvas) {
   const now = performance.now();
+  // FIRST_EDIT: reset player invulnerability early to stop blinking during boss intro
+  if (player.invulnerable && player.invulnerableUntil != null && now > player.invulnerableUntil) {
+    player.invulnerable = false;
+    player.invulnerableUntil = null;
+  }
   // Defeat scene override: if boss is dying, run defeat timeline only
   const bossEntity = state.getCurrentBoss && state.getCurrentBoss();
   if (bossEntity && bossEntity.dying) {
     if (!updateGame._defeatSceneStarted) {
       launchRugfatherDefeatScene();
+      state.setGameStopTime(now);
       updateGame._defeatSceneStarted = true;
     }
     updateRugfatherDefeatScene(now);

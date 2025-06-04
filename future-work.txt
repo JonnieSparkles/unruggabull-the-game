@@ -1,6 +1,5 @@
 rugfather
 -easy, hard, endless modes
--player might be invulnerable flashing when going to boss intro
 -jazz up around the game frame
 -fix game restart - on victory
 -add timer and final health to victory screen
