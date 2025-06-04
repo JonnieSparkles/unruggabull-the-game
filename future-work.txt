@@ -1,5 +1,4 @@
 rugfather
--easy, hard, endless modes
 -jazz up around the game frame
 -audit mobile js
 -readme

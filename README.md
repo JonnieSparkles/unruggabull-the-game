@@ -32,34 +32,27 @@ unruggabull-the-game/
 ├── future-work.txt
 ├── index.html
 ├── main.js
-├── assets/
-│   ├── audio/
-│   │   ├── bgm/            # Background music tracks
-│   │   └── sfx/            # Sound effects (jump, fire, boss, etc.)
-│   ├── gallery/            # Mobile-only gallery assets
-│   ├── icons/              # UI icons
-│   ├── images/             # Static images (title screen, backgrounds)
-│   └── sprites/
-│       └── levels/
-│           └── rugcoAlley/ # Level-specific sprite sheets
-└── src/
-    ├── assets.js           # Preloaded images and sprites
-    ├── constants/          # Game constants (player, timing, states)
-    ├── collision.js        # Collision detection logic
-    ├── controller.js       # Game loop orchestration
-    ├── devtools.js         # DevTools overlay logic
-    ├── input.js            # Keyboard input handling
-    ├── levels/             # Level configurations and boss logic
-    │   └── rugcoAlley/
-    ├── mobile-gallery.js   # Mobile gallery logic
-    ├── physics.js          # Platform and gravity logic
-    ├── player.js           # Player state and input handling
-    ├── projectiles/        # Bullet and carpet projectile modules
-    ├── render.js           # Canvas rendering of game state
-    ├── scripts/            # Additional scripts (if any)
-    ├── state.js            # Centralized game state management
-    ├── update.js           # Game update cycle (logic and AI)
-    └── ui.js               # HUD and UI drawing functions
+├── assets/                # Images, audio, icons, and sprites
+└── src/                   # Main game source code
+    ├── assets.js          # Preloaded assets
+    ├── constants/         # Game constants (player, timing, states)
+    ├── controller.js      # Game loop orchestration
+    ├── callbacks.js       # Game event callbacks
+    ├── sound.js           # Audio handling logic
+    ├── devtools.js        # DevTools overlay and debugging
+    ├── input.js           # Keyboard input handling
+    ├── physics.js         # Platform and gravity logic
+    ├── player.js          # Player state and input handling
+    ├── playerSprites.js   # Player sprite definitions
+    ├── projectiles/       # Bullet and carpet projectile modules
+    ├── enemies/           # Enemy behaviors and configurations
+    ├── levels/            # Level configurations and boss logic
+    ├── utils/             # Utility functions
+    ├── render.js          # Canvas rendering logic
+    ├── state.js           # Centralized game state management
+    ├── update.js          # Game update cycle (logic and AI)
+    ├── ui.js              # HUD and UI drawing functions
+    └── uiController.js    # UI controller logic
 ```
 
 ## Setup & Running
