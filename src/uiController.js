@@ -34,7 +34,7 @@ export function setupRestartUI(canvas, ctx, bullets) {
         window.location.reload();
         return;
       }
-      // Restart from the controls screen
+      // Always restart from the controls screen (normal and boss deaths)
       isRestartHover = false;
       startGame(canvas, ctx, bullets, restartButton, isRestartHover);
     }

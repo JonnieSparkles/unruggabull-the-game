@@ -1,8 +1,3 @@
-rugfather
 -jazz up around the game frame
--make carpshits harder?
--version number
-
-
-move credits to end of game?
+-move credits to end of game
 

@@ -1,5 +1,6 @@
-v0.0.6
-- XXXX
+v0.1.0
+- Fixed boss restart bugs
+- Final tweaks
 
 v0.0.5
 - Implemented blaster energy system with HUD bar, recharge mechanics, and empty-charge flash/sound

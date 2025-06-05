@@ -24,6 +24,15 @@ export function resetGame(canvas, bullets) {
   // Reset exit sequence flags
   state.setBossExit(false);
   state.setBossExitDoorClosing(false);
+  // FULLY RESET BOSS STATE
+  state.setBossActive(false);
+  state.setCurrentBoss(null);
+  state.setBossBattleStarted(false);
+  state.setBossTransition(false);
+  state.setBossHold(false);
+  state.setBossPause(false);
+  state.setBlinkingOut(false);
+  state.setCarpshitsDuringBoss(false);
   player.x = 50;
   // Reset player dimensions
   player.width = PLAYER_WIDTH;
@@ -186,6 +195,61 @@ export function startGame(canvas, ctx, bullets, restartButton, isRestartHover) {
   }
   enemyCarpshits.forEach(c => c.respawnTimer = 0);
   enemyLowerCarpshits.forEach(c => c.respawnTimer = 0);
+}
+
+/**
+ * Restart boss battle: reset player, boss, and bullets, but preserve difficulty, kill count, and timer.
+ */
+export function restartBossBattle(canvas, ctx, bullets, restartButton, isRestartHover) {
+  // Reset player state (health, position, etc.)
+  const levelConfig = levels[getCurrentLevelKey()];
+  player.x = 50;
+  player.width = PLAYER_WIDTH;
+  player.height = PLAYER_HEIGHT;
+  player.feetY = levelConfig.floorY;
+  player.vx = 0;
+  player.vy = 0;
+  player.jumping = false;
+  player.grounded = true;
+  player.firing = false;
+  player.facing = 1;
+  player.health = PLAYER_START_HEALTH;
+  player.invulnerable = false;
+  player.invulnerableUntil = null;
+  player.crouching = false;
+  player.muzzleFlashTimer = 0;
+  player.shockedFrame = 0;
+  player.shockedFrameTimer = 0;
+  player.controlEnabled = true;
+  player.sprite = 'idle';
+  player.hitHoldUntil = 0;
+  player.scale = 1;
+  player.opacity = 1;
+  player.blasterEnergy = BLASTER_MAX_ENERGY;
+  player.blasterMaxEnergy = BLASTER_MAX_ENERGY;
+  player.blasterLastRechargeTime = performance.now();
+  player.blasterEmptyFlashEndTime = 0;
+
+  // Reset boss state
+  const boss = levels[getCurrentLevelKey()].boss;
+  if (boss && typeof boss.spawn === 'function') {
+    boss.spawn();
+    // Skip intro/entrance, go straight to battle
+    if (typeof boss.setEntering === 'function') boss.setEntering(false);
+  }
+  // Clear bullets/projectiles
+  clearEntities(bullets);
+  if (typeof window.projectiles !== 'undefined') {
+    clearEntities(window.projectiles);
+  }
+  // Set game state to playing (skip controls screen)
+  state.setGameState('playing');
+  // Remove dying/gameover flags
+  state.setDyingStartTime(null);
+  // Redraw immediately
+  renderGame(ctx, canvas, bullets, player, restartButton, isRestartHover);
+  // Resume game loop
+  gameLoop(canvas, ctx, bullets, restartButton, isRestartHover);
 }
 
 // Expose to global for inline HTML
