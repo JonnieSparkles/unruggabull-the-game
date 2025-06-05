@@ -1,4 +1,8 @@
 // UI module: overlays and HUD
+import * as state from './state.js';
+// Load congrats image for rugco alley
+const congratsImage = new Image();
+congratsImage.src = 'assets/sprites/levels/rugcoAlley/congrats-rugcoAlley.png';
 
 /**
  * Draw the controls intro screen.
@@ -78,6 +82,21 @@ export function drawGameOver(ctx, canvas) {
   ctx.fillStyle = '#f44';
   ctx.shadowBlur = 0;
   ctx.fillText('Game over! You got rugged!', canvas.width / 2, canvas.height / 2);
+  ctx.restore();
+}
+
+/**
+ * Draw the congrats image with a fade-in
+ */
+export function drawCongrats(ctx, canvas) {
+  const now = performance.now();
+  const start = state.getCongratsStartTime();
+  const fadeDuration = 2000;
+  const alpha = Math.min((now - start) / fadeDuration, 1);
+  // Draw image with fade
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(congratsImage, 0, 0, canvas.width, canvas.height);
   ctx.restore();
 }
 

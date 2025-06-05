@@ -1,38 +1,39 @@
 // Minimal orchestration stub: wires up restart UI, DevTools, and exposes startGame
 import { player } from './player.js';
 import {
-  spawnCarpet as enemySpawnCarpet,
-  spawnLowerCarpet as enemySpawnLowerCarpet,
-  carpets as enemyCarpets,
-  lowerCarpets as enemyLowerCarpets,
-  NUM_CARPETS,
-  NUM_LOWER_CARPETS
-} from './enemy.js';
+  spawnCarpshit as enemySpawnCarpshit,
+  spawnLowerCarpshit as enemySpawnLowerCarpshit,
+  carpshits as enemyCarpshits,
+  lowerCarpshits as enemyLowerCarpshits,
+  NUM_CARPSHITS,
+  NUM_LOWER_CARPSHITS
+} from './enemies/carpshits.js';
 import * as state from './state.js';
 import { setupRestartUI, restartButton, isRestartHover } from './uiController.js';
-import { setupDevTools } from './devtools.js';
+import { setupDevTools, showDevSettings } from './devtools.js';
 import { renderGame } from './render.js';
 import { startGame, gameLoop } from './controller.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const bullets = [];
+window.bullets = bullets;
 
 /**
  * DevTools difficulty adjustment wrappers.
  */
 function devIncreaseDifficulty() {
   state.increaseDifficulty();
-  enemySpawnCarpet();
-  enemySpawnLowerCarpet();
+  enemySpawnCarpshit();
+  enemySpawnLowerCarpshit();
   state.setNextPhaseKillCount(state.getKillCount() + state.PHASE_CHANGE_KILL_COUNT);
 }
 
 function devDecreaseDifficulty() {
   state.decreaseDifficulty();
   if (state.difficultyLevel > 1) {
-    if (enemyCarpets.length > NUM_CARPETS) enemyCarpets.pop();
-    if (enemyLowerCarpets.length > NUM_LOWER_CARPETS) enemyLowerCarpets.pop();
+    if (enemyCarpshits.length > NUM_CARPSHITS) enemyCarpshits.pop();
+    if (enemyLowerCarpshits.length > NUM_LOWER_CARPSHITS) enemyLowerCarpshits.pop();
   }
   state.setNextPhaseKillCount(state.getKillCount() + state.PHASE_CHANGE_KILL_COUNT);
 }
@@ -58,4 +59,13 @@ setupDevTools(
 );
 
 // Expose startGame globally.
-window.startGame = () => startGame(canvas, ctx, bullets, restartButton, isRestartHover); 
+window.startGame = () => startGame(canvas, ctx, bullets, restartButton, isRestartHover);
+// Expose openDevTools globally
+window.openDevTools = () => {
+  if (!showDevSettings) {
+    // Simulate the same logic as Ctrl+Shift+Q
+    showDevSettings = true;
+    state.setGameState('paused-dev');
+    draw();
+  }
+}; 

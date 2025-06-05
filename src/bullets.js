@@ -18,11 +18,36 @@ export function updateBullets(bullets, canvasWidth) {
  * Render bullets.
  */
 export function drawBullets(ctx, bullets, debug) {
-  ctx.fillStyle = '#ff0';
   bullets.forEach(bullet => {
-    ctx.beginPath();
-    ctx.arc(bullet.x, bullet.y, 6, 0, Math.PI * 2);
-    ctx.fill();
+    // Boss flaming carpet projectile
+    if (bullet.sprite && bullet.sprite.src && bullet.sprite.src.includes('flaming-carpet-Sheet.png')) {
+      // Animate frames 1-3 (indexes 0-2) for flying, frame 4 (index 3) for hit
+      const frameW = 128;
+      const frameH = 128;
+      let frame = 0;
+      if (bullet.hit) {
+        frame = 3; // hit frame
+      } else {
+        // Animate frames 0-2
+        if (!bullet.frameTimer) bullet.frameTimer = 0;
+        bullet.frameTimer++;
+        frame = Math.floor(bullet.frameTimer / 6) % 3; // ~10fps
+      }
+      ctx.drawImage(
+        bullet.sprite,
+        frame * frameW, 0, frameW, frameH,
+        bullet.x - bullet.width / 2, bullet.y - bullet.height / 2,
+        bullet.width, bullet.height
+      );
+    } else {
+      // Default: yellow dot
+      ctx.save();
+      ctx.fillStyle = '#ff0';
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
   });
   if (debug) {
     ctx.save();
@@ -62,9 +87,12 @@ export function fireBullet(player, bullets) {
     ? player.height / 2
     : player.height / 2 + 5;
   const bulletX = player.x + bulletOffsetX;
-  const bulletY = player.y + bulletOffsetY;
+  const bulletY = (player.crouching
+    ? player.feetY - player.height + bulletOffsetY
+    : player.y + bulletOffsetY);
 
   bullets.push({
+    type: 'player',
     x: bulletX,
     y: bulletY,
     vx: 10 * direction,

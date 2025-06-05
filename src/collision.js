@@ -1,21 +1,26 @@
 // Collision module: bullet and player collision detection
 
 /**
- * Check collisions between bullets and carpets.
- * Calls onKill(index, carpet) when a bullet hits a carpet.
+ * Check collisions between bullets and carpshits.
+ * Calls onKill(index, carpshit) when a bullet hits a carpshit.
  */
-export function checkBulletCarpetCollisions(bullets, carpets, onKill) {
+export function checkBulletcarpshitCollisions(bullets, carpshits, onKill) {
   for (let i = bullets.length - 1; i >= 0; i--) {
     const bullet = bullets[i];
-    for (let j = carpets.length - 1; j >= 0; j--) {
-      const carpet = carpets[j];
-      if (!carpet.alive) continue;
+    // Only allow player bullets (no sprite or not flaming-carpet)
+    const isBossProjectile = bullet.type === 'boss';
+    if (isBossProjectile) continue;
+    for (let j = carpshits.length - 1; j >= 0; j--) {
+      const carpshit = carpshits[j];
+      if (!carpshit.alive) continue;
+      // Get carpshit hitbox
+      const { x: cx, y: cy, width: cw, height: ch } = getCarpshitHitbox(carpshit);
       // Simple AABB collision
       if (
-        bullet.x > carpet.x && bullet.x < carpet.x + 48 &&
-        bullet.y > carpet.y && bullet.y < carpet.y + 48
+        bullet.x > cx && bullet.x < cx + cw &&
+        bullet.y > cy && bullet.y < cy + ch
       ) {
-        onKill(bullets, i, carpet);
+        onKill(bullets, i, carpshit);
         break;
       }
     }
@@ -23,27 +28,33 @@ export function checkBulletCarpetCollisions(bullets, carpets, onKill) {
 }
 
 /**
- * Check collisions between bullets and lower carpets.
- * Reuses the same logic for lower carpets.
+ * Check collisions between bullets and lower carpshits.
+ * Reuses the same logic for lower carpshits.
  */
-export function checkBulletLowerCarpetCollisions(bullets, carpets, onKill) {
-  checkBulletCarpetCollisions(bullets, carpets, onKill);
+export function checkBulletLowercarpshitCollisions(bullets, carpshits, onKill) {
+  checkBulletcarpshitCollisions(bullets, carpshits, onKill);
 }
 
 /**
- * Check collisions between player and carpets.
- * Calls onHit(carpet) when the player collides with a carpet.
+ * Check collisions between player and carpshits.
+ * Calls onHit(carpshit) when the player collides with a carpshit.
  */
-export function checkPlayerCarpetCollisions(player, carpets, onHit) {
+import { getHitbox } from './player.js';
+import { getCarpshitHitbox } from './enemies/carpshits.js';
+export function checkPlayercarpshitCollisions(player, carpshits, onHit) {
   if (!player || typeof onHit !== 'function') return;
-  for (let j = carpets.length - 1; j >= 0; j--) {
-    const carpet = carpets[j];
-    if (!carpet.alive) continue;
+  for (let j = carpshits.length - 1; j >= 0; j--) {
+    const carpshit = carpshits[j];
+    if (!carpshit.alive) continue;
+    // Get player and carpshit hitboxes
+    const { x: hx, y: hy, width: hw, height: hh } = getHitbox(player);
+    const { x: cx, y: cy, width: cw, height: ch } = getCarpshitHitbox(carpshit);
+    // Simple AABB collision
     if (
-      player.x + player.width > carpet.x && player.x < carpet.x + 48 &&
-      player.y + player.height > carpet.y && player.y < carpet.y + 48
+      hx + hw > cx && hx < cx + cw &&
+      hy + hh > cy && hy < cy + ch
     ) {
-      onHit(carpet);
+      onHit(carpshit);
     }
   }
 } 

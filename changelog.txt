@@ -1,15 +1,46 @@
-v0.0.3
--Changed screen size to 960x540
--Animated level background
--Crouching now moves slower
+v0.1.0
+- Fixed boss restart bugs
+- Fixed boss projectile to use specific damage property
+- Fixed carpshit to use specific damage property
+- Final tweaks
 
+v0.0.5
+- Implemented blaster energy system with HUD bar, recharge mechanics, and empty-charge flash/sound
+- Fixed invulnerability blinking during boss intro
+- Minor UI tweaks and bug fixes
+
+v0.0.4
+- Added wave banner to display difficulty waves (e.g., Wave 1/5)
+- Introduced fight banner to signal the start of boss battles
+- Added screen shake and full-screen flash effects for dramatic feedback
+- Players can now shoot down boss carpet projectiles with bullets
+- Enhanced cinematic defeat sequence and congrats screen with fade-in
+- Improved background with dynamic flicker and ember particle effects
+
+v0.0.3
+- Changed game resolution to 960x540 for sharper, widescreen display
+- Increased sprite scale for Unruggabull and Carpshit for better visibility and presence
+- Animated background added to Rugco Alley for added immersion
+- Crouching movement slowed to improve feel and differentiate from walk
+- Restructured level organization under /levels/ for modular scene setup
+- Introduced the Rugfather 👿
+-- Fully scripted cinematic entrance using timeline system
+-- Boss sprite scale/position now controlled via timeline events
+-- Sound effects, blinking, and movement all orchestrated cleanly
+- Cutscene timeline system added
+-- Supports actions like setPlayerSprite, fadeInBoss, movePlayerTo, etc.
+-- Full support for player, boss, camera, and audio events in a single sequence
+- Player input lock system implemented (player.controlEnabled)
+-- Sprite map introduced for player actions
+-- Maps states like walk, shocked, crouch, etc. to sprite assets
+- Simplifies rendering logic and makes cutscene scripting easier
+- Set up groundwork for multi-character sprite maps (boss and enemy support planned)
 
 v0.0.2
--Added crouching
--Added difficulty levels and scaling enemy difficulty
--Added dev mode for hitbox detection and difficulty adjustments
--Split game.js into structured ES Modules under /src/ 
-
+- Added crouching
+- Added difficulty levels and scaling enemy difficulty
+- Added dev mode for hitbox detection and difficulty adjustments
+- Split game.js into structured ES Modules under /src/ 
 
 v0.0.1
--Initial release
+- Initial release
