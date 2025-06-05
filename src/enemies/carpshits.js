@@ -38,7 +38,8 @@ export const carpshits = Array.from({ length: NUM_CARPSHITS }, () => ({
   falling: false,
   vy: 0,
   onFloor: false,
-  respawnTimer: 0
+  respawnTimer: 0,
+  damage: 1 // Default damage for carpshits
 }));
 
 /**
@@ -55,7 +56,8 @@ export const lowerCarpshits = Array.from({ length: NUM_LOWER_CARPSHITS }, () => 
   falling: false,
   vy: 0,
   onFloor: false,
-  respawnTimer: 0
+  respawnTimer: 0,
+  damage: 1 // Default damage for lower carpshits
 }));
 
 // Difficulty-based speed and respawn helper functions

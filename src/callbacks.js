@@ -48,7 +48,9 @@ export function handleBulletKill(bullets, index, carpshit) {
  */
 export function handlePlayerHit(carpshit) {
   if (player.invulnerable) return;
-  player.health--;
+  // Use carpshit.damage if present, otherwise default to 1
+  const damage = typeof carpshit.damage === 'number' ? carpshit.damage : 1;
+  player.health -= damage;
   player.invulnerable = true;
   player.invulnerableUntil = performance.now() + 1500;
   // If player died, set death sprite and width
@@ -88,7 +90,9 @@ export function handlePlayerHit(carpshit) {
  */
 export function handleCarpetHit(projectiles, index, carpet) {
   if (player.invulnerable) return;
-  player.health--;
+  // Use carpet.damage if present, otherwise default to 1
+  const damage = typeof carpet.damage === 'number' ? carpet.damage : 1;
+  player.health -= damage;
   player.invulnerable = true;
   player.invulnerableUntil = performance.now() + INVULNERABLE_TIME;
   if (player.health <= 0) {

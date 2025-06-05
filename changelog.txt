@@ -1,5 +1,7 @@
 v0.1.0
 - Fixed boss restart bugs
+- Fixed boss projectile to use specific damage property
+- Fixed carpshit to use specific damage property
 - Final tweaks
 
 v0.0.5
