@@ -1,9 +1,8 @@
 rugfather
 -jazz up around the game frame
--audit mobile js
 -make carpshits harder?
 -version number
 
-add changelog to version number 
+
 move credits to end of game?
 
