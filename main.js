@@ -8,7 +8,7 @@ const titleMusic = new Audio('assets/audio/bgm/energetic-action-rock-music-33653
 titleMusic.loop = true;
 titleMusic.volume = 0.5;
 
-const letsGoSound = new Audio('assets/audio/sfx/lets-go.mp3');
+const letsGoSound = new Audio('assets/audio/sfx/unruggabull/unruggabull-lets-go.mp3');
 letsGoSound.volume = 1.0;
 
 /**

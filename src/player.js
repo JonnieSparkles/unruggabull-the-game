@@ -1,4 +1,7 @@
 import { keys } from './input.js';
+import { PLAYER_WIDTH, PLAYER_HEIGHT, MOVE_SPEED, CROUCH_SPEED, JUMP_FORCE, MAX_VELOCITY, PLAYER_START_HEALTH } from './constants/player.js';
+import { BLASTER_MAX_ENERGY } from './constants/blaster.js';
+
 
 /**
  * Player state and related assets.
@@ -6,25 +9,39 @@ import { keys } from './input.js';
 export const player = {
   x: 50,
   feetY: 380, // 300 (ground) + 80 (height)
-  width: 64,
-  height: 96,
+  width: PLAYER_WIDTH,
+  height: PLAYER_HEIGHT,
   frame: 0,
-  speed: 4,
+  speed: MOVE_SPEED,
   vx: 0,
   vy: 0,
   jumping: false,
   grounded: true,
   firing: false,
   facing: 1, // 1 for right, -1 for left
-  health: 3,
+  health: PLAYER_START_HEALTH,
   crouching: false,
-  muzzleFlashTimer: 0
+  muzzleFlashTimer: 0,
+  shockedFrame: 0,
+  shockedFrameTimer: 0,
+  controlEnabled: true,
+  sprite: 'idle',
+  invulnerable: false,
+  invulnerableUntil: null,
+  hitHoldUntil: 0,
+  scale: 1,
+  opacity: 1,
+  // Blaster energy system
+  blasterEnergy: BLASTER_MAX_ENERGY,
+  blasterMaxEnergy: BLASTER_MAX_ENERGY,
+  blasterLastRechargeTime: 0,
+  blasterEmptyFlashEndTime: 0
 };
 
 /**
  * Sound effect for jumping.
  */
-export const jumpSound = new Audio('assets/audio/sfx/jump_c_02-102843.mp3');
+export const jumpSound = new Audio('assets/audio/sfx/unruggabull/unruggabull-jump.mp3');
 
 /**
  * Handle horizontal movement input.
@@ -32,8 +49,8 @@ export const jumpSound = new Audio('assets/audio/sfx/jump_c_02-102843.mp3');
 export function handleMovement() {
   let isWalking = false;
   // Slow down if crouching
-  const normalSpeed = 4;
-  const crouchSpeed = 2.5;
+  const normalSpeed = MOVE_SPEED;
+  const crouchSpeed = CROUCH_SPEED;
   player.speed = player.crouching ? crouchSpeed : normalSpeed;
   if (keys['d'] || keys['D']) {
     player.vx = player.speed;
@@ -54,7 +71,7 @@ export function handleMovement() {
  */
 export function handleJumping() {
   if (keys[' '] && player.grounded) {
-    player.vy = -12;
+    player.vy = JUMP_FORCE;
     player.jumping = true;
     player.grounded = false;
     jumpSound.currentTime = 0;
@@ -87,6 +104,7 @@ export function handleCrouch() {
  * Update player input: movement, jumping, crouch.
  */
 export function updatePlayerInput() {
+  if (!player.controlEnabled) return;
   handleMovement();
   handleJumping();
   handleCrouch();
@@ -103,6 +121,7 @@ export function getHitbox(player) {
     const topY = player.feetY - height;
     return { x: player.x, y: topY, width: player.width, height };
   } else {
-    return { x: player.x, y: player.y, width: player.width, height: player.height };
+    // Always align hitbox to feet, even when crouching
+    return { x: player.x, y: player.feetY - player.height, width: player.width, height: player.height };
   }
 } 

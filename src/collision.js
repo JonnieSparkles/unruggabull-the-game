@@ -7,6 +7,9 @@
 export function checkBulletcarpshitCollisions(bullets, carpshits, onKill) {
   for (let i = bullets.length - 1; i >= 0; i--) {
     const bullet = bullets[i];
+    // Only allow player bullets (no sprite or not flaming-carpet)
+    const isBossProjectile = bullet.type === 'boss';
+    if (isBossProjectile) continue;
     for (let j = carpshits.length - 1; j >= 0; j--) {
       const carpshit = carpshits[j];
       if (!carpshit.alive) continue;
@@ -37,7 +40,7 @@ export function checkBulletLowercarpshitCollisions(bullets, carpshits, onKill) {
  * Calls onHit(carpshit) when the player collides with a carpshit.
  */
 import { getHitbox } from './player.js';
-import { getCarpshitHitbox } from './enemy.js';
+import { getCarpshitHitbox } from './enemies/carpshits.js';
 export function checkPlayercarpshitCollisions(player, carpshits, onHit) {
   if (!player || typeof onHit !== 'function') return;
   for (let j = carpshits.length - 1; j >= 0; j--) {

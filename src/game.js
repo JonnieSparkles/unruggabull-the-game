@@ -7,16 +7,17 @@ import {
   lowerCarpshits as enemyLowerCarpshits,
   NUM_CARPSHITS,
   NUM_LOWER_CARPSHITS
-} from './enemy.js';
+} from './enemies/carpshits.js';
 import * as state from './state.js';
 import { setupRestartUI, restartButton, isRestartHover } from './uiController.js';
-import { setupDevTools } from './devtools.js';
+import { setupDevTools, showDevSettings } from './devtools.js';
 import { renderGame } from './render.js';
 import { startGame, gameLoop } from './controller.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const bullets = [];
+window.bullets = bullets;
 
 /**
  * DevTools difficulty adjustment wrappers.
@@ -58,4 +59,13 @@ setupDevTools(
 );
 
 // Expose startGame globally.
-window.startGame = () => startGame(canvas, ctx, bullets, restartButton, isRestartHover); 
+window.startGame = () => startGame(canvas, ctx, bullets, restartButton, isRestartHover);
+// Expose openDevTools globally
+window.openDevTools = () => {
+  if (!showDevSettings) {
+    // Simulate the same logic as Ctrl+Shift+Q
+    showDevSettings = true;
+    state.setGameState('paused-dev');
+    draw();
+  }
+}; 

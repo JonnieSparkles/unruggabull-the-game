@@ -1,8 +1,3 @@
-Level 1 boss
+-jazz up around the game frame
+-move credits to end of game
 
-add changelog to version number 
-move credits to end of game?
-
-bearded theme vivid black
-
-combine all player sprites into a single image

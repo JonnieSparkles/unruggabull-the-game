@@ -1,193 +1,472 @@
 // Render module: draw everything to the canvas
 import * as state from './state.js';
-import { showControlsScreen, drawHealth, drawKillCounter, drawDifficulty, drawGameOver, drawRestartButton } from './ui.js';
+import levels from './levels/index.js';
+import { getCurrentLevelKey } from './state.js';
+import { showControlsScreen, drawKillCounter, drawDifficulty, drawGameOver, drawCongrats, drawRestartButton } from './ui.js';
 import { drawPlatforms, platforms } from './physics.js';
-import { sprite, crouchSprite, deadSprite, bgSprite, jumpingSprite } from './assets.js';
-import { drawBullets } from './bullets.js';
-import { drawCarpshits as drawEnemyCarpshits, drawLowerCarpshits as drawEnemyLowerCarpshits, carpshits, lowerCarpshits } from './enemy.js';
+import { deadSprite, blasterIcon, heartIcon } from './assets.js';
+import { drawCarpshits, drawLowerCarpshits, carpshits, lowerCarpshits } from './enemies/carpshits.js';
 import { showDevSettings, showDifficulty, DEBUG_HITBOXES, drawDevSettings } from './devtools.js';
 import { getHitbox } from './player.js';
-import { getCarpshitHitbox } from './enemy.js';
+import { getCarpshitHitbox } from './enemies/carpshits.js';
+import { getBossHold, getBossPause, getBossTransition, getBossActive, getCurrentBoss, getScreenShake, getScreenShakeStartTime, SCREEN_SHAKE_DURATION, getScreenShakeMagnitude, getBlinkingOut, getBlinkingOutStartTime, getCarpshitsDuringBoss } from './state.js';
+import { BLINK_OUT_DURATION } from './levels/rugcoAlley/rugfatherConstants.js';
+import { bgSprite, FIRST_FLICKER_FRAMES, TRANSITION_FRAMES } from './levels/rugcoAlley/background.js';
+import { PLAYER_SPRITES } from './playerSprites.js';
+import { PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_START_HEALTH } from './constants/player.js';
+import { drawProjectiles, projectiles } from './projectiles/index.js';
+import { BLASTER_EMPTY_FLASH_DURATION } from './constants/blaster.js';
 
 /**
  * Render the current game frame.
  */
 export function renderGame(ctx, canvas, bullets, player, restartButton, isRestartHover) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Animated background flicker between frames 1 and 2 (columns 0 and 1, row 0)
-  if (state.gameState === 'playing') {
-    const now = performance.now();
-    // Flicker at 1Hz (change every ~1000ms)
-    const frame = Math.floor(now / 1000) % 2;
-    ctx.drawImage(
-      bgSprite,
-      frame * 960, 0, // sx, sy (column 0 or 1, row 0)
-      960, 540,       // sw, sh
-      0, 0,           // dx, dy
-      960, 540        // dw, dh
-    );
-  } else {
-    // Default to frame 1 (column 0, row 0) for non-playing states
-    ctx.drawImage(bgSprite, 0, 0, 960, 540, 0, 0, 960, 540);
+  // Screen shake wrapper
+  const now = performance.now();
+  // FIGHT! banner overlay
+  if (state.getFightBanner && state.getFightBanner()) {
+    const elapsed = now - state.getFightBannerStartTime();
+    const DURATION = 1000; // ms to display banner
+    if (elapsed < DURATION) {
+      ctx.save();
+      ctx.font = 'bold 72px Arial';
+      ctx.fillStyle = '#ff0';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 12;
+      ctx.fillText('FIGHT!', canvas.width / 2, canvas.height / 2 - 50);
+      ctx.restore();
+      return; // skip other rendering while banner shows
+    } else {
+      state.setFightBanner(false);
+    }
   }
+  // Wave banner overlay
+  if (state.getWaveBanner && state.getWaveBanner()) {
+    const elapsedWave = now - state.getWaveBannerStartTime();
+    const DURATION_WAVE = 1000; // ms to display wave banner
+    const levelConfig = levels[getCurrentLevelKey()];
+    const maxWaves = levelConfig.bossTriggerDifficulty - 1;
+    if (elapsedWave < DURATION_WAVE && state.difficultyLevel <= maxWaves) {
+      ctx.save();
+      ctx.font = 'bold 72px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 12;
+      ctx.fillText(`Wave ${state.difficultyLevel}/${maxWaves}`, canvas.width / 2, canvas.height / 2 - 50);
+      ctx.restore();
+    } else {
+      state.setWaveBanner(false);
+    }
+  }
+  ctx.save();
+  let shouldReturn = false;
+  let shaking = false;
+  if (getScreenShake()) {
+    const elapsedShake = now - getScreenShakeStartTime();
+    if (elapsedShake > SCREEN_SHAKE_DURATION) {
+      state.setScreenShake(false);
+    } else {
+      shaking = true;
+      ctx.save();
+      const magnitude = getScreenShakeMagnitude();
+      const dx = (Math.random() * 2 - 1) * magnitude;
+      const dy = (Math.random() * 2 - 1) * magnitude;
+      ctx.translate(dx, dy);
+    }
+  }
+  // Clear and draw level background (override during bossExit)
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const levelConfig = levels[getCurrentLevelKey()];
+  const floorY = levelConfig.floorY;
+  levelConfig.background(ctx, canvas);
 
   // Flash overlay
   if (state.flashActive) {
-    const now = performance.now();
-    if (now < state.flashEndTime) {
+    const flashNow = performance.now();
+    const timeLeft = state.flashEndTime - flashNow;
+    if (timeLeft > 0) {
+      const alpha = timeLeft / state.FLASH_DURATION;
+      const color = state.flashColor || 'rgba(255,255,255,0.8)';
       ctx.save();
-      const alpha = 0.8 * ((state.flashEndTime - now) / state.FLASH_DURATION);
-      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.restore();
     } else {
       state.setFlashActive(false);
+      state.setFlashColor('rgba(255,255,255,0.8)');
     }
   }
 
   if (state.gameState === 'controls') {
     showControlsScreen(ctx, canvas);
-    return;
-  }
-
-  // HUD
-  drawHealth(ctx, player.health);
-  drawKillCounter(ctx, state.killCount, canvas.width);
-  if (showDifficulty) drawDifficulty(ctx, state.difficultyLevel, canvas.width);
-
-  // Platforms
-  drawPlatforms(ctx, platforms);
-
-  // Draw player
-  if (state.gameState === 'dying' || state.gameState === 'gameover') {
-    ctx.save();
-    const deadW = 128;
-    const deadH = 96;
-    const drawX = player.x + player.width / 2 - deadW / 2;
-    const drawY = player.feetY - deadH;
-    if (player.facing < 0) {
-      ctx.translate(drawX + deadW / 2, drawY + deadH / 2);
-      ctx.scale(-1, 1);
-      ctx.drawImage(deadSprite, 0, 0, deadW, deadH, -deadW / 2, -deadH / 2, deadW, deadH);
-    } else {
-      ctx.drawImage(deadSprite, 0, 0, deadW, deadH, drawX, drawY, deadW, deadH);
-    }
-    ctx.restore();
+    shouldReturn = true;
   } else {
-    if (player.crouching) {
+    // HUD
+    // Player health bar
+    {
+      const iconSize = 32;
+      const iconX = 20;
+      const iconY = 20;
       ctx.save();
-      // Animate crouch: crop bottom frameH pixels
-      let frameIndex = player.firing ? 3 : Math.floor(player.frame / 10) % 4;
-      const frameW = player.width;
-      const frameH = player.height;
-      const srcY = crouchSprite.height - frameH;
-      const destY = player.feetY - frameH;
-      if (player.facing < 0) {
-        ctx.translate(player.x + frameW, destY);
-        ctx.scale(-1, 1);
-        ctx.drawImage(crouchSprite, frameIndex * frameW, srcY, frameW, frameH, 0, 0, frameW, frameH);
-      } else {
-        ctx.drawImage(crouchSprite, frameIndex * frameW, srcY, frameW, frameH, player.x, destY, frameW, frameH);
-      }
+      ctx.drawImage(heartIcon, iconX, iconY, iconSize, iconSize);
       ctx.restore();
-    } else {
-      const frameIndex = player.firing ? 3 : Math.floor(player.frame / 10) % 4;
+      const barX = iconX + iconSize + 4;
+      const barHeight = 12;
+      const barY = iconY + (iconSize - barHeight) / 2;
+      const barWidth = 200;
       ctx.save();
-      if (!player.grounded && !player.crouching) {
-        // Draw jumping sprite, crop bottom to align feet
-        const frameW = player.width;
-        const frameH = player.height;
-        const srcY = jumpingSprite.height - frameH;
-        const destY = player.feetY - frameH;
-        if (player.facing < 0) {
-          ctx.translate(player.x + frameW, destY);
-          ctx.scale(-1, 1);
-          ctx.drawImage(jumpingSprite, 0, srcY, frameW, frameH, 0, 0, frameW, frameH);
-        } else {
-          ctx.drawImage(jumpingSprite, 0, srcY, frameW, frameH, player.x, destY, frameW, frameH);
-        }
-      } else if (player.facing < 0) {
-        ctx.translate(player.x + player.width, player.feetY - player.height);
-        ctx.scale(-1, 1);
-        ctx.drawImage(sprite, frameIndex * player.width, 0, player.width, player.height, 0, 0, player.width, player.height);
-      } else {
-        ctx.drawImage(sprite, frameIndex * player.width, 0, player.width, player.height, player.x, player.feetY - player.height, player.width, player.height);
+      ctx.fillStyle = '#222';
+      ctx.fillRect(barX, barY, barWidth, barHeight);
+      const healthRatio = player.health / PLAYER_START_HEALTH;
+      ctx.fillStyle = '#f44';
+      ctx.fillRect(barX, barY, barWidth * healthRatio, barHeight);
+      ctx.restore();
+    }
+    // Blaster energy bar
+    {
+      const iconSize = 32;
+      const iconX = 20;
+      const barX = iconX + iconSize + 4;
+      const barY = 60;
+      const barWidth = 200;
+      const barHeight = 12;
+      const iconY = barY - (iconSize - barHeight) / 2;
+      ctx.save();
+      ctx.drawImage(blasterIcon, iconX, iconY, iconSize, iconSize);
+      ctx.restore();
+      // Background
+      ctx.save();
+      ctx.fillStyle = '#222';
+      ctx.fillRect(barX, barY, barWidth, barHeight);
+      // Filled portion
+      const ratio = player.blasterEnergy / player.blasterMaxEnergy;
+      ctx.fillStyle = '#0ff';
+      ctx.fillRect(barX, barY, barWidth * ratio, barHeight);
+      // Flash red when empty
+      if (player.blasterEmptyFlashEndTime > now) {
+        ctx.globalAlpha = (player.blasterEmptyFlashEndTime - now) / BLASTER_EMPTY_FLASH_DURATION;
+        ctx.fillStyle = 'red';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
       }
       ctx.restore();
     }
+    if (!getBossHold() && !getBossPause() && !getBossTransition() && !getBossActive()) {
+      drawKillCounter(ctx, state.killCount, canvas.width);
+      if (showDifficulty) drawDifficulty(ctx, state.difficultyLevel, canvas.width);
+    }
+
+    // Platforms
+    if (!getBossTransition() && !getBossActive()) {
+      if (getBlinkingOut()) {
+        const elapsed = performance.now() - getBlinkingOutStartTime();
+        const blink = Math.floor(elapsed / 80) % 2 === 0;
+        ctx.save();
+        ctx.globalAlpha = blink ? 0.2 + 0.8 * (1 - elapsed / BLINK_OUT_DURATION) : 0.1;
+        drawPlatforms(ctx, platforms);
+        ctx.globalAlpha = 1.0;
+        ctx.restore();
+      } else {
+        drawPlatforms(ctx, platforms);
+      }
+    }
+
+    // Draw player with timeline-driven sprite map (time-based animation)
+    const spriteState = player.sprite || 'idle';
+    let spriteInfo = PLAYER_SPRITES[spriteState];
+    if (!spriteInfo) {
+      console.warn(`Unknown player sprite state: "${spriteState}"; defaulting to idle.`);
+      spriteInfo = PLAYER_SPRITES['idle'];
+    }
+    {
+      const img = spriteInfo.image;
+      const frameWidth = spriteInfo.frameWidth || player.width;
+      const frameHeight = spriteInfo.frameHeight || player.height;
+      const t = performance.now();
+      let frameData;
+      if (spriteInfo.frameSequence) {
+        frameData = spriteInfo.frameSequence[Math.floor(t / spriteInfo.frameDuration) % spriteInfo.frameSequence.length];
+        if (typeof frameData === 'number') {
+          frameData = { frame: frameData, mirror: false };
+        }
+      } else if (spriteInfo.animated) {
+        frameData = { frame: Math.floor(t / spriteInfo.frameDuration) % (spriteInfo.frameCount || 1), mirror: false };
+      } else {
+        frameData = { frame: spriteInfo.frame || 0, mirror: false };
+      }
+      const offsetY = spriteInfo.offsetY || 0;
+
+      let srcY = 0;
+      let srcH = frameHeight;
+      let destY = player.feetY - frameHeight + offsetY;
+      if (spriteState === 'crouch') {
+        // Crop from the bottom of the crouch sprite so feet align
+        srcY = img.height - frameHeight;
+        srcH = frameHeight;
+        destY = player.feetY - frameHeight + offsetY;
+      }
+
+      // Draw shadow ellipse before drawing the player sprite, but only if grounded
+      if (player.grounded) {
+        ctx.save();
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.beginPath();
+        ctx.ellipse(
+          player.x + player.width / 2,
+          player.feetY - 5,
+          player.width / 2.5,
+          8,
+          0,
+          0,
+          2 * Math.PI
+        );
+        ctx.fill();
+        ctx.restore();
+      }
+
+      ctx.save();
+      // Player invulnerability blink
+      let alpha = player.opacity !== undefined ? player.opacity : 1.0;
+      // Only apply invulnerable flicker if not dead
+      if (player.invulnerable && spriteState !== 'dead') {
+        const blinkInterval = 200; // ms between alpha toggles
+        const blinkOn = Math.floor(now / blinkInterval) % 2 === 0;
+        alpha *= blinkOn ? 0.5 : 1.0;
+      }
+      ctx.globalAlpha = alpha;
+      // Support scale for defeat scene
+      const scale = player.scale !== undefined ? player.scale : 1.0;
+      ctx.translate(player.x + (frameWidth * (1 - scale)) / 2, destY + (frameHeight * (1 - scale)) / 2);
+      ctx.scale(scale, scale);
+      // Special case: dead sprite is always unmirrored and uses full width
+      if (spriteState === 'dead') {
+        ctx.drawImage(
+          img,
+          0, 0, frameWidth, frameHeight,
+          0, 0, frameWidth, frameHeight
+        );
+      } else {
+        // Mirror if frameData.mirror is true, or if player is facing left and not in walkForward (back view)
+        const shouldMirror = frameData.mirror || (player.facing < 0 && spriteState !== 'walkForward');
+        if (shouldMirror) {
+          ctx.translate(frameWidth, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(
+            img,
+            frameData.frame * frameWidth, srcY, frameWidth, srcH,
+            0, 0, frameWidth, frameHeight
+          );
+        } else {
+          ctx.drawImage(
+            img,
+            frameData.frame * frameWidth, srcY, frameWidth, srcH,
+            0, 0, frameWidth, frameHeight
+          );
+        }
+      }
+      ctx.restore();
+    }
+    // Skip legacy drawing logic. Continue with muzzle flash, bullets, etc.
+
+    // Muzzle flash
+    if (player.muzzleFlashTimer > 0) {
+      ctx.save();
+      ctx.fillStyle = 'yellow';
+      ctx.globalAlpha = 0.85;
+      const direction = player.facing;
+      const muzzleOffsetX = direction === 1 ? player.width - 6 : -6;
+      const muzzleOffsetY = player.crouching ? player.height / 2 : player.height / 2 + 5;
+      const muzzleX = player.x + muzzleOffsetX;
+      const muzzleY = player.crouching
+        ? player.feetY - player.height + muzzleOffsetY
+        : player.y + muzzleOffsetY;
+      ctx.beginPath();
+      ctx.ellipse(muzzleX, muzzleY, 14, 7, 0, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+      ctx.restore();
+    }
+
+    // Debug hitboxes
+    if (DEBUG_HITBOXES) {
+      // Draw actual hitbox
+      ctx.save();
+      const { x: hx, y: hy, width: hw, height: hh } = getHitbox(player);
+      ctx.strokeStyle = 'lime';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(hx, hy, hw, hh);
+      ctx.restore();
+      // Draw red hitboxes for all visible carpshits
+      ctx.save();
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 2;
+      // Upper carpshits
+      carpshits.forEach(carpshit => {
+        if (!carpshit.alive && !carpshit.falling && !carpshit.onFloor) return;
+        if (getBlinkingOut()) {
+          const elapsed = performance.now() - getBlinkingOutStartTime();
+          if (Math.floor(elapsed / 80) % 2 === 0) return;
+        }
+        const { x: cx, y: cy, width: cw, height: ch } = getCarpshitHitbox(carpshit);
+        ctx.strokeRect(cx, cy, cw, ch);
+      });
+      // Lower carpshits
+      lowerCarpshits.forEach(carpshit => {
+        if (!carpshit.alive && !carpshit.falling && !carpshit.onFloor) return;
+        if (getBlinkingOut()) {
+          const elapsed = performance.now() - getBlinkingOutStartTime();
+          if (Math.floor(elapsed / 80) % 2 === 0) return;
+        }
+        const { x: cx, y: cy, width: cw, height: ch } = getCarpshitHitbox(carpshit);
+        ctx.strokeRect(cx, cy, cw, ch);
+      });
+      ctx.restore();
+    }
+
+    // Projectiles (player bullets and boss carpets)
+    // Draw only player bullets beneath environment
+    projectiles.forEach(p => { if (p.type === 'player') p.draw(ctx, DEBUG_HITBOXES); });
+    // Enemies behind boss: only before boss fight begins
+    if (!getBossTransition() && !getBossActive()) {
+      if (getBlinkingOut()) {
+        const elapsed = performance.now() - getBlinkingOutStartTime();
+        const blink = Math.floor(elapsed / 80) % 2 === 0;
+        ctx.save();
+        ctx.globalAlpha = blink ? 0.2 + 0.8 * (1 - elapsed / BLINK_OUT_DURATION) : 0.1;
+        drawCarpshits(ctx);
+        drawLowerCarpshits(ctx);
+        ctx.globalAlpha = 1.0;
+        ctx.restore();
+      } else {
+        drawCarpshits(ctx);
+        drawLowerCarpshits(ctx);
+      }
+    }
+
+    // Congrats screen
+    if (state.gameState === 'congrats') {
+      // Fade overlay
+      ctx.save();
+      ctx.globalAlpha = 0.6;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 1.0;
+      ctx.restore();
+
+      drawCongrats(ctx, canvas);
+      // Draw health percentage and elapsed time
+      ctx.save();
+      ctx.font = 'bold 28px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      const healthPercent = Math.round((player.health / PLAYER_START_HEALTH) * 100);
+      ctx.fillText(`Health: ${healthPercent}%`, canvas.width / 2, canvas.height / 2 - 30);
+      // Stop timer at boss kill
+      const stopTime = state.getGameStopTime() || now;
+      const elapsedMs = stopTime - state.getGameStartTime();
+      const elapsedSec = (elapsedMs / 1000).toFixed(1);
+      ctx.fillText(`Time: ${elapsedSec}s`, canvas.width / 2, canvas.height / 2);
+      ctx.restore();
+
+      // Center the restart button
+      restartButton.x = Math.round(canvas.width / 2 - restartButton.width / 2);
+      restartButton.y = Math.round(canvas.height / 2 + 20);
+
+      // --- Fix: update isRestartHover based on current mouse position ---
+      if (typeof window !== 'undefined' && window._lastMousePos) {
+        const { x: mx, y: my } = window._lastMousePos;
+        const over = (
+          mx >= restartButton.x && mx <= restartButton.x + restartButton.width &&
+          my >= restartButton.y && my <= restartButton.y + restartButton.height
+        );
+        if (typeof window.isRestartHover !== 'undefined') {
+          window.isRestartHover = over;
+        }
+      }
+      drawRestartButton(ctx, canvas, restartButton, typeof window.isRestartHover !== 'undefined' ? window.isRestartHover : isRestartHover);
+      return;
+    }
+
+    // Game over
+    if (state.gameState.includes('over')) {
+      // Fade overlay
+      ctx.save();
+      ctx.globalAlpha = 0.6; // Adjust for desired darkness
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 1.0;
+      ctx.restore();
+
+      drawGameOver(ctx, canvas);
+      // Center the restart button
+      restartButton.x = Math.round(canvas.width / 2 - restartButton.width / 2);
+      restartButton.y = Math.round(canvas.height / 2 + 40);
+      drawRestartButton(ctx, canvas, restartButton, isRestartHover);
+      return;
+    }
+
+    // Boss draw if active
+    if (getBossActive() && getCurrentBoss()) {
+      getCurrentBoss().draw(ctx);
+      // Draw carpshits in front of boss during battle
+      if (getCarpshitsDuringBoss()) {
+        drawCarpshits(ctx);
+        drawLowerCarpshits(ctx);
+      }
+      // Draw boss carpets on top of boss
+      projectiles.forEach(p => { if (p.type === 'boss') p.draw(ctx, DEBUG_HITBOXES); });
+      if (DEBUG_HITBOXES) {
+        // Draw boss hitbox
+        const bossHitbox = getCurrentBoss().getHitbox();
+        ctx.save();
+        ctx.strokeStyle = 'orange';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(bossHitbox.x, bossHitbox.y, bossHitbox.width, bossHitbox.height);
+        ctx.restore();
+        // Draw player hitbox
+        const { x: hx, y: hy, width: hw, height: hh } = getHitbox(player);
+        ctx.save();
+        ctx.strokeStyle = 'lime';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(hx, hy, hw, hh);
+        ctx.restore();
+      }
+      shouldReturn = true;
+    }
   }
 
-  // Muzzle flash
-  if (player.muzzleFlashTimer > 0) {
-    ctx.save();
-    ctx.fillStyle = 'yellow';
-    ctx.globalAlpha = 0.85;
-    const direction = player.facing;
-    const muzzleOffsetX = direction === 1 ? player.width - 6 : -6;
-    const muzzleOffsetY = player.crouching ? player.height / 2 : player.height / 2 + 5;
-    const muzzleX = player.x + muzzleOffsetX;
-    const muzzleY = player.y + muzzleOffsetY;
-    ctx.beginPath();
-    ctx.ellipse(muzzleX, muzzleY, 14, 7, 0, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.globalAlpha = 1.0;
-    ctx.restore();
-  }
-
-  // Debug hitboxes
-  if (DEBUG_HITBOXES) {
-    // Draw actual hitbox
-    ctx.save();
-    const { x: hx, y: hy, width: hw, height: hh } = getHitbox(player);
-    ctx.strokeStyle = 'lime';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(hx, hy, hw, hh);
-    ctx.restore();
-    // Draw red hitboxes for all visible carpshits
-    ctx.save();
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = 2;
-    // Upper carpshits
-    carpshits.forEach(carpshit => {
-      if (!carpshit.alive && !carpshit.falling && !carpshit.onFloor) return;
-      const { x: cx, y: cy, width: cw, height: ch } = getCarpshitHitbox(carpshit);
-      ctx.strokeRect(cx, cy, cw, ch);
-    });
-    // Lower carpshits
-    lowerCarpshits.forEach(carpshit => {
-      if (!carpshit.alive && !carpshit.falling && !carpshit.onFloor) return;
-      const { x: cx, y: cy, width: cw, height: ch } = getCarpshitHitbox(carpshit);
-      ctx.strokeRect(cx, cy, cw, ch);
-    });
-    ctx.restore();
-  }
-
-  // Bullets & enemies
-  drawBullets(ctx, bullets, DEBUG_HITBOXES);
-  drawEnemyCarpshits(ctx);
-  drawEnemyLowerCarpshits(ctx);
-
-  // Game over
-  if (state.gameState.includes('over')) {
-    // Fade overlay
-    ctx.save();
-    ctx.globalAlpha = 0.6; // Adjust for desired darkness
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalAlpha = 1.0;
-    ctx.restore();
-
-    drawGameOver(ctx, canvas);
-    // Center the restart button
-    restartButton.x = Math.round(canvas.width / 2 - restartButton.width / 2);
-    restartButton.y = Math.round(canvas.height / 2 + 40);
-    drawRestartButton(ctx, canvas, restartButton, isRestartHover);
-    return;
-  }
-
-  // Dev settings overlay
+  // Dev settings overlay always on top
   if (showDevSettings) {
     drawDevSettings(ctx, canvas, state.difficultyLevel);
   }
+  if (shouldReturn) {
+    if (shaking) ctx.restore();
+    ctx.restore();
+    return;
+  }
+  if (shaking) ctx.restore();
+
+  // Wave banner overlay (draw last, always on top)
+  if (state.getWaveBanner && state.getWaveBanner()) {
+    const now = performance.now();
+    const elapsedWave = now - state.getWaveBannerStartTime();
+    const DURATION_WAVE = 1000; // ms to display wave banner
+    const levelConfig = levels[getCurrentLevelKey()];
+    const maxWaves = levelConfig.bossTriggerDifficulty - 1;
+    if (elapsedWave < DURATION_WAVE && state.difficultyLevel <= maxWaves) {
+      ctx.save();
+      ctx.font = 'bold 72px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 12;
+      ctx.fillText(`Wave ${state.difficultyLevel}/${maxWaves}`, canvas.width / 2, canvas.height / 2 - 50);
+      ctx.restore();
+    } else {
+      state.setWaveBanner(false);
+    }
+  }
+  ctx.restore();
 } 
