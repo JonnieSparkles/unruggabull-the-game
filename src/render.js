@@ -373,7 +373,19 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
       // Center the restart button
       restartButton.x = Math.round(canvas.width / 2 - restartButton.width / 2);
       restartButton.y = Math.round(canvas.height / 2 + 30);
-      drawRestartButton(ctx, canvas, restartButton, isRestartHover);
+
+      // --- Fix: update isRestartHover based on current mouse position ---
+      if (typeof window !== 'undefined' && window._lastMousePos) {
+        const { x: mx, y: my } = window._lastMousePos;
+        const over = (
+          mx >= restartButton.x && mx <= restartButton.x + restartButton.width &&
+          my >= restartButton.y && my <= restartButton.y + restartButton.height
+        );
+        if (typeof window.isRestartHover !== 'undefined') {
+          window.isRestartHover = over;
+        }
+      }
+      drawRestartButton(ctx, canvas, restartButton, typeof window.isRestartHover !== 'undefined' ? window.isRestartHover : isRestartHover);
       return;
     }
 

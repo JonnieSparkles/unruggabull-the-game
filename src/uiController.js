@@ -19,6 +19,9 @@ export const restartButton = {
  * Set up restart button click and hover handlers.
  */
 export function setupRestartUI(canvas, ctx, bullets) {
+  // Track last mouse position globally for congrats hover fix
+  window._lastMousePos = { x: 0, y: 0 };
+  window.isRestartHover = isRestartHover;
   canvas.addEventListener('click', function(e) {
     // Allow restart on game over or congrats screens
     if (!state.gameState.includes('over') && state.gameState !== 'congrats') return;
@@ -46,10 +49,12 @@ export function setupRestartUI(canvas, ctx, bullets) {
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
+    window._lastMousePos = { x: mx, y: my };
     isRestartHover = (
       mx >= restartButton.x && mx <= restartButton.x + restartButton.width &&
       my >= restartButton.y && my <= restartButton.y + restartButton.height
     );
+    window.isRestartHover = isRestartHover;
     if (state.gameState.includes('over') || state.gameState === 'congrats') {
       renderGame(ctx, canvas, bullets, player, restartButton, isRestartHover);
     }
