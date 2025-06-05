@@ -372,7 +372,7 @@ export function renderGame(ctx, canvas, bullets, player, restartButton, isRestar
 
       // Center the restart button
       restartButton.x = Math.round(canvas.width / 2 - restartButton.width / 2);
-      restartButton.y = Math.round(canvas.height / 2 + 30);
+      restartButton.y = Math.round(canvas.height / 2 + 20);
 
       // --- Fix: update isRestartHover based on current mouse position ---
       if (typeof window !== 'undefined' && window._lastMousePos) {
